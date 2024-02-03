@@ -10,8 +10,7 @@ let
 
   handlePackage = pkg:
     let
-      attempt = lib.nameValuePair pkg.path {
-        pname = pkg.pname;
+      attempt = lib.nameValuePair pkg.pname {
         # naturalSort isn't necessary, we just need a sort we can easily reuse for comparison
         paths = lib.naturalSort ([ pkg.path ] ++ pkg.extraPaths or [ ]);
       };

@@ -1,13 +1,15 @@
-{ stdenv, lib, runCommand, writeText, rsync, source, sourceData }:
+{ stdenv, hostBranch, lib, runCommand, writeText, rsync, source, sourceData }:
 { pname, path, extraPaths ? [] }: let
-  lockData = sourceData.filteredHashes.${stdenv.buildPlatform.system}.${stdenv.hostPlatform.system} or {};
-  lockedHash = lockData.${path}.hash or null;
-  lockedPaths = lockData.${path}.paths;
+  buildSystem = stdenv.buildPlatform.system;
+  hostSystem = stdenv.hostPlatform.system;
+  lockData = sourceData.filteredHashes.${buildSystem}.${hostSystem} or {};
+  lockedHash = lockData.${pname}.hash or null;
+  lockedPaths = lockData.${pname}.paths;
   sortedPaths = lib.naturalSort ([ path ] ++ extraPaths);
   extraAttrs = if lockedHash == null then
-    lib.warn "${pname} sources not locked, may cause extra rebuilds" {}
+    lib.warn "${hostBranch}: ${buildSystem}.${hostSystem}.${pname} sources not locked, may cause extra rebuilds" {}
   else if lockedPaths != sortedPaths then
-    lib.warn "${pname} paths do not match locked, may cause extra rebuilds" {}
+    lib.warn "${hostBranch}: ${buildSystem}.${hostSystem}.${pname} paths do not match locked, may cause extra rebuilds" {}
   else {
     outputHashMode = "recursive";
     outputHash = lockedHash;

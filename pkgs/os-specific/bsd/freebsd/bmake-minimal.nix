@@ -1,5 +1,7 @@
 { lib, stdenv, mkDerivation, bsdSetupHook, freebsdSetupHook, patchesRoot, hostVersion, ... }:
 mkDerivation {
+  pname = "bmake-minimal";
+
   path = "contrib/bmake";
   extraPaths = [ "share/mk" ]
     ++ lib.optional (!stdenv.hostPlatform.isFreeBSD) "tools/build/mk";

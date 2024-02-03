@@ -1,6 +1,7 @@
 #!/usr/bin/env nix-shell
 #!nix-shell -i python3 -p git "python3.withPackages (ps: with ps; [ gitpython packaging beautifulsoup4 pandas lxml ])"
 
+import argparse
 import bs4
 import git
 import io
@@ -122,7 +123,7 @@ def hash_partial_commit(
 
     except FileNotFoundError as e:
         print(
-            f"{ref_name}: {package_obj['pname']}: WARNING: file {e.filename} does not exist, skipping"
+            f"{ref_name}: {pname}: WARNING: file {e.filename} does not exist, skipping"
         )
 
     shutil.rmtree(filtered_dir)
@@ -191,13 +192,43 @@ def handle_commit(
     }
 
 
+def rebuild_lock_cache(versions: dict, ref_name: str):
+    try:
+        cache = dict()
+        hashes = versions[ref_name]["filteredHashes"]
+        for a in hashes.values():
+            for b in a.values():
+                for c in b.values():
+                    cache[tuple(c["paths"])] = c["hash"]
+        return cache
+    except KeyError:
+        return dict()
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "-s",
+    "--src",
+    type=pathlib.Path,
+    help="Existing FreeBSD source checkout, highly recommended!",
+)
+subparsers = parser.add_subparsers(dest="action", help="Main action")
+subparsers.add_parser("update", help="Run all update steps (default)")
+subparsers.add_parser("lock", help="Regenerate changed filtered source hashes")
+args = parser.parse_args()
+
+action = "update" if args.action is None else args.action
+
+needs_commits = action in ["update"]
+needs_lock = action in ["update", "lock"]
+
 # Normally uses /run/user/*, which is on a tmpfs and too small
 temp_dir = tempfile.TemporaryDirectory(dir="/tmp")
 temp_path = pathlib.Path(temp_dir.name)
 print(f"Selected temporary directory {temp_path}")
 
 if len(sys.argv) >= 2:
-    orig_repo = git.Repo(sys.argv[1])
+    orig_repo = git.Repo(args.src)
     print(f"Fetching updates on {orig_repo.git_dir}")
     orig_repo.remote("origin").fetch()
 else:
@@ -222,81 +253,88 @@ os.remove(work_dir / ".git")
 print(f"Working in directory {repo.working_dir} with git directory {repo.git_dir}")
 
 versions = dict()
-for tag in repo.tags:
-    m = TAG_PATTERN.match(tag.name)
-    if m is None:
-        continue
-    version = packaging.version.parse(m[1])
-    if version < MIN_VERSION:
-        print(f"Skipping old tag {tag.name} ({version})")
-        continue
 
-    print(f"Trying tag {tag.name} ({version})")
-
-    result = handle_commit(repo, tag.commit, tag.name, "tag", supported_refs)
-    versions[tag.name] = result
-
-for branch in repo.remote("origin").refs:
-    m = BRANCH_PATTERN.match(branch.name)
-    if m is not None:
-        fullname = m[1]
-        version = packaging.version.parse(m[3])
-        if version < MIN_VERSION:
-            print(f"Skipping old branch {fullname} ({version})")
+if needs_commits:
+    for tag in repo.tags:
+        m = TAG_PATTERN.match(tag.name)
+        if m is None:
             continue
-        print(f"Trying branch {fullname} ({version})")
-    elif branch.name == f"{REMOTE}/{MAIN_BRANCH}":
-        fullname = MAIN_BRANCH
-        print(f"Trying development branch {fullname}")
-    else:
-        continue
+        version = packaging.version.parse(m[1])
+        if version < MIN_VERSION:
+            print(f"Skipping old tag {tag.name} ({version})")
+            continue
 
-    result = handle_commit(repo, branch.commit, fullname, "branch", supported_refs)
-    versions[fullname] = result
+        print(f"Trying tag {tag.name} ({version})")
 
-# Write versions.json for the first time so we can get the right extraPaths
-with open(BASE_DIR / "versions.json", "w") as out:
-    json.dump(versions, out, sort_keys=True)
+        result = handle_commit(repo, tag.commit, tag.name, "tag", supported_refs)
+        versions[tag.name] = result
 
-all_package_paths = eval_package_paths()
+    for branch in repo.remote("origin").refs:
+        m = BRANCH_PATTERN.match(branch.name)
+        if m is not None:
+            fullname = m[1]
+            version = packaging.version.parse(m[3])
+            if version < MIN_VERSION:
+                print(f"Skipping old branch {fullname} ({version})")
+                continue
+            print(f"Trying branch {fullname} ({version})")
+        elif branch.name == f"{REMOTE}/{MAIN_BRANCH}":
+            fullname = MAIN_BRANCH
+            print(f"Trying development branch {fullname}")
+        else:
+            continue
 
-for ref_name in versions.keys():
-    rev = versions[ref_name]["rev"]
-    repo.git.checkout(versions[ref_name]["rev"])
-    print(f"{ref_name}: checked out {rev}")
+        result = handle_commit(repo, branch.commit, fullname, "branch", supported_refs)
+        versions[fullname] = result
 
-    # We'll have a lot of duplicate path lists, so make a cache
-    cache = dict()
+    # Write versions.json for the first time so we can get the right extraPaths
+    with open(BASE_DIR / "versions.json", "w") as out:
+        json.dump(versions, out, sort_keys=True)
+else:
+    with open(BASE_DIR / "versions.json", "r") as f:
+        versions = json.load(f)
 
-    ref_results = dict()
-    for build_system in SYSTEMS:
-        build_results = dict()
-        for host_system in SYSTEMS:
-            host_results = dict()
-            package_paths = all_package_paths[build_system][host_system][ref_name]
-            for main_path, package_obj in package_paths.items():
-                paths = package_obj["paths"]
-                pname = package_obj["pname"]
-                if tuple(paths) in cache:
-                    filtered_hash = cache[tuple(paths)]
-                else:
-                    filtered_hash = hash_partial_commit(
-                        temp_path,
-                        work_dir,
-                        ref_name,
-                        pname,
-                        paths,
-                    )
+if needs_lock:
+    all_package_paths = eval_package_paths()
 
-                if filtered_hash is not None:
-                    cache[tuple(paths)] = filtered_hash
-                    host_results[main_path] = package_obj | {"hash": filtered_hash}
+    for ref_name in versions.keys():
+        rev = versions[ref_name]["rev"]
+        repo.git.checkout(versions[ref_name]["rev"])
+        print(f"{ref_name}: checked out {rev}")
 
-            build_results[host_system] = host_results
-        ref_results[build_system] = build_results
-    versions[ref_name]["filteredHashes"] = ref_results
+        # We'll have a lot of duplicate path lists, so make a cache
+        cache = rebuild_lock_cache(versions, ref_name)
 
+        ref_results = dict()
+        for build_system in SYSTEMS:
+            build_results = dict()
+            for host_system in SYSTEMS:
+                print(
+                    f"{ref_name}: processing buildSystem = {build_system}, hostSystem = {host_system}"
+                )
+                host_results = dict()
+                package_paths = all_package_paths[build_system][host_system][ref_name]
+                for pname, package_obj in package_paths.items():
+                    paths = package_obj["paths"]
+                    if tuple(paths) in cache:
+                        filtered_hash = cache[tuple(paths)]
+                    else:
+                        filtered_hash = hash_partial_commit(
+                            temp_path,
+                            work_dir,
+                            ref_name,
+                            pname,
+                            paths,
+                        )
 
-# Write versions.json for the second time with all the data
-with open(BASE_DIR / "versions.json", "w") as out:
-    json.dump(versions, out, sort_keys=True)
+                    if filtered_hash is not None:
+                        cache[tuple(paths)] = filtered_hash
+                        host_results[pname] = package_obj | {"hash": filtered_hash}
+
+                build_results[host_system] = host_results
+            ref_results[build_system] = build_results
+        versions[ref_name]["filteredHashes"] = ref_results
+
+    # Write versions.json for the second time with all the data
+    with open(BASE_DIR / "versions.json", "w") as out:
+        json.dump(versions, out, sort_keys=True)
