@@ -177,7 +177,12 @@ def handle_commit(
     ref_name: str,
     ref_type: str,
     supported_refs: typing.List[str],
+    old_versions: dict,
 ):
+    if old_versions.get(ref_name, {}).get("rev", None) == rev.hexsha:
+        print(f"{ref_name}: revision still {rev.hexsha}, skipping")
+        return old_versions[ref_name]
+
     repo.git.checkout(rev)
     print(f"{ref_name}: checked out {rev.hexsha}")
 
@@ -257,6 +262,11 @@ os.remove(work_dir / ".git")
 
 print(f"Working in directory {repo.working_dir} with git directory {repo.git_dir}")
 
+try:
+    with open(BASE_DIR / "versions.json", "r") as f:
+        old_versions = json.load(f)
+except FileNotFoundError:
+    old_versions = dict()
 versions = dict()
 
 if needs_commits:
@@ -271,7 +281,9 @@ if needs_commits:
 
         print(f"Trying tag {tag.name} ({version})")
 
-        result = handle_commit(repo, tag.commit, tag.name, "tag", supported_refs)
+        result = handle_commit(
+            repo, tag.commit, tag.name, "tag", supported_refs, old_versions
+        )
         versions[tag.name] = result
 
     for branch in repo.remote("origin").refs:
@@ -289,15 +301,16 @@ if needs_commits:
         else:
             continue
 
-        result = handle_commit(repo, branch.commit, fullname, "branch", supported_refs)
+        result = handle_commit(
+            repo, branch.commit, fullname, "branch", supported_refs, old_versions
+        )
         versions[fullname] = result
 
     # Write versions.json for the first time so we can get the right extraPaths
     with open(BASE_DIR / "versions.json", "w") as out:
         json.dump(versions, out, sort_keys=True)
 else:
-    with open(BASE_DIR / "versions.json", "r") as f:
-        versions = json.load(f)
+    versions = old_versions
 
 if needs_lock:
     all_package_paths = eval_package_paths()
