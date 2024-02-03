@@ -57,7 +57,6 @@ mkDerivation rec {
     "lib/ncurses"
     "contrib/ncurses"
     "lib/Makefile.inc"
-  ] ++ lib.optionals (stdenv.hostPlatform.isx86_32) [
     "lib/libssp_nonshared"
   ] ++ [
     "lib/libexecinfo"

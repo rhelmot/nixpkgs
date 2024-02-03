@@ -1,13 +1,22 @@
-{lib, runCommand, pkgsBuildBuild, source, ...}: {pname, path, extraPaths ? []}: runCommand "${pname}-filtered-src" {
-  nativeBuildInputs = [ (pkgsBuildBuild.rsync.override { enableZstd = false; enableXXHash = false; }) ];
-} ''
-  for p in ${lib.concatStringsSep " " ([ path ] ++ extraPaths)}; do
-    set -x
-    path="$out/$p"
-    mkdir -p "$(dirname "$path")"
-    src_path="${source}/$p"
-    if [[ -d "$src_path" ]]; then src_path+=/; fi
-    rsync --chmod="+w" -r "$src_path" "$path"
-    set +x
-  done
+{ lib, runCommand, writeText, rsync, source, sourceData }:
+{ pname, path, extraPaths ? [] }: let
+  lockedHash = sourceData.filteredHashes.${path}.hash or null;
+  lockedPaths = sourceData.filteredHashes.${path}.paths;
+  sortedPaths = lib.naturalSort ([ path ] ++ extraPaths);
+  extraAttrs = if lockedHash == null then
+    lib.warn "${pname} sources not locked, may cause extra rebuilds" {}
+  else if lockedPaths != sortedPaths then
+    lib.warn "${pname} paths do not match locked, may cause extra rebuilds" {}
+  else {
+    outputHashMode = "recursive";
+    outputHash = lockedHash;
+  };
+
+  filterText = writeText "${pname}-src-include"
+    (lib.concatMapStringsSep "\n" (path: "/${path}") sortedPaths);
+
+in runCommand "${pname}-filtered-src" ({
+  nativeBuildInputs = [ rsync ];
+} // extraAttrs) ''
+  rsync -a -r --files-from=${filterText} ${source}/ $out
 ''

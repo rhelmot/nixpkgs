@@ -32,8 +32,6 @@ BRANCH_PATTERN = re.compile(
     f"^{REMOTE}/((stable|releng)/({packaging.version.VERSION_PATTERN}))$",
     re.IGNORECASE | re.VERBOSE,
 )
-# We don't care about versions here, everything is dealt with using branches
-SYSTEMS = ["x86_64-freebsd14"]
 
 
 def hash_dir(path: pathlib.PurePath | str):
@@ -67,7 +65,7 @@ def hash_dir(path: pathlib.PurePath | str):
 # nothing to do in Python.
 def eval_package_paths():
     # Pass options as json in an environment variable in case something isn't shell safe
-    options = {"nixpkgsDir": str(BASE_DIR.parents[3]), "systems": SYSTEMS}
+    options = {"nixpkgsDir": str(BASE_DIR.parents[3])}
     env = os.environb | {b"UPDATE_OPTIONS": json.dumps(options).encode("utf-8")}
     proc = subprocess.run(
         [
@@ -265,21 +263,19 @@ for ref_name in versions.keys():
     print(f"{ref_name}: checked out {rev}")
 
     versions[ref_name]["filteredHashes"] = dict()
-    for system in SYSTEMS:
-        versions[ref_name]["filteredHashes"][system] = dict()
-        package_paths = all_package_paths[system][ref_name]
-        for main_path, package_obj in package_paths.items():
-            filtered_hash = hash_partial_commit(
-                temp_path,
-                work_dir,
-                ref_name,
-                package_obj["pname"],
-                package_obj["paths"],
-            )
-            if filtered_hash is not None:
-                versions[ref_name]["filteredHashes"][system][
-                    main_path
-                ] = package_obj | {"hash": filtered_hash}
+    package_paths = all_package_paths[ref_name]
+    for main_path, package_obj in package_paths.items():
+        filtered_hash = hash_partial_commit(
+            temp_path,
+            work_dir,
+            ref_name,
+            package_obj["pname"],
+            package_obj["paths"],
+        )
+        if filtered_hash is not None:
+            versions[ref_name]["filteredHashes"][main_path] = package_obj | {
+                "hash": filtered_hash
+            }
 
 
 # Write versions.json for the second time with all the data

@@ -1,6 +1,8 @@
 let
   options = builtins.fromJSON (builtins.getEnv "UPDATE_OPTIONS");
   lib = import "${options.nixpkgsDir}/lib";
+  # Just choose any freebsd system, it shouldn't matter
+  pkgs = import "${options.nixpkgsDir}" { system = "x86_64-freebsd14"; };
 
   handlePackage = pkg:
     let
@@ -17,9 +19,5 @@ let
     let results = lib.concatMap handlePackage (lib.attrValues scope);
     in lib.listToAttrs results;
 
-  handleSystem = system:
-    let pkgs = import "${options.nixpkgsDir}" { inherit system; };
-    in lib.mapAttrs handleBranch pkgs.freebsd.branches;
-in lib.listToAttrs
-(map (p: lib.nameValuePair p (handleSystem p)) options.systems)
+in lib.mapAttrs handleBranch pkgs.freebsd.branches
 
