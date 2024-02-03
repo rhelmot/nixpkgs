@@ -4,29 +4,129 @@
 import bs4
 import git
 import io
+import itertools
 import json
 import os
 import packaging.version
 import pandas
+import pathlib
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
 import typing
 import urllib.request
 
-_QUERY_VERSION_PATTERN = re.compile('^([A-Z]+)="(.+)"$')
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = pathlib.Path(__file__).parent.resolve()
 MIN_VERSION = packaging.version.Version("13.0.0")
+
 MAIN_BRANCH = "main"
+REMOTE = "origin"
+
+QUERY_VERSION_PATTERN = re.compile('^([A-Z]+)="(.+)"$')
 TAG_PATTERN = re.compile(
     f"^release/({packaging.version.VERSION_PATTERN})$", re.IGNORECASE | re.VERBOSE
 )
-REMOTE = "origin"
 BRANCH_PATTERN = re.compile(
     f"^{REMOTE}/((stable|releng)/({packaging.version.VERSION_PATTERN}))$",
     re.IGNORECASE | re.VERBOSE,
 )
+# We don't care about versions here, everything is dealt with using branches
+SYSTEMS = ["x86_64-freebsd14"]
+
+
+def hash_dir(path: pathlib.PurePath | str):
+    return (
+        subprocess.check_output(
+            [
+                "nix",
+                "--extra-experimental-features",
+                "nix-command",
+                "hash",
+                "path",
+                "--sri",
+                path,
+            ]
+        )
+        .decode("utf-8")
+        .strip()
+    )
+
+
+# Ersatz ca-derivations
+# FreeBSD vendors everything, meaning a small security update
+# to openssh that we don't even use changes the source derivation,
+# and therefore requires a mass rebuild.
+# However, if we make all of the `filterSource` results fixed-output
+# and don't include any version-specific info
+# (i.e. sys/conf/newvers.sh and its outputs)
+# then only things that have changed sources have to be rebuilt.
+#
+# If we could use the ca-derivations unstable feature then we'd have
+# nothing to do in Python.
+def eval_package_paths():
+    # Pass options as json in an environment variable in case something isn't shell safe
+    options = {"nixpkgsDir": str(BASE_DIR.parents[3]), "systems": SYSTEMS}
+    env = os.environb | {b"UPDATE_OPTIONS": json.dumps(options).encode("utf-8")}
+    proc = subprocess.run(
+        [
+            "nix",
+            "--extra-experimental-features",
+            "nix-command",
+            "eval",
+            "--impure",
+            "--json",
+            "--show-trace",
+            "--file",
+            str(BASE_DIR / "pathEval.nix"),
+        ],
+        env=env,
+        check=True,
+        stdout=subprocess.PIPE,
+    )
+    return json.loads(proc.stdout)
+
+
+def hash_partial_commit(
+    temp_path: pathlib.Path,
+    work_dir: pathlib.Path,
+    ref_name: str,
+    pname: str,
+    paths: typing.List[str],
+):
+    print(f"{ref_name}: {pname}: copying files")
+    filtered_dir = temp_path / "filtered"
+    filtered_hash = None
+    os.mkdir(filtered_dir)
+    try:
+        for path in paths:
+            src = work_dir / path
+            dest = filtered_dir / path
+
+            # shutil is fussy about existing files
+            if dest.exists() and dest.is_dir():
+                shutil.rmtree(dest)
+            elif dest.exists():
+                dest.unlink()
+
+            if src.is_dir():
+                shutil.copytree(src, dest, symlinks=True, dirs_exist_ok=True)
+            else:
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src, dest, follow_symlinks=False)
+
+        filtered_hash = hash_dir(filtered_dir)
+        print(f"{ref_name}: {pname}: hash is {filtered_hash}")
+
+    except FileNotFoundError as e:
+        print(
+            f"{ref_name}: {package_obj['pname']}: WARNING: file {e.filename} does not exist, skipping"
+        )
+
+    shutil.rmtree(filtered_dir)
+
+    return filtered_hash
 
 
 def request_supported_refs() -> typing.List[str]:
@@ -55,7 +155,7 @@ def query_version(repo: git.Repo):
     )
     fields = dict()
     for line in text.splitlines():
-        m = _QUERY_VERSION_PATTERN.match(line)
+        m = QUERY_VERSION_PATTERN.match(line)
         if m is None:
             continue
         fields[m[1].lower()] = m[2]
@@ -74,11 +174,7 @@ def handle_commit(
     repo.git.checkout(rev)
     print(f"{ref_name}: checked out {rev.hexsha}")
 
-    full_hash = (
-        subprocess.check_output(["nix", "hash", "path", "--sri", repo.working_dir])
-        .decode("utf-8")
-        .strip()
-    )
+    full_hash = hash_dir(repo.working_dir)
     print(f"{ref_name}: hash is {full_hash}")
 
     version = query_version(repo)
@@ -96,7 +192,8 @@ def handle_commit(
 
 # Normally uses /run/user/*, which is on a tmpfs and too small
 temp_dir = tempfile.TemporaryDirectory(dir="/tmp")
-print(f"Selected temporary directory {temp_dir.name}")
+temp_path = pathlib.Path(temp_dir.name)
+print(f"Selected temporary directory {temp_path}")
 
 if len(sys.argv) >= 2:
     orig_repo = git.Repo(sys.argv[1])
@@ -105,21 +202,21 @@ if len(sys.argv) >= 2:
 else:
     print("Cloning source repo")
     orig_repo = git.Repo.clone_from(
-        "https://git.FreeBSD.org/src.git", to_path=os.path.join(temp_dir.name, "orig")
+        "https://git.FreeBSD.org/src.git", to_path=temp_path / "orig"
     )
 
 supported_refs = request_supported_refs()
 print(f"Supported refs are: {' '.join(supported_refs)}")
 
 print("Doing git crimes, do not run `git worktree prune` until after script finishes!")
-workdir = os.path.join(temp_dir.name, "work")
-git.cmd.Git(orig_repo.git_dir).worktree("add", "--orphan", workdir)
+work_dir = temp_path / "work"
+git.cmd.Git(orig_repo.git_dir).worktree("add", "--orphan", work_dir)
 
 # Have to create object before removing .git otherwise it will complain
-repo = git.Repo(workdir)
+repo = git.Repo(work_dir)
 repo.git.set_persistent_git_options(git_dir=repo.git_dir)
 # Remove so that nix hash doesn't see the file
-os.remove(os.path.join(workdir, ".git"))
+os.remove(work_dir / ".git")
 
 print(f"Working in directory {repo.working_dir} with git directory {repo.git_dir}")
 
@@ -156,6 +253,35 @@ for branch in repo.remote("origin").refs:
     result = handle_commit(repo, branch.commit, fullname, "branch", supported_refs)
     versions[fullname] = result
 
+# Write versions.json for the first time so we can get the right extraPaths
+with open(BASE_DIR / "versions.json", "w") as out:
+    json.dump(versions, out, sort_keys=True)
 
-with open(os.path.join(BASE_DIR, "versions.json"), "w") as out:
+all_package_paths = eval_package_paths()
+
+for ref_name in versions.keys():
+    rev = versions[ref_name]["rev"]
+    repo.git.checkout(versions[ref_name]["rev"])
+    print(f"{ref_name}: checked out {rev}")
+
+    versions[ref_name]["filteredHashes"] = dict()
+    for system in SYSTEMS:
+        versions[ref_name]["filteredHashes"][system] = dict()
+        package_paths = all_package_paths[system][ref_name]
+        for main_path, package_obj in package_paths.items():
+            filtered_hash = hash_partial_commit(
+                temp_path,
+                work_dir,
+                ref_name,
+                package_obj["pname"],
+                package_obj["paths"],
+            )
+            if filtered_hash is not None:
+                versions[ref_name]["filteredHashes"][system][
+                    main_path
+                ] = package_obj | {"hash": filtered_hash}
+
+
+# Write versions.json for the second time with all the data
+with open(BASE_DIR / "versions.json", "w") as out:
     json.dump(versions, out, sort_keys=True)
