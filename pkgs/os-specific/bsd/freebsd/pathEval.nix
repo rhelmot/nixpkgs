@@ -1,8 +1,12 @@
 let
   options = builtins.fromJSON (builtins.getEnv "UPDATE_OPTIONS");
   lib = import "${options.nixpkgsDir}/lib";
-  # Just choose any freebsd system, it shouldn't matter
-  pkgs = import "${options.nixpkgsDir}" { system = "x86_64-freebsd14"; };
+
+  filterSplice = lib.flip builtins.removeAttrs [
+    "override"
+    "overrideDerivation"
+    "recurseForDerivations"
+  ];
 
   handlePackage = pkg:
     let
@@ -13,11 +17,23 @@ let
       };
       seq = builtins.deepSeq attempt attempt;
       tried = builtins.tryEval seq;
-    in lib.optional (pkg ? path && tried.success) tried.value;
+      triedHasPath = builtins.tryEval (pkg ? path);
+      hasPath = triedHasPath.success && triedHasPath.value;
+    in lib.optional (hasPath && tried.success) tried.value;
 
   handleBranch = name: scope:
     let results = lib.concatMap handlePackage (lib.attrValues scope);
     in lib.listToAttrs results;
 
-in lib.mapAttrs handleBranch pkgs.freebsd.branches
+  handleSystem = buildSystem: hostSystem:
+    let
+      pkgs = import "${options.nixpkgsDir}" { inherit buildSystem hostSystem; };
+    in lib.mapAttrs handleBranch (filterSplice pkgs.freebsd.branches);
 
+  handleBuildSystem = build:
+    lib.listToAttrs
+    (map (host: lib.nameValuePair host (handleSystem build host))
+      options.systems);
+
+in lib.listToAttrs
+(map (build: lib.nameValuePair build (handleBuildSystem build)) options.systems)

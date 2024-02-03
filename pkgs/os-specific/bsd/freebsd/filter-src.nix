@@ -1,7 +1,8 @@
-{ lib, runCommand, writeText, rsync, source, sourceData }:
+{ stdenv, lib, runCommand, writeText, rsync, source, sourceData }:
 { pname, path, extraPaths ? [] }: let
-  lockedHash = sourceData.filteredHashes.${path}.hash or null;
-  lockedPaths = sourceData.filteredHashes.${path}.paths;
+  lockData = sourceData.filteredHashes.${stdenv.buildPlatform.system}.${stdenv.hostPlatform.system} or {};
+  lockedHash = lockData.${path}.hash or null;
+  lockedPaths = lockData.${path}.paths;
   sortedPaths = lib.naturalSort ([ path ] ++ extraPaths);
   extraAttrs = if lockedHash == null then
     lib.warn "${pname} sources not locked, may cause extra rebuilds" {}

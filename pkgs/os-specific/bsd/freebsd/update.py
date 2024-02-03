@@ -33,6 +33,9 @@ BRANCH_PATTERN = re.compile(
     re.IGNORECASE | re.VERBOSE,
 )
 
+# FreeBSD version doesn't matter here, just branch which is dealt with separately
+SYSTEMS = ["x86_64-linux", "x86_64-freebsd14"]
+
 
 def hash_dir(path: pathlib.PurePath | str):
     return (
@@ -65,7 +68,7 @@ def hash_dir(path: pathlib.PurePath | str):
 # nothing to do in Python.
 def eval_package_paths():
     # Pass options as json in an environment variable in case something isn't shell safe
-    options = {"nixpkgsDir": str(BASE_DIR.parents[3])}
+    options = {"nixpkgsDir": str(BASE_DIR.parents[3]), "systems": SYSTEMS}
     env = os.environb | {b"UPDATE_OPTIONS": json.dumps(options).encode("utf-8")}
     proc = subprocess.run(
         [
@@ -262,20 +265,36 @@ for ref_name in versions.keys():
     repo.git.checkout(versions[ref_name]["rev"])
     print(f"{ref_name}: checked out {rev}")
 
-    versions[ref_name]["filteredHashes"] = dict()
-    package_paths = all_package_paths[ref_name]
-    for main_path, package_obj in package_paths.items():
-        filtered_hash = hash_partial_commit(
-            temp_path,
-            work_dir,
-            ref_name,
-            package_obj["pname"],
-            package_obj["paths"],
-        )
-        if filtered_hash is not None:
-            versions[ref_name]["filteredHashes"][main_path] = package_obj | {
-                "hash": filtered_hash
-            }
+    # We'll have a lot of duplicate path lists, so make a cache
+    cache = dict()
+
+    ref_results = dict()
+    for build_system in SYSTEMS:
+        build_results = dict()
+        for host_system in SYSTEMS:
+            host_results = dict()
+            package_paths = all_package_paths[build_system][host_system][ref_name]
+            for main_path, package_obj in package_paths.items():
+                paths = package_obj["paths"]
+                pname = package_obj["pname"]
+                if tuple(paths) in cache:
+                    filtered_hash = cache[tuple(paths)]
+                else:
+                    filtered_hash = hash_partial_commit(
+                        temp_path,
+                        work_dir,
+                        ref_name,
+                        pname,
+                        paths,
+                    )
+
+                if filtered_hash is not None:
+                    cache[tuple(paths)] = filtered_hash
+                    host_results[main_path] = package_obj | {"hash": filtered_hash}
+
+            build_results[host_system] = host_results
+        ref_results[build_system] = build_results
+    versions[ref_name]["filteredHashes"] = ref_results
 
 
 # Write versions.json for the second time with all the data
