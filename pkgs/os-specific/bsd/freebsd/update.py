@@ -35,7 +35,8 @@ BRANCH_PATTERN = re.compile(
 )
 
 # FreeBSD version doesn't matter here, just branch which is dealt with separately
-SYSTEMS = ["x86_64-linux", "x86_64-freebsd14"]
+FREEBSD_SYSTEMS = ["x86_64-freebsd14"]
+BUILD_SYSTEMS = ["x86_64-linux"] + FREEBSD_SYSTEMS
 
 
 def hash_dir(path: pathlib.PurePath | str):
@@ -69,7 +70,11 @@ def hash_dir(path: pathlib.PurePath | str):
 # nothing to do in Python.
 def eval_package_paths():
     # Pass options as json in an environment variable in case something isn't shell safe
-    options = {"nixpkgsDir": str(BASE_DIR.parents[3]), "systems": SYSTEMS}
+    options = {
+        "nixpkgsDir": str(BASE_DIR.parents[3]),
+        "freebsdSystems": FREEBSD_SYSTEMS,
+        "buildSystems": BUILD_SYSTEMS,
+    }
     env = os.environb | {b"UPDATE_OPTIONS": json.dumps(options).encode("utf-8")}
     proc = subprocess.run(
         [
@@ -306,14 +311,14 @@ if needs_lock:
         cache = rebuild_lock_cache(versions, ref_name)
 
         ref_results = dict()
-        for build_system in SYSTEMS:
+        for build_system, build_package_paths in all_package_paths.items():
             build_results = dict()
-            for host_system in SYSTEMS:
+            for host_system, host_package_paths in build_package_paths.items():
                 print(
                     f"{ref_name}: processing buildSystem = {build_system}, hostSystem = {host_system}"
                 )
                 host_results = dict()
-                package_paths = all_package_paths[build_system][host_system][ref_name]
+                package_paths = host_package_paths[ref_name]
                 for pname, package_obj in package_paths.items():
                     paths = package_obj["paths"]
                     if tuple(paths) in cache:

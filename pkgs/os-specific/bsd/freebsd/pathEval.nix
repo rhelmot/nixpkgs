@@ -26,13 +26,21 @@ let
 
   handleSystem = buildSystem: hostSystem:
     let
-      pkgs = import "${options.nixpkgsDir}" { inherit buildSystem hostSystem; };
+      pkgs = import "${options.nixpkgsDir}" {
+        localSystem = buildSystem;
+        crossSystem = hostSystem;
+      };
     in lib.mapAttrs handleBranch (filterSplice pkgs.freebsd.branches);
 
   handleBuildSystem = build:
-    lib.listToAttrs
-    (map (host: lib.nameValuePair host (handleSystem build host))
-      options.systems);
+    let
+      # Include the build system as a host for things like bmake
+      # cross compiling pkgs.freebsd for linux from freebsd doesn't work though
+      isFreebsd = lib.any (e: e == build) options.freebsdSystems;
+      hostSystems = options.freebsdSystems ++ lib.optional (!isFreebsd) build;
+    in lib.listToAttrs
+    (map (host: lib.nameValuePair host (handleSystem build host)) hostSystems);
 
 in lib.listToAttrs
-(map (build: lib.nameValuePair build (handleBuildSystem build)) options.systems)
+(map (build: lib.nameValuePair build (handleBuildSystem build))
+  options.buildSystems)

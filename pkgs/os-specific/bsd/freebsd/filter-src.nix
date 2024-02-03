@@ -1,4 +1,4 @@
-{ stdenv, hostBranch, lib, runCommand, writeText, rsync, source, sourceData }:
+{ stdenv, lib, pkgsBuildBuild, runCommand, writeText, source, sourceData, hostBranch }:
 { pname, path, extraPaths ? [] }: let
   buildSystem = stdenv.buildPlatform.system;
   hostSystem = stdenv.hostPlatform.system;
@@ -19,7 +19,7 @@
     (lib.concatMapStringsSep "\n" (path: "/${path}") sortedPaths);
 
 in runCommand "${pname}-filtered-src" ({
-  nativeBuildInputs = [ rsync ];
+  nativeBuildInputs = [ (pkgsBuildBuild.rsync.override { enableZstd = false; enableXXHash = false; }) ];
 } // extraAttrs) ''
   rsync -a -r --files-from=${filterText} ${source}/ $out
 ''
