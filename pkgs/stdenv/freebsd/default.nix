@@ -212,7 +212,7 @@ in
   (prevStage: let
     fetchurlBoot = import ../../build-support/fetchurl {
       inherit lib stdenvNoCC;
-      curl = prevStage.curl;
+      curl = prevStage.curlReal;
     };
 
     bsdcp = (prevStage.runCommand "bsdcp" {} "mkdir -p $out/bin; cp ${prevStage.freebsd.cp}/bin/cp $out/bin/bsdcp");
@@ -344,6 +344,7 @@ in
       });
       overrides = self: super: {
         curl = prevStage.curlReal;
+        curlReal = super.curl;
         cacert = prevStage.cacert;
         inherit (prevStage) fetchurl;
         freebsd = super.freebsd.overrideScope (self': super': {
