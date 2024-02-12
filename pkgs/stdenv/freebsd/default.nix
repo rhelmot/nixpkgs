@@ -212,7 +212,7 @@ in
   (prevStage: let
     fetchurlBoot = import ../../build-support/fetchurl {
       inherit lib stdenvNoCC;
-      curl = prevStage.curlReal;
+      curl = prevStage.curl;
     };
 
     bsdcp = (prevStage.runCommand "bsdcp" {} "mkdir -p $out/bin; cp ${prevStage.freebsd.cp}/bin/cp $out/bin/bsdcp");
