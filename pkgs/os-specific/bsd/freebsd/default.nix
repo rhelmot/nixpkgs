@@ -16,10 +16,10 @@ in lib.makeScope newScope (self: with self; { inherit stdenv;
   packagesGit = self.overrideScope (_: _: { hostBranch = "main"; });
 
   hostBranch = let
-    allBranches = builtins.attrNames versions;
+    supportedBranches = builtins.attrNames (lib.filterAttrs (k: v: v.supported) versions);
     fallbackBranch = let
-        branchRegex = "release/.*";
-        candidateBranches = builtins.filter (name: builtins.match branchRegex name != null) allBranches;
+        branchRegex = "releng/.*";
+        candidateBranches = builtins.filter (name: builtins.match branchRegex name != null) supportedBranches;
         selectedBranch = lib.last (lib.naturalSort candidateBranches);
       in
         lib.warn "Didn't know exact FreeBSD branch, falling back to ${selectedBranch}" selectedBranch;
