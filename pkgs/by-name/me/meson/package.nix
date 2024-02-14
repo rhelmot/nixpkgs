@@ -5,6 +5,8 @@
 , installShellFiles
 , coreutils
 , darwin
+, libblocksruntime
+, llvmPackages
 , libxcrypt
 , openldap
 , ninja
@@ -91,6 +93,9 @@ python3.pkgs.buildPythonApplication rec {
     LDAP
     OpenGL
     openldap
+  ] ++ lib.optionals (stdenv.cc.isClang && !stdenv.isDarwin) [
+    libblocksruntime
+    llvmPackages.openmp
   ];
 
   postPatch = lib.optionalString stdenv.hostPlatform.isFreeBSD ''
