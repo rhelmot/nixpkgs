@@ -1,6 +1,7 @@
 { lib, stdenv, clangStdenv, fetchurl, fetchpatch
 , autoreconfHook, perl
 , gdb, cctools, xnu, bootstrap_cmds
+, freebsd
 , writeScript
 }:
 let stdenv' = if stdenv.hostPlatform.isFreeBSD then clangStdenv else stdenv;
@@ -59,7 +60,7 @@ stdenv'.mkDerivation rec {
 
   preConfigure = lib.optionalString stdenv.isFreeBSD ''
     substituteInPlace configure --replace '`uname -r`' \
-        ${toString stdenv.hostPlatform.parsed.kernel.version}.0-
+        ${freebsd.versionData.release}
   '' + lib.optionalString stdenv.isDarwin (
     let OSRELEASE = ''
       $(awk -F '"' '/#define OSRELEASE/{ print $2 }' \
@@ -131,7 +132,7 @@ stdenv'.mkDerivation rec {
     maintainers = [ lib.maintainers.eelco ];
     platforms = with lib.platforms; lib.intersectLists
       (x86 ++ power ++ s390x ++ armv7 ++ aarch64 ++ mips)
-      (darwin ++ freebsd ++ illumos ++ linux);
+      (darwin ++ lib.platforms.freebsd ++ illumos ++ linux);
     badPlatforms = [ lib.systems.inspect.platformPatterns.isStatic ];
     broken = stdenv.isDarwin; # https://hydra.nixos.org/build/128521440/nixlog/2
   };

@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchFromGitHub, cmake }:
+{ lib, stdenv, fetchFromGitHub, cmake, freebsd }:
 
 stdenv.mkDerivation rec {
   pname = "libipt";
@@ -10,9 +10,10 @@ stdenv.mkDerivation rec {
     rev = "v${version}";
     sha256 = "sha256-SLCuNTFRGFh0mTv1xLCIDg7b6DbWCxgHhrCoPu9xpmw=";
   };
-  patches = lib.optionals stdenv.hostPlatform.isFreeBSD [ ./freebsd-threads.patch ];
 
   nativeBuildInputs = [ cmake ];
+
+  buildInputs = lib.optional stdenv.hostPlatform.isFreeBSD [ freebsd.libstdthreads ];
 
   meta = with lib; {
     description = "Intel Processor Trace decoder library";
