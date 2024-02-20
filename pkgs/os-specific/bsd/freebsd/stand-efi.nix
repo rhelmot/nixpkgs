@@ -1,8 +1,18 @@
-{ hostVersion, lib, stdenv, mkDerivation, buildPackages, buildFreebsd, hostArchBsd, ... }:
+{ hostVersion, lib, stdenv, mkDerivation, include, buildPackages, buildFreebsd, hostArchBsd, ... }:
 mkDerivation {
   path = "stand/efi";
-  #extraPaths = ["sys" "lib/libc" "contrib/llvm-project/compiler-rt/lib/builtins"];
-  extraPaths = ["."];
+  extraPaths = [
+    "contrib/bzip2"
+    "contrib/llvm-project/compiler-rt/lib/builtins"
+    "contrib/lua"
+    "contrib/pnglite"
+    "contrib/terminus"
+    "lib/libc"
+    "lib/liblua"
+    "libexec/flua"
+    "stand"
+    "sys"
+  ];
   nativeBuildInputs = [
     buildPackages.bsdSetupHook buildFreebsd.freebsdSetupHook
     buildFreebsd.bmakeMinimal
@@ -15,26 +25,13 @@ mkDerivation {
     "MK_MAN=no"
     "MK_TESTS=no"
     "OBJCOPY=${lib.getBin buildPackages.binutils-unwrapped}/bin/${buildPackages.binutils-unwrapped.targetPrefix}objcopy"
-  ] ++ lib.optional (!stdenv.hostPlatform.isFreeBSD) "MK_WERROR=no"
-  ++ lib.optionals (true && stdenv.targetPlatform.isx86_64) [
-    "LIBS32=${lib.getLib ((import ../../../.. {
-      crossSystem = {
-        config = "i686-freebsd";
-        useLLVM = true;
-      };
-      localSystem = stdenv.buildPlatform;
-    }).llvmPackages_16.libunwind.override { enableShared = false; })}/lib"
-  ]
-  ;
+  ] ++ lib.optional (!stdenv.hostPlatform.isFreeBSD) "MK_WERROR=no";
 
   hardeningDisable = [ "stackprotector" ];
 
   # ???
   preBuild = ''
-    mkdir $BSDSRCDIR/xinclude
-    ln -s ../include/{string.h,strings.h,xlocale,stdbool.h,uuid.h,assert.h} $BSDSRCDIR/xinclude
-    touch $BSDSRCDIR/xinclude/stdio.h $BSDSRCDIR/xinclude/stdlib.h
-    NIX_CFLAGS_COMPILE+=" -I$BSDSRCDIR/xinclude -I$BSDSRCDIR/sys/sys -I$BSDSRCDIR/sys/${hostArchBsd}/include"
+    NIX_CFLAGS_COMPILE+=" -I${include}/include -I$BSDSRCDIR/sys/sys -I$BSDSRCDIR/sys/${hostArchBsd}/include"
     export NIX_CFLAGS_COMPILE
 
     make -C $BSDSRCDIR/stand/libsa $makeFlags
