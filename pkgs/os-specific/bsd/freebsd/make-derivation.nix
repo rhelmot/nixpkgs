@@ -35,10 +35,10 @@ in stdenv'.mkDerivation (rec {
   strictDeps = true;
 
   meta = with lib; {
-    maintainers = with maintainers; [ ericson2314 ];
+    maintainers = with maintainers; [ rhelmot artemist ];
     platforms = platforms.unix;
     license = licenses.bsd2;
-  };
+  } // attrs.meta or {};
 } // lib.optionalAttrs stdenv'.hasCC {
   # TODO should CC wrapper set this?
   CPP = "${stdenv'.cc.targetPrefix}cpp";

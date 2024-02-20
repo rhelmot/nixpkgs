@@ -49,4 +49,6 @@ mkDerivation {
     cp $BSDSRCDIR/stand/lua/*.lua $out/bin/lua
     cp -r $BSDSRCDIR/stand/defaults $out/bin/defaults
   '';
+
+  meta.platforms = lib.platforms.freebsd;
 }
