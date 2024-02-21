@@ -116,7 +116,13 @@ mkDerivation rec {
     buildFreebsd.mkcsmapper buildFreebsd.mkesdb
   ];
   buildInputs = [ include csu ];
-  env.NIX_CFLAGS_COMPILE = "-B${csu}/lib";
+  env.NIX_CFLAGS_COMPILE = toString [
+    "-B${csu}/lib"
+    # These are supposed to have _RTLD_COMPAT_LIB_SUFFIX so we can get things like "lib32"
+    # but that's unnecessary
+    "-DSTANDARD_LIBRARY_PATH=\"${builtins.placeholder "out"}/lib\""
+    "-D_PATH_RTLD=\"${builtins.placeholder "out"}/libexec/ld-elf.so.1\""
+  ];
 
   makeFlags = [
     "STRIP=-s" # flag to install, not command
