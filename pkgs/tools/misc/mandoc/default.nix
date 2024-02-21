@@ -56,7 +56,7 @@ stdenv.mkDerivation rec {
   '';
 
   env = lib.optionalAttrs stdenv.buildPlatform.isFreeBSD {
-    PATH_LOCALE = "${freebsd.locales}/share/locale";
+    PATH_LOCALE = "${freebsd.localesPrev or freebsd.locales}/share/locale";
   };
 
   passthru.tests = {

@@ -431,8 +431,7 @@ in
         cacert = prevStage.cacert;
         inherit (prevStage) fetchurl;
         freebsd = super.freebsd.overrideScope (self': super': {
-          locales = prevStage.freebsd.locales;
-          localesReal = super'.locales;
+          localesPrev = prevStage.freebsd.locales;
         });
         haskellPackages = super.haskellPackages.override {
           overrides = (self: super: {
