@@ -35,7 +35,8 @@ rec {
 
     nativeBuildInputs = lib.optional (!stdenv.isDarwin) autoPatchelfHook;
     buildInputs = [ bash ]
-      ++ lib.optionals (!stdenv.isDarwin) [ gcc.cc.lib zlib ]
+      ++ lib.optional (!stdenv.isDarwin) zlib
+      ++ lib.optional (!stdenv.isDarwin && !stdenv.isFreeBSD) gcc.cc.lib
       # the binaries seem to link against versioned symbols in libcxxrt that are only present when built from the freebsd source tree
       ++ lib.optionals stdenv.isFreeBSD [ freebsd.libcxxrt libcxx ]
       ++ lib.optional stdenv.isDarwin Security;
@@ -83,7 +84,7 @@ rec {
     nativeBuildInputs = [ makeWrapper ]
       ++ lib.optional (!stdenv.isDarwin) autoPatchelfHook;
     buildInputs = [ bash ]
-      ++ lib.optional (!stdenv.isDarwin) gcc.cc.lib
+      ++ lib.optional (!stdenv.isDarwin && !stdenv.isFreeBSD) gcc.cc.lib
       ++ lib.optional stdenv.isDarwin Security;
 
     postPatch = ''
