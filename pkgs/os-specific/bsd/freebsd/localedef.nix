@@ -2,7 +2,12 @@
 mkDerivation ({
   path = "usr.bin/localedef";
 
-  extraPaths = [ "lib/libc/locale" "lib/libc/stdtime" "include" "." ];
+  extraPaths = [
+    "lib/libc/locale"
+    "lib/libc/stdtime"
+  ] ++ lib.optionals (!stdenv.hostPlatform.isFreeBSD) [
+    "."
+  ];
 
   nativeBuildInputs = (with buildPackages; [
     bsdSetupHook
