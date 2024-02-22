@@ -59,7 +59,9 @@ in stdenv.mkDerivation (finalAttrs: {
 
   NIX_LDFLAGS = toString (
        # when linking stage1 libstd: cc: undefined reference to `__cxa_begin_catch'
-       optional (stdenv.isLinux && !withBundledLLVM) "--push-state --as-needed -lstdc++ --pop-state"
+       # When hostPlatform is Linux and targetPlatform is FreeBSD then this will fail
+       # because the FreeBSD cross stdenv doesn't have a libstdc++.
+       optional (stdenv.isLinux && !withBundledLLVM && !stdenv.targetPlatform.isFreeBSD) "--push-state --as-needed -lstdc++ --pop-state"
     ++ optional (stdenv.isDarwin && !withBundledLLVM) "-lc++ -lc++abi"
     ++ optional stdenv.isDarwin "-rpath ${llvmSharedForHost}/lib");
 
