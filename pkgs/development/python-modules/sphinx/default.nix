@@ -4,6 +4,7 @@
 , pythonOlder
 , fetchFromGitHub
 , isPyPy
+, freebsd
 
 # nativeBuildInputs
 , flit-core
@@ -96,6 +97,10 @@ buildPythonPackage rec {
   preCheck = ''
     export HOME=$TMPDIR
   '';
+
+  env = lib.optionalAttrs stdenv.hostPlatform.isFreeBSD {
+    PATH_LOCALE = "${freebsd.locales}/share/locale";
+  };
 
   disabledTests = [
     # requires network access

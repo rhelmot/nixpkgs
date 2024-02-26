@@ -27,6 +27,9 @@ in stdenv.mkDerivation (finalAttrs: {
 
   propagatedBuildInputs = [ zlib ];
 
+  # "call to undeclared function 'fenableexcept'" surrounded by #ifdef HAVE_FEENABLEEXCEPT
+  NIX_CFLAGS_COMPILE = lib.optionalString stdenv.isFreeBSD "-Wno-implicit-function-declaration";
+
   doCheck = true;
 
   passthru = {

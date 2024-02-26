@@ -74,6 +74,8 @@ in {
     ''}"
   ];
 
+  NIX_LDFLAGS = lib.optionalString stdenv.hostPlatform.isFreeBSD "-lexecinfo";
+
   preConfigure = ''
     patchShebangs version.py
   '';
