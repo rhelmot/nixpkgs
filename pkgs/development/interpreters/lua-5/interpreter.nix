@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchurl, readline
+{ lib, stdenv, fetchurl, readline, freebsd
 , compat ? false
 , makeWrapper
 , self
@@ -56,7 +56,8 @@ stdenv.mkDerivation (finalAttrs:
     finalAttrs.LuaCPathSearchPaths;
 
   nativeBuildInputs = [ makeWrapper ];
-  buildInputs = [ readline ];
+  buildInputs = [ readline ]
+    ++ lib.optional stdenv.isFreeBSD [ freebsd.libedit ];
 
   inherit patches;
 
