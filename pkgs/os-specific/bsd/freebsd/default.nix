@@ -20,9 +20,8 @@ in lib.makeScope newScope (self: with self; { inherit stdenv;
     fallbackBranch = let
         branchRegex = "releng/.*";
         candidateBranches = builtins.filter (name: builtins.match branchRegex name != null) supportedBranches;
-        selectedBranch = lib.last (lib.naturalSort candidateBranches);
       in
-        lib.warn "Didn't know exact FreeBSD branch, falling back to ${selectedBranch}" selectedBranch;
+        lib.last (lib.naturalSort candidateBranches);
     envBranch = builtins.getEnv "NIXPKGS_FREEBSD_BRANCH";
     selectedBranch = config.freebsdBranch or (if envBranch != "" then envBranch else null);
     chosenBranch = if selectedBranch != null then selectedBranch else fallbackBranch;
