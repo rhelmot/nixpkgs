@@ -23,7 +23,12 @@ in lib.makeScope newScope (self: with self; { inherit stdenv;
       in
         lib.last (lib.naturalSort candidateBranches);
     envBranch = builtins.getEnv "NIXPKGS_FREEBSD_BRANCH";
-    selectedBranch = config.freebsdBranch or (if envBranch != "" then envBranch else null);
+    selectedBranch =
+      if config.freebsdBranch != null then
+        config.freebsdBranch
+      else if envBranch != "" then
+        envBranch
+      else null;
     chosenBranch = if selectedBranch != null then selectedBranch else fallbackBranch;
   in
     if versions ? ${chosenBranch} then chosenBranch else throw ''
