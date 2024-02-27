@@ -1,6 +1,7 @@
 { lib
 , stdenv
 , fetchFromGitLab
+, fetchpatch
 , autoreconfHook
 , pkg-config
 , cairo
@@ -36,6 +37,25 @@ stdenv.mkDerivation rec {
     rev = version;
     hash = "sha256-lLESaULvHkWJjbKjjG9VIcVInqsDmY1OAAKfjCFDThQ=";
   };
+
+  patches = lib.optionals stdenv.hostPlatform.isFreeBSD [
+    (fetchpatch {
+      url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/8f6f86bd48a3b52427e33ed5b05cfec1c7eea4e3/graphics/graphviz/files/patch-lib_gvpr_compile.c";
+      hash = "sha256-IerFOoOCuNvGsNTQp51SlYHB8kY0WK69Z6PW0PGiUhY=";
+      extraPrefix = "";
+      postFetch = ''
+        sed -E -i -e 's/\.orig//g' $out
+      '';
+    })
+    (fetchpatch {
+      url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/8f6f86bd48a3b52427e33ed5b05cfec1c7eea4e3/graphics/graphviz/files/patch-lib_gvpr_actions.c";
+      hash = "sha256-UrQDyfJvXIqTQwKHdE7HSWQ5Xs5OSgVSPuwIlYs79aI=";
+      extraPrefix = "";
+      postFetch = ''
+        sed -E -i -e 's/\.orig//g' $out
+      '';
+    })
+  ];
 
   nativeBuildInputs = [
     autoreconfHook

@@ -10,6 +10,9 @@ stdenv.mkDerivation rec {
 
   configureFlags = lib.optionals (stdenv.buildPlatform != stdenv.hostPlatform) [
     "lf_cv_sane_realloc=yes"
+  ] ++ lib.optionals stdenv.hostPlatform.isFreeBSD [
+    # it thinks freebsd14 is freebsd1
+    "--host=${stdenv.hostPlatform.config}"
   ];
 
   nativeBuildInputs = [ pkg-config ];

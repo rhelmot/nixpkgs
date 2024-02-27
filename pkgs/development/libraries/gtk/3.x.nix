@@ -36,8 +36,8 @@
 , sassc
 , trackerSupport ? stdenv.isLinux && (stdenv.buildPlatform == stdenv.hostPlatform)
 , tracker
-, x11Support ? stdenv.isLinux
-, waylandSupport ? stdenv.isLinux
+, x11Support ? (stdenv.isLinux || stdenv.isFreeBSD)
+, waylandSupport ? (stdenv.isLinux || stdenv.isFreeBSD)
 , libGL
 , wayland
 , wayland-protocols

@@ -22827,7 +22827,9 @@ with pkgs;
 
   libgssglue = callPackage ../development/libraries/libgssglue { };
 
-  libgudev = callPackage ../development/libraries/libgudev { };
+  libgudev238 = callPackage ../development/libraries/libgudev { };
+  libgudev237 = callPackage ../development/libraries/libgudev/237.nix { };
+  libgudev = if stdenv.isFreeBSD then libgudev237 else libgudev238;
 
   libguestfs-appliance = callPackage ../development/libraries/libguestfs/appliance.nix { };
   libguestfs = callPackage ../development/libraries/libguestfs {

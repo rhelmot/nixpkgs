@@ -97,6 +97,8 @@ stdenv.mkDerivation (finalAttrs: {
     glib
   ];
 
+  propagatedNativeBuildInputs = lib.optionals (stdenv.isFreeBSD) [ buildPackages.freebsd.ldd ];
+
   mesonFlags = [
     "--datadir=${placeholder "dev"}/share"
     "-Dcairo=disabled"

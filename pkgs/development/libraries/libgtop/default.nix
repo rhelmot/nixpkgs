@@ -46,6 +46,11 @@ stdenv.mkDerivation rec {
     glib
   ];
 
+  preConfigure = lib.optionalString (stdenv.buildPlatform.isFreeBSD && stdenv.hostPlatform.isFreeBSD) ''
+    sed -E -i -e 's/uname -p/uname -m/g' -e 's/uname -r/echo/g' config.guess
+    sed -E -i -e 's/uname -p/uname -m/g' -e 's/uname -r/echo/g' configure
+  '';
+
   passthru = {
     updateScript = gnome.updateScript {
       packageName = pname;

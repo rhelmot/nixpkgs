@@ -91,6 +91,9 @@ stdenv.mkDerivation rec {
       --prefix XDG_DATA_DIRS : ${gsettings-desktop-schemas}/share/gsettings-schemas/${gsettings-desktop-schemas.name}
   '';
 
+  # call to undeclared function 'gettimeofday'
+  NIX_CFLAGS_COMPILE = lib.optionalString stdenv.hostPlatform.isFreeBSD "-Wno-implicit-function-declaration";
+
   meta = with lib; {
     description = "Assistive Technology Service Provider Interface protocol definitions and daemon for D-Bus";
     homepage = "https://gitlab.gnome.org/GNOME/at-spi2-core";

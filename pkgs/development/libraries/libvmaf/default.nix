@@ -1,6 +1,7 @@
 { lib
 , stdenv
 , fetchFromGitHub
+, fetchpatch
 , ffmpeg-full
 , libaom
 , meson
@@ -22,6 +23,18 @@ stdenv.mkDerivation (finalAttrs: {
   };
 
   sourceRoot = "${finalAttrs.src.name}/libvmaf";
+
+  patches = lib.optionals stdenv.hostPlatform.isFreeBSD [
+    (fetchpatch {
+      name = "patch-meson.build";
+      url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/2cf7924/multimedia/vmaf/files/patch-meson.build";
+      hash = "sha256-Dkjs0Msn/mcSUsdLyfa/VQ2/7RvcNuyc+m7R3OuJ04Q=";
+      extraPrefix = "";
+      postFetch = ''
+        sed -E -i -e 's/\.orig//g' $out
+      '';
+    })
+  ];
 
   nativeBuildInputs = [ meson ninja nasm xxd ];
 

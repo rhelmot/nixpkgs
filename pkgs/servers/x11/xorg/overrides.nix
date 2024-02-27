@@ -238,6 +238,8 @@ self: super:
   });
 
   xdm = super.xdm.overrideAttrs (attrs: {
+    # assigning to 'void (*)(void)' from 'int (*)(void)'
+    NIX_CFLAGS_COMPILE = lib.optionalString stdenv.isFreeBSD "-Wno-incompatible-function-pointer-types";
     buildInputs = attrs.buildInputs ++ [ libxcrypt ];
     configureFlags = attrs.configureFlags or [] ++ [
       "ac_cv_path_RAWCPP=${stdenv.cc.targetPrefix}cpp"
@@ -390,7 +392,7 @@ self: super:
 
   libXpm = super.libXpm.overrideAttrs (attrs: {
     outputs = [ "bin" "dev" "out" ]; # tiny man in $bin
-    patchPhase = "sed -i '/USE_GETTEXT_TRUE/d' sxpm/Makefile.in cxpm/Makefile.in";
+    postPatch = "sed -i '/USE_GETTEXT_TRUE/d' sxpm/Makefile.in cxpm/Makefile.in";
     XPM_PATH_COMPRESS = lib.makeBinPath [ ncompress ];
     meta = attrs.meta // { mainProgram = "sxpm"; };
   });

@@ -86,6 +86,7 @@ let
       license = licenses.lgpl21Plus;
       platforms = platforms.unix;
       maintainers = with maintainers; [ antono jtojnar amaxine ] ++ teams.pantheon.members;
+      pkgConfigModules = [ "vapigen" ];
     };
   });
 

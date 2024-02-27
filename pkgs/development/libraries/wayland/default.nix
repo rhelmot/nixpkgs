@@ -7,7 +7,7 @@
 , wayland-scanner
 , expat
 , libxml2
-, withLibraries ? stdenv.isLinux || stdenv.isDarwin
+, withLibraries ? stdenv.isLinux || stdenv.isDarwin || stdenv.isFreeBSD
 , withTests ? stdenv.isLinux
 , libffi
 , epoll-shim

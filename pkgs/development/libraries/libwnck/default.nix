@@ -40,6 +40,9 @@ stdenv.mkDerivation rec {
       url = "https://gitlab.gnome.org/GNOME/libwnck/-/commit/6ceb684442eb26e3bdb8a38bf52264ad55f96a7b.patch";
       sha256 = "/1wCnElCrZB7XTDW/l3dxMKZ9czGnukbGu4/aQStoXE=";
     })
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    # https://gitlab.gnome.org/GNOME/libwnck/-/issues/161
+    ./meson-build.patch
   ];
 
   nativeBuildInputs = [

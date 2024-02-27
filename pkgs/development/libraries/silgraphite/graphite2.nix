@@ -5,6 +5,7 @@
 , freetype
 , cmake
 , static ? stdenv.hostPlatform.isStatic
+, overrideCC
 }:
 
 stdenv.mkDerivation rec {
@@ -37,6 +38,13 @@ stdenv.mkDerivation rec {
   cmakeFlags = lib.optionals static [
     "-DBUILD_SHARED_LIBS=OFF"
   ];
+
+  # RTTI and unwind tables pull in references to libc++abi, which is frowned upon by harfbuzz
+  # it is unknown why this only manifests on freebsd
+  NIX_CFLAGS_COMPILE = lib.optionalString stdenv.isFreeBSD "-fno-rtti -fno-exceptions -Xclang -fcxx-exceptions";
+  postBuild = lib.optionalString stdenv.isFreeBSD ''
+    patchelf --remove-needed libc++abi.so.1 --remove-needed libc++.so.1 src/libgraphite2.so
+  '';
 
   # Remove a test that fails to statically link (undefined reference to png and
   # freetype symbols)
