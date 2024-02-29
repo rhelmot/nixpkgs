@@ -192,4 +192,6 @@ in lib.makeScope newScope (self: with self; { inherit stdenv;
 
   # haha funny linux headers
   v4l-compat = callPackage ./v4l-compat {};
+
+  xf86-video-scfb = callPackage ./xf86-video-scfb.nix {};
 })

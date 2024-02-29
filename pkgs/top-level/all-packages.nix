@@ -27393,7 +27393,7 @@ with pkgs;
       inherit (darwin.apple_sdk.libs) Xplugin;
       inherit (buildPackages.darwin) bootstrap_cmds;
       udev = if stdenv.isLinux then udev else null;
-      libdrm = if stdenv.isLinux then libdrm else null;
+      libdrm = if (stdenv.isLinux || stdenv.isFreeBSD) then libdrm else null;
     };
 
     generatedPackages = lib.callPackageWith __splicedPackages ../servers/x11/xorg/default.nix { };

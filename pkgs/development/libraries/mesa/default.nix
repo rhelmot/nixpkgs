@@ -206,6 +206,8 @@ self = stdenv.mkDerivation {
     "-Dgallium-va=disabled"
     "-Dgallium-xa=disabled"
     "-Dlmsensors=disabled"
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    "-Dlmsensors=disabled"
   ] ++ lib.optionals enableOpenCL [
     # Clover, old OpenCL frontend
     "-Dgallium-opencl=icd"
@@ -233,7 +235,8 @@ self = stdenv.mkDerivation {
   ] ++ [
     python3Packages.python # for shebang
   ] ++ lib.optionals haveWayland [ wayland wayland-protocols ]
-    ++ lib.optionals stdenv.isLinux [ libomxil-bellagio libva-minimal udev lm_sensors ]
+    ++ lib.optionals (stdenv.isLinux || stdenv.isFreeBSD) [ libva-minimal ]
+    ++ lib.optionals stdenv.isLinux [ udev lm_sensors ]
     ++ lib.optionals enableOpenCL [ llvmPackages.libclc llvmPackages.clang llvmPackages.clang-unwrapped spirv-llvm-translator ]
     ++ lib.optional withValgrind valgrind-light
     ++ lib.optional haveZink vulkan-loader

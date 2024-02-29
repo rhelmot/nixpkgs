@@ -11,7 +11,7 @@
 }:
 
 let
-  inherit (stdenv) isDarwin;
+  inherit (stdenv) isDarwin isFreeBSD;
 
   malloc0ReturnsNullCrossFlag = lib.optional
     (stdenv.hostPlatform != stdenv.buildPlatform)
