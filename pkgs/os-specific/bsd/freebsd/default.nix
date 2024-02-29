@@ -148,6 +148,7 @@ in lib.makeScope newScope (self: with self; { inherit stdenv;
   libutil = callPackage ./libutil.nix {};
   libxo = callPackage ./libxo.nix {};
   libypclnt = callPackage ./libypclnt.nix {};
+  libzfs = callPackage ./libzfs.nix {};
   limits = callPackage ./limits.nix {};
   locale = callPackage ./locale.nix {};
   localedef = callPackage ./localedef.nix {};
@@ -182,6 +183,7 @@ in lib.makeScope newScope (self: with self; { inherit stdenv;
   truss = callPackage ./truss.nix {};
   tsort = callPackage ./tsort.nix {};
   vtfontcvt = callPackage ./vtfontcvt.nix {};
+  zfs = callPackage ./zfs.nix {};
 
   # kernel
   sys = callPackage ./sys.nix {};

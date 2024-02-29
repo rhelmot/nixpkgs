@@ -1,0 +1,79 @@
+{
+  mkDerivation,
+  lib,
+  libbsdxml,
+  libgeom,
+  openssl,
+  zlib,
+}:
+# When I told you this was libzfs, I lied.
+# This is actually all the openzfs libs.
+# We need to build a bunch of them before libzfs otherwise it complains
+# For the dependency tree see sys/contrib/openzfs/lib/Makefile.am
+# or cddl/lib/Makefile
+let
+  libs = [
+    # Not really "zfs" libraries, both are solaris compatibility
+    # We currently only use them for zfs though
+    "libumem"
+    "libspl"
+
+    # Libraires with no dependencies except libspl and umem
+    "libavl"
+    "libicp"
+    "libnvpair"
+    "libtpool"
+
+    # Depend only on the previous ones
+    "libzutil"
+    "libzfs_core"
+    "libuutil"
+
+    # Final libraries
+    "libzpool"
+    "libzfs"
+  ];
+in
+mkDerivation {
+  path = "cddl/lib/libzfs";
+  extraPaths = [
+    "cddl/Makefile.inc"
+    "cddl/compat/opensolaris"
+    "cddl/lib"
+    "sys/contrib/openzfs"
+    "sys/modules/zfs"
+  ];
+
+  buildInputs = [
+    libbsdxml
+    libgeom
+    openssl
+    zlib
+  ];
+
+  postPatch = ''
+    # libnvpair uses `struct xdr_bytesrec`, which is never defined when this is set
+    # no idea how this works upstream
+    sed -i 's/-DHAVE_XDR_BYTESREC//' $BSDSRCDIR/cddl/lib/libnvpair/Makefile
+  '';
+
+
+  # If we don't specify an object directory then
+  # make will try to put openzfs objects in nonexistant directories.
+  # This one seems to work
+  preBuild = ''
+    export MAKEOBJDIRPREFIX=$BSDSRCDIR/obj
+  '' + lib.flip lib.concatMapStrings libs
+      (libname: ''
+        echo "building dependency ${libname}"
+        make -C $BSDSRCDIR/cddl/lib/${libname} $makeFlags
+        make -C $BSDSRCDIR/cddl/lib/${libname} $makeFlags install
+      '');
+
+  clangFixup = true;
+
+  meta = with lib; {
+    platforms = platforms.freebsd;
+    license = with licenses; [ cddl ];
+  };
+}
