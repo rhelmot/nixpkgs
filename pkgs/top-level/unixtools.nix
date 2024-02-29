@@ -74,8 +74,8 @@ let
     getent = {
       linux = if stdenv.hostPlatform.libc == "glibc" then pkgs.stdenv.cc.libc.getent
               else pkgs.netbsd.getent;
-      freebsd = pkgs.freebsd.getent;
       darwin = pkgs.netbsd.getent;
+      freebsd = pkgs.freebsd.getent;
     };
     getopt = {
       linux = pkgs.util-linux;
@@ -84,6 +84,7 @@ let
     fdisk = {
       linux = pkgs.util-linux;
       darwin = pkgs.darwin.diskdev_cmds;
+      freebsd = pkgs.freebsd.fdisk;
     };
     fsck = {
       linux = pkgs.util-linux;
@@ -101,6 +102,7 @@ let
     ifconfig = {
       linux = pkgs.nettools;
       darwin = pkgs.darwin.network_cmds;
+      freebsd = pkgs.freebsd.ifconfig;
     };
     killall = {
       linux = pkgs.psmisc;
@@ -109,6 +111,7 @@ let
     locale = {
       linux = pkgs.glibc;
       darwin = pkgs.darwin.adv_cmds;
+      freebsd = pkgs.freebsd.locale;
     };
     logger = {
       linux = pkgs.util-linux;
