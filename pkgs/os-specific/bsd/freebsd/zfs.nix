@@ -1,16 +1,10 @@
 {
   mkDerivation,
   lib,
-  libavl,
   libgeom,
   libjail,
-  libnvpair,
   libspl,
-  libtpool,
-  libuutil,
   libzfs,
-  libzfs_core,
-  libzutil,
   openssl,
 }:
 mkDerivation {
@@ -22,16 +16,10 @@ mkDerivation {
   ];
 
   buildInputs = [
-    libavl
     libgeom
     libjail
-    libnvpair
     libspl
-    libtpool
-    libuutil
     libzfs
-    libzfs_core
-    libzutil
     openssl
   ];
 
