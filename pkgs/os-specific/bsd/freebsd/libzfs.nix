@@ -1,79 +1,54 @@
 {
   mkDerivation,
   lib,
+  libavl,
   libbsdxml,
   libgeom,
+  libnvpair,
+  libspl,
+  libumem,
+  libuutil,
+  libzfs_core,
+  libzutil,
   openssl,
   zlib,
 }:
-# When I told you this was libzfs, I lied.
-# This is actually all the openzfs libs.
-# We need to build a bunch of them before libzfs otherwise it complains
-# For the dependency tree see sys/contrib/openzfs/lib/Makefile.am
-# or cddl/lib/Makefile
-let
-  libs = [
-    # Not really "zfs" libraries, both are solaris compatibility
-    # We currently only use them for zfs though
-    "libumem"
-    "libspl"
-
-    # Libraires with no dependencies except libspl and umem
-    "libavl"
-    "libicp"
-    "libnvpair"
-    "libtpool"
-
-    # Depend only on the previous ones
-    "libzutil"
-    "libzfs_core"
-    "libuutil"
-
-    # Final libraries
-    "libzpool"
-    "libzfs"
-  ];
-in
 mkDerivation {
   path = "cddl/lib/libzfs";
   extraPaths = [
-    "cddl/Makefile.inc"
-    "cddl/compat/opensolaris"
-    "cddl/lib"
-    "sys/contrib/openzfs"
+    "cddl/compat/opensolaris/include"
+    "sys/contrib/openzfs/include"
+    "sys/contrib/openzfs/lib/libshare"
+    "sys/contrib/openzfs/lib/libspl/include"
+    "sys/contrib/openzfs/lib/libzfs"
+    "sys/contrib/openzfs/module/icp"
+    "sys/contrib/openzfs/module/zcommon"
+    "sys/contrib/openzfs/module/zstd"
     "sys/modules/zfs"
   ];
-
   buildInputs = [
     libbsdxml
     libgeom
+    libumem
+    libspl
+    libavl
+    libnvpair
+    libuutil
+    libzutil
+    libzfs_core
     openssl
     zlib
   ];
 
-  postPatch = ''
-    # libnvpair uses `struct xdr_bytesrec`, which is never defined when this is set
-    # no idea how this works upstream
-    sed -i 's/-DHAVE_XDR_BYTESREC//' $BSDSRCDIR/cddl/lib/libnvpair/Makefile
-  '';
-
-
-  # If we don't specify an object directory then
-  # make will try to put openzfs objects in nonexistant directories.
-  # This one seems to work
+  # Without a prefix it will try to put object files in nonexistant directories
   preBuild = ''
-    export MAKEOBJDIRPREFIX=$BSDSRCDIR/obj
-  '' + lib.flip lib.concatMapStrings libs
-      (libname: ''
-        echo "building dependency ${libname}"
-        make -C $BSDSRCDIR/cddl/lib/${libname} $makeFlags
-        make -C $BSDSRCDIR/cddl/lib/${libname} $makeFlags install
-      '');
+    export MAKEOBJDIRPREFIX=$TMP/obj
+  '';
 
   clangFixup = true;
 
   meta = with lib; {
     platforms = platforms.freebsd;
-    license = with licenses; [ cddl ];
+    license = licenses.cddl;
   };
 }
