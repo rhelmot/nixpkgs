@@ -1,10 +1,8 @@
 {
   mkDerivation,
   lib,
-  libbsdxml,
   libgeom,
   libjail,
-  libsbuf,
   libzfs,
   openssl,
 }:
@@ -16,12 +14,9 @@ mkDerivation {
     "cddl/compat/opensolaris"
   ];
 
-  NIX_LDFLAGS = "-lbsdxml -lsbuf";
   buildInputs = [
-    libbsdxml
     libgeom
     libjail
-    libsbuf
     libzfs
     openssl
   ];

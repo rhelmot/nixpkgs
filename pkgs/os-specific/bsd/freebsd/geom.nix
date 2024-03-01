@@ -21,11 +21,8 @@ let
     ];
 
     # libgeom needs sbuf and bsdxml but linker doesn't know that
-    NIX_LDFLAGS = "-lbsdxml -lsbuf";
     buildInputs = [
-      libbsdxml
       libgeom
-      libsbuf
       libufs
       openssl
     ];
@@ -47,12 +44,7 @@ mkDerivation {
 
   GEOM_CLASS_DIR = "${libs}/lib";
 
-  NIX_LDFLAGS = "-lbsdxml -lsbuf";
-  buildInputs = [
-    libbsdxml
-    libgeom
-    libsbuf
-  ];
+  buildInputs = [ libgeom ];
 
   clangFixup = true;
 }
