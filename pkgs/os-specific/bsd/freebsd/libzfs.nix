@@ -5,6 +5,7 @@
   libgeom,
   libspl,
   openssl,
+  zfs-data,
   zlib,
 }:
 # When I told you this was libzfs, I lied.
@@ -56,6 +57,9 @@ mkDerivation {
     # libnvpair uses `struct xdr_bytesrec`, which is never defined when this is set
     # no idea how this works upstream
     sed -i 's/-DHAVE_XDR_BYTESREC//' $BSDSRCDIR/cddl/lib/libnvpair/Makefile
+
+    # libzfs wants some files from compatibility.d, put them in the store
+    sed -i 's|/usr/share/zfs|${zfs-data}/share/zfs|' $BSDSRCDIR/cddl/lib/libzfs/Makefile
   '';
 
   # If we don't specify an object directory then

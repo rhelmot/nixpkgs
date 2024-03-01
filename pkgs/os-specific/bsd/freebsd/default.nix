@@ -97,7 +97,7 @@ in lib.makeScope newScope (self: with self; { inherit stdenv;
   libprocstat = callPackage ./libprocstat.nix {};
   libkvm = callPackage ./libkvm.nix {};
 
-  # libs and bins
+  # libs, bins, and data
   bin = callPackage ./bin.nix {};
   bintrans = callPackage ./bintrans.nix {};
   bmake = callPackage ./bmake.nix {};
@@ -185,6 +185,7 @@ in lib.makeScope newScope (self: with self; { inherit stdenv;
   tsort = callPackage ./tsort.nix {};
   vtfontcvt = callPackage ./vtfontcvt.nix {};
   zfs = callPackage ./zfs.nix {};
+  zfs-data = callPackage ./zfs-data.nix {};
 
   # kernel
   sys = callPackage ./sys.nix {};
