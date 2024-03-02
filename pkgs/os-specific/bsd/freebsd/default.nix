@@ -1,7 +1,13 @@
 { stdenv, lib, config, newScope, buildPackages, pkgsHostHost, makeSetupHook, substituteAll, runtimeShell, ... }:
 let
   versions = builtins.fromJSON (builtins.readFile ./versions.json);
-in lib.makeScope newScope (self: with self; { inherit stdenv;
+in lib.makeScope newScope (self:
+let
+  byName = lib.packagesFromDirectoryRecursive {
+    callPackage = self.callPackage;
+    directory = ./by-name;
+  };
+in byName // (with self; { inherit stdenv;
   #stdenv = if stdenv.cc.isClang then stdenv else llvmPackages.stdenv;
   compatIsNeeded = !self.stdenv.hostPlatform.isFreeBSD;
 
@@ -60,7 +66,6 @@ in lib.makeScope newScope (self: with self; { inherit stdenv;
     name = "freebsd-setup-hook";
   } ./setup-hook.sh;
 
-  source = callPackage ./source.nix {};
   compatIfNeeded = lib.optional compatIsNeeded compat;
   filterSource = callPackage ./filter-src.nix {};
   mkDerivation = callPackage ./make-derivation.nix {};
@@ -68,7 +73,6 @@ in lib.makeScope newScope (self: with self; { inherit stdenv;
   # for cross-compiling or bootstrapping
   compat = callPackage ./compat.nix { stdenv = pkgsHostHost.stdenv; };
   bmakeMinimal = callPackage ./bmake-minimal.nix {};
-  libmd = callPackage ./libmd.nix {};  # used for both
   install-wrapper = builtins.readFile ./install-wrapper.sh;
   xinstallBootstrap = callPackage ./boot-install.nix {};
   boot-install = buildPackages.writeShellScriptBin "boot-install" (install-wrapper + ''
@@ -83,124 +87,14 @@ in lib.makeScope newScope (self: with self; { inherit stdenv;
   };
 
   # core c/c++ deps
-  csu = callPackage ./csu.nix {};
   include = callPackage ./include.nix {};
   libc = callPackage ./libc.nix {};
-  libcxx = callPackage ./libcxx.nix {};
-  libcxxrt = callPackage ./libcxxrt.nix {};
-
-  # soft-deprecated (folded into libc but necessary in isolation for bootstrap)
-  libelf = callPackage ./libelf.nix {};
-  libexecinfo = callPackage ./libexecinfo.nix {};
-  libdevstat = callPackage ./libdevstat.nix {};
-  libmemstat = callPackage ./libmemstat.nix {};
-  libprocstat = callPackage ./libprocstat.nix {};
-  libkvm = callPackage ./libkvm.nix {};
 
   # libs, bins, and data
-  bin = callPackage ./bin.nix {};
-  bintrans = callPackage ./bintrans.nix {};
-  bmake = callPackage ./bmake.nix {};
-  btxld = callPackage ./btxld.nix {};
-  cap_mkdb = callPackage ./cap_mkdb.nix {};
-  config = callPackage ./config.nix {};
-  cp = callPackage ./cp.nix {};
-  daemon = callPackage ./daemon.nix {};
-  dmesg = callPackage ./dmesg.nix {};
-  fdisk = callPackage ./fdisk.nix {};
-  file2c = callPackage ./file2c.nix {};
-  fsck = callPackage ./fsck.nix {};
-  gencat = callPackage ./gencat.nix {};
-  geom = callPackage ./geom.nix {};
-  getent = callPackage ./getent.nix {};
-  getty = callPackage ./getty.nix {};
-  iconv = callPackage ./iconv.nix {};
-  id = callPackage ./id.nix {};
-  ifconfig = callPackage ./ifconfig.nix {};
-  init = callPackage ./init.nix {};
-  install = callPackage ./install.nix {};
-  kldconfig = callPackage ./kldconfig.nix {};
-  kldload = callPackage ./kldload.nix {};
-  kldstat = callPackage ./kldstat.nix {};
-  kldunload = callPackage ./kldunload.nix {};
-  ldd = callPackage ./ldd.nix {};
-  less = callPackage ./less.nix {};
-  lib80211 = callPackage ./lib80211.nix {};
-  libbsdxml = callPackage ./libbsdxml.nix {};
-  libbsm = callPackage ./libbsm.nix {};
-  libcapsicum = callPackage ./libcapsicum.nix {};
-  libcasper = callPackage ./libcasper.nix {};
-  libcrypt = callPackage ./libcrypt.nix {};
-  libdl = callPackage ./libdl.nix {};
-  libedit = callPackage ./libedit.nix {};
-  libgeom = callPackage ./libgeom.nix {};
-  libifconfig = callPackage ./libifconfig.nix {};
-  libjail = callPackage ./libjail.nix {};
-  libkiconv = callPackage ./libkiconv.nix {};
-  libncurses = callPackage ./libncurses.nix {};
-  libncurses-tinfo = if hostVersion == "13.2" then libncurses else callPackage ./libncurses-tinfo.nix {};
+  libncurses-tinfo = if hostVersion == "13.2" then libncurses else byName.libncurses-tinfo;
   libnetbsd = callPackage ./libnetbsd.nix {};
-  libnv = callPackage ./libnv.nix {};
-  libpam = callPackage ./libpam.nix {};
-  libradius = callPackage ./libradius.nix {};
-  libsbuf = callPackage ./libsbuf.nix {};
-  libsm = callPackage ./libsm.nix {};
-  libspl = callPackage ./libspl.nix {};
-  libssh = callPackage ./libssh.nix {};
-  libstdthreads = callPackage ./libstdthreads.nix {};
-  libsysdecode = callPackage ./libsysdecode.nix {};
-  libtacplus = callPackage ./libtacplus.nix {};
-  libufs = callPackage ./libufs.nix {};
-  libutil = callPackage ./libutil.nix {};
-  libxo = callPackage ./libxo.nix {};
-  libypclnt = callPackage ./libypclnt.nix {};
-  libzfs = callPackage ./libzfs.nix {};
-  limits = callPackage ./limits.nix {};
-  locale = callPackage ./locale.nix {};
-  localedef = callPackage ./localedef.nix {};
-  locales = callPackage ./locales.nix {};
-  login = callPackage ./login.nix {};
-  lorder = callPackage ./lorder.nix {};
-  makefs = callPackage ./makefs.nix {};
-  mkcsmapper = callPackage ./mkcsmapper.nix {};
-  mkesdb = callPackage ./mkesdb.nix {};
-  mkimg = callPackage ./mkimg.nix {};
-  mknod = callPackage ./mknod.nix {};
-  mount = callPackage ./mount.nix {};
-  mount_msdosfs = callPackage ./mount_msdosfs.nix {};
-  mtree = callPackage ./mtree.nix {};
-  newfs = callPackage ./newfs.nix {};
-  newsyslog = callPackage ./newsyslog.nix {};
-  nscd = callPackage ./nscd.nix {};
-  protect = callPackage ./protect.nix {};
-  pwd_mkdb = callPackage ./pwd_mkdb.nix {};
-  rc = callPackage ./rc.nix {};
-  rcorder = callPackage ./rcorder.nix {};
-  reboot = callPackage ./reboot.nix {};
-  route = callPackage ./route.nix {};
   rpcgen = callPackage ./rpcgen.nix {};
-  sed = callPackage ./sed.nix {};
-  services_mkdb = callPackage ./services_mkdb.nix {};
-  shutdown = callPackage ./shutdown.nix {};
-  sockstat = callPackage ./sockstat.nix {};
-  stat = callPackage ./stat.nix {};
-  sysctl = callPackage ./sysctl.nix {};
-  syslogd = callPackage ./syslogd.nix {};
-  truss = callPackage ./truss.nix {};
-  tsort = callPackage ./tsort.nix {};
-  vtfontcvt = callPackage ./vtfontcvt.nix {};
-  zfs = callPackage ./zfs.nix {};
-  zfs-data = callPackage ./zfs-data.nix {};
 
   # kernel
   sys = callPackage ./sys.nix {};
-
-  # bootloader
-  stand = callPackage ./stand.nix {};
-  stand-efi = callPackage ./stand-efi.nix {};
-
-  # haha funny linux headers
-  v4l-compat = callPackage ./v4l-compat {};
-
-  xf86-video-scfb = callPackage ./xf86-video-scfb.nix {};
-})
+}))

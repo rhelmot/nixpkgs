@@ -20,7 +20,7 @@ mkDerivation {
     "OBJCOPY=${lib.getBin buildPackages.binutils-unwrapped}/bin/${buildPackages.binutils-unwrapped.targetPrefix}objcopy"
   ] ++ lib.optional (!stdenv.hostPlatform.isFreeBSD) "MK_WERROR=no"
   ++ lib.optionals (true && stdenv.targetPlatform.isx86_64) [
-    "LIBS32=${lib.getLib ((import ../../../.. { crossSystem = {
+    "LIBS32=${lib.getLib ((import ../../../../.. { crossSystem = {
       config = "i686-${hostVersion}";
       useLLVM = true;
     #};}).llvmPackages_16.libunwind.override { enableShared = false; }).overrideAttrs { NIX_CFLAGS_COMPILE = "-Oz";}}/lib"
