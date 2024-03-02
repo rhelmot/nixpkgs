@@ -495,6 +495,22 @@ self: super:
     configureFlags = [
       "--with-sdkdir=${placeholder "dev"}/include/xorg"
     ];
+    patches = [
+      (fetchpatch {
+        url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/8f6f86bd48a3b52427e33ed5b05cfec1c7eea4e3/x11-drivers/xf86-input-evdev/files/patch-src_evdev.c";
+        extraPrefix = "";
+        postFetch = ''
+          sed -E -i -e 's/\.orig//g' $out
+        '';
+      })
+      (fetchpatch {
+        url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/8f6f86bd48a3b52427e33ed5b05cfec1c7eea4e3/x11-drivers/xf86-input-evdev/files/patch-src_evdev.h";
+        extraPrefix = "";
+        postFetch = ''
+          sed -E -i -e 's/\.orig//g' $out
+        '';
+      })
+    ];
   });
 
   xf86inputmouse = super.xf86inputmouse.overrideAttrs (attrs: {
