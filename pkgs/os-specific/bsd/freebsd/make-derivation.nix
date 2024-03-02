@@ -11,7 +11,7 @@ in stdenv'.mkDerivation (rec {
     buildPackages.bsdSetupHook buildFreebsd.freebsdSetupHook
     buildFreebsd.bmakeMinimal  # TODO bmake??
     buildFreebsd.install buildFreebsd.tsort buildFreebsd.lorder buildPackages.mandoc buildPackages.groff #statHook
-  ];
+  ] ++ attrs.extraNativeBuildInputs or [];
   buildInputs = compatIfNeeded;
 
   HOST_SH = stdenv'.shell;
