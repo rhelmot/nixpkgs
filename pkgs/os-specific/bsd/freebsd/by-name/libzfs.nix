@@ -3,7 +3,6 @@
   lib,
   libbsdxml,
   libgeom,
-  libspl,
   openssl,
   zfs-data,
   zlib,
@@ -15,11 +14,11 @@
 # or cddl/lib/Makefile
 let
   libs = [
-    # Not really a "zfs" library, it's a splaris compatiblity library
-    # Only used for zfs though
+    # Not really "zfs" libraries, they're solaris compatiblity libraries
+    "libspl"
     "libumem"
 
-    # Libraires with no dependencies here execpt libumem
+    # Libraires with no dependencies here execpt libumem and libspl
     "libavl"
     "libicp"
     "libnvpair"
@@ -48,7 +47,6 @@ mkDerivation {
   buildInputs = [
     libbsdxml
     libgeom
-    libspl
     openssl
     zlib
   ];

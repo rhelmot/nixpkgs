@@ -3,7 +3,6 @@
   lib,
   libgeom,
   libjail,
-  libspl,
   libzfs,
   openssl,
   zfs-data,
@@ -20,7 +19,6 @@ mkDerivation {
   buildInputs = [
     libgeom
     libjail
-    libspl
     libzfs
     openssl
   ];
