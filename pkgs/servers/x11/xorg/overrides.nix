@@ -7,7 +7,7 @@
   mesa, udev, bootstrap_cmds, bison, flex, clangStdenv, autoreconfHook,
   mcpp, libepoxy, openssl, pkg-config, llvm, libxslt, libxcrypt,
   ApplicationServices, Carbon, Cocoa, Xplugin,
-  xorg, windows
+  xorg, windows, freebsd
 }:
 
 let
@@ -495,6 +495,7 @@ self: super:
     configureFlags = [
       "--with-sdkdir=${placeholder "dev"}/include/xorg"
     ];
+    buildInputs =  attrs.buildInputs ++ [ freebsd.evdev-proto ];
     patches = [
       (fetchpatch {
         url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/8f6f86bd48a3b52427e33ed5b05cfec1c7eea4e3/x11-drivers/xf86-input-evdev/files/patch-src_evdev.c";
