@@ -106,6 +106,7 @@ in lib.makeScope newScope (self: with self; { inherit stdenv;
   config = callPackage ./config.nix {};
   cp = callPackage ./cp.nix {};
   daemon = callPackage ./daemon.nix {};
+  dmesg = callPackage ./dmesg.nix {};
   fdisk = callPackage ./fdisk.nix {};
   file2c = callPackage ./file2c.nix {};
   fsck = callPackage ./fsck.nix {};
