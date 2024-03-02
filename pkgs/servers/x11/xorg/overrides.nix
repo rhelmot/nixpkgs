@@ -498,6 +498,7 @@ self: super:
     patches = [
       (fetchpatch {
         url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/8f6f86bd48a3b52427e33ed5b05cfec1c7eea4e3/x11-drivers/xf86-input-evdev/files/patch-src_evdev.c";
+        hash = "sha256-KqiW+jXbZ8oF9wVHYIKMx7Qm3tA5iKMp9e6iyegC+wI=";
         extraPrefix = "";
         postFetch = ''
           sed -E -i -e 's/\.orig//g' $out
