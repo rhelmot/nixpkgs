@@ -113,7 +113,7 @@ stdenv.mkDerivation rec {
     libjpeg_turbo
     pixman
     gawk
-  ] ++ lib.optionals stdenv.isLinux (with xorg; [
+  ] ++ lib.optionals (stdenv.isLinux || stdenv.isFreeBSD) (with xorg; [
     nettle
     pam
     perl

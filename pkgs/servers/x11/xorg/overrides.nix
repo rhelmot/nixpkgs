@@ -495,7 +495,10 @@ self: super:
     configureFlags = [
       "--with-sdkdir=${placeholder "dev"}/include/xorg"
     ];
-    buildInputs =  attrs.buildInputs ++ [ evdev-proto ];
+    
+    UVDEV_CFLAGS = " ";
+    UVDEV_LIBS = " ";
+    buildInputs = attrs.buildInputs ++ lib.optionals stdenv.hostPlatform.isFreeBSD [ evdev-proto ];
     patches = [
       (fetchpatch {
         url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/8f6f86bd48a3b52427e33ed5b05cfec1c7eea4e3/x11-drivers/xf86-input-evdev/files/patch-src_evdev.c";
@@ -764,6 +767,9 @@ self: super:
           do
             sed -i -e "s|#include <drm_fourcc.h>|#include <libdrm/drm_fourcc.h>|" $i
           done
+        '';
+        postFixup = ''
+          sed -E -i -e "s/defined\(__linux__\)/defined(__linux__) || defined(__FreeBSD__)/g" $dev/include/xorg/xf86str.h
         '';
         meta = attrs_passed.meta // { mainProgram = "X"; };
       };
