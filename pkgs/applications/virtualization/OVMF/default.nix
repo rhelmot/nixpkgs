@@ -42,7 +42,8 @@ edk2.mkDerivation projectDscPath (finalAttrs: {
 
   outputs = [ "out" "fd" ];
 
-  nativeBuildInputs = [ util-linux nasm acpica-tools ]
+  nativeBuildInputs = [ nasm acpica-tools ]
+    ++ lib.optional stdenv.isLinux util-linux
     ++ lib.optionals stdenv.cc.isClang [ llvmPackages.bintools llvmPackages.llvm ];
   strictDeps = true;
 
@@ -62,7 +63,9 @@ edk2.mkDerivation projectDscPath (finalAttrs: {
     ++ lib.optionals tpmSupport [ "-D TPM_ENABLE" "-D TPM2_ENABLE" "-D TPM2_CONFIG_ENABLE"];
 
   buildConfig = if debug then "DEBUG" else "RELEASE";
-  env.NIX_CFLAGS_COMPILE = lib.optionalString stdenv.cc.isClang "-Qunused-arguments";
+  env.NIX_CFLAGS_COMPILE =
+    lib.optionalString stdenv.cc.isClang "-Qunused-arguments" +
+    lib.optionalString stdenv.isFreeBSD " -D_WCHAR_T -Wno-error=unneeded-internal-declaration";
 
   env.PYTHON_COMMAND = "python3";
 

@@ -52,6 +52,6 @@ stdenv.mkDerivation rec {
     description = "ACPICA Tools";
     license = with licenses; [ iasl gpl2Only bsd3 ];
     maintainers = with maintainers; [ delroth tadfisher ];
-    platforms = platforms.linux ++ platforms.darwin;
+    platforms = platforms.linux ++ platforms.darwin ++ platforms.freebsd;
   };
 }

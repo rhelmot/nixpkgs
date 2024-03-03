@@ -26,7 +26,7 @@ else if stdenv.hostPlatform.isRiscV64 then
 else
   throw "Unsupported architecture";
 
-buildType = if stdenv.isDarwin then
+buildType = if stdenv.cc.isClang then
     "CLANGPDB"
   else
     "GCC5";
@@ -78,7 +78,8 @@ edk2 = stdenv.mkDerivation rec {
 
   env.NIX_CFLAGS_COMPILE = "-Wno-return-type"
     + lib.optionalString (stdenv.cc.isGNU) " -Wno-error=stringop-truncation"
-    + lib.optionalString (stdenv.isDarwin) " -Wno-error=macro-redefined";
+    + lib.optionalString (stdenv.isDarwin) " -Wno-error=macro-redefined"
+    + lib.optionalString (stdenv.isFreeBSD) " -D_WCHAR_T";
 
   hardeningDisable = [ "format" "fortify" ];
 
