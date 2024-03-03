@@ -1,11 +1,13 @@
 { lib
 , stdenv
 , fetchFromGitLab
+, fetchpatch
 , gitUpdater
 , pkg-config
 , meson
 , ninja
 , libevdev
+, epoll-shim
 , mtdev
 , udev
 , libwacom
@@ -59,6 +61,23 @@ stdenv.mkDerivation rec {
 
   patches = [
     ./udev-absolute-path.patch
+  ] ++ lib.optionals stdenv.hostPlatform.isFreeBSD [
+    (fetchpatch {
+      url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/8f6f86bd48a3b52427e33ed5b05cfec1c7eea4e3/x11/libinput/files/patch-meson.build";
+      hash = "sha256-j5QUwwEa86lUzMVl9fZ+8TirlCzdrMKczT616EDSkAk=";
+      extraPrefix = "";
+      postFetch = ''
+        sed -E -i -e 's/\.orig//g' $out
+      '';
+    })
+    (fetchpatch {
+      url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/8f6f86bd48a3b52427e33ed5b05cfec1c7eea4e3/x11/libinput/files/patch-src_evdev.c";
+      hash = "sha256-XFsTMC5MhBdvlz0t+apY7hhT1DptJFG180uUT3JEjek=";
+      extraPrefix = "";
+      postFetch = ''
+        sed -E -i -e 's/\.orig//g' $out
+      '';
+    })
   ];
 
   nativeBuildInputs = [
@@ -86,6 +105,8 @@ stdenv.mkDerivation rec {
     cairo
     glib
     gtk3
+  ] ++ lib.optionals stdenv.hostPlatform.isFreeBSD [
+    epoll-shim
   ];
 
   propagatedBuildInputs = [
@@ -103,6 +124,8 @@ stdenv.mkDerivation rec {
     (mkFlag testsSupport "tests")
     "--sysconfdir=/etc"
     "--libexecdir=${placeholder "bin"}/libexec"
+  ] ++ lib.optionals stdenv.hostPlatform.isFreeBSD [
+    "-Depoll-dir=${lib.getDev epoll-shim}"
   ];
 
   doCheck = testsSupport && stdenv.hostPlatform == stdenv.buildPlatform;

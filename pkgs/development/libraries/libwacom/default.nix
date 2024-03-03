@@ -8,6 +8,7 @@
 , udev
 , libevdev
 , libgudev
+, evdev-proto
 , libxml2
 , python3
 , valgrind
@@ -42,6 +43,8 @@ stdenv.mkDerivation rec {
     udev
     libevdev
     libgudev
+  ] ++ lib.optionals stdenv.hostPlatform.isFreeBSD [
+    evdev-proto
   ];
 
   doCheck = stdenv.hostPlatform == stdenv.buildPlatform
@@ -67,7 +70,7 @@ stdenv.mkDerivation rec {
   ];
 
   meta = with lib; {
-    platforms = platforms.linux;
+    platforms = platforms.linux ++ platforms.freebsd;
     homepage = "https://linuxwacom.github.io/";
     changelog = "https://github.com/linuxwacom/libwacom/blob/${src.rev}/NEWS";
     description = "Libraries, configuration, and diagnostic tools for Wacom tablets running under Linux";

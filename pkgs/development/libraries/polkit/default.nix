@@ -130,6 +130,7 @@ stdenv.mkDerivation rec {
   # so we need to convince it to install all files to a temporary
   # location using DESTDIR and then move it to proper one in postInstall.
   env.DESTDIR = "dest";
+  env.NIX_CFLAGS_COMPILE = lib.optionalString stdenv.hostPlatform.isFreeBSD "-D__BSD_VISIBLE";
 
   inherit doCheck;
 
@@ -178,7 +179,7 @@ stdenv.mkDerivation rec {
     homepage = "https://gitlab.freedesktop.org/polkit/polkit/";
     description = "A toolkit for defining and handling the policy that allows unprivileged processes to speak to privileged processes";
     license = licenses.lgpl2Plus;
-    platforms = platforms.linux;
+    platforms = platforms.linux ++ platforms.freebsd;
     maintainers = teams.freedesktop.members ++ (with maintainers; [ ]);
   };
 }

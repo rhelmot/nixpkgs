@@ -1,5 +1,5 @@
-{ lib, mkXfceDerivation, exo, librsvg, dbus-glib, libepoxy, gtk3, libXdamage
-, libstartup_notification, libxfce4ui, libxfce4util, libwnck
+{ stdenv, lib, mkXfceDerivation, exo, librsvg, dbus-glib, libepoxy, gtk3, libXdamage
+, libstartup_notification, libxfce4ui, libxfce4util, libwnck, xorg
 , libXpresent, xfconf }:
 
 mkXfceDerivation {
@@ -22,6 +22,8 @@ mkXfceDerivation {
     libwnck
     libXpresent
     xfconf
+  ] ++ lib.optionals stdenv.hostPlatform.isFreeBSD [
+    xorg.libXinerama
   ];
 
   meta = with lib; {

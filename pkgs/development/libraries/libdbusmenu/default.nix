@@ -71,7 +71,7 @@ stdenv.mkDerivation (finalAttrs: {
       "dbusmenu-glib-0.4"
       "dbusmenu-jsonloader-0.4"
     ] ++ lib.optional (gtkVersion == "3") "dbusmenu-gtk${gtkVersion}-0.4";
-    platforms = platforms.linux;
+    platforms = platforms.linux ++ platforms.freebsd;
     maintainers = [ maintainers.msteen ];
   };
 })

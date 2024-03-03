@@ -548,6 +548,7 @@ self: super:
     configureFlags = [
       "--with-sdkdir=${placeholder "dev"}/include/xorg"
     ];
+    buildInputs = attrs.buildInputs ++ lib.optionals stdenv.hostPlatform.isFreeBSD [ evdev-proto ];
   });
 
   xf86inputsynaptics = super.xf86inputsynaptics.overrideAttrs (attrs: {

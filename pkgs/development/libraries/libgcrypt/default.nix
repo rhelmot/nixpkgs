@@ -67,7 +67,7 @@ stdenv.mkDerivation rec {
     cp src/.libs/libgcrypt.20.dylib $out/lib
   '';
 
-  doCheck = true;
+  doCheck = !stdenv.isFreeBSD;
   enableParallelChecking = true;
 
   passthru.tests = {

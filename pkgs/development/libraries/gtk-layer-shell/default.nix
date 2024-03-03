@@ -61,6 +61,6 @@ stdenv.mkDerivation (finalAttrs: {
     homepage = "https://github.com/wmww/gtk-layer-shell";
     license = licenses.lgpl3Plus;
     maintainers = with maintainers; [ eonpatapon donovanglover ];
-    platforms = platforms.linux;
+    platforms = platforms.linux ++ platforms.freebsd;
   };
 })

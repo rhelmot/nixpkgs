@@ -81,6 +81,10 @@ stdenv.mkDerivation (finalAttrs: {
     libgudev
     libusb1
     udev
+
+  ] ++ lib.optionals useIMobileDevice [
+    libimobiledevice
+  ] ++ lib.optionals stdenv.isLinux [
     systemd
     # Duplicate from nativeCheckInputs until https://github.com/NixOS/nixpkgs/issues/161570 is solved
     umockdev
@@ -92,8 +96,6 @@ stdenv.mkDerivation (finalAttrs: {
       pp.pygobject3
       pp.packaging
     ]))
-  ] ++ lib.optionals useIMobileDevice [
-    libimobiledevice
   ];
 
   nativeCheckInputs = [
@@ -122,7 +124,7 @@ stdenv.mkDerivation (finalAttrs: {
     "-Dinstalled_test_prefix=${placeholder "installedTests"}"
   ];
 
-  doCheck = true;
+  doCheck = stdenv.isLinux;
 
   postPatch = ''
     patchShebangs src/linux/integration-test.py
@@ -180,7 +182,7 @@ stdenv.mkDerivation (finalAttrs: {
     ! test -e "$DESTDIR"
   '';
 
-  postFixup = ''
+  postFixup = lib.optionalString stdenv.isLinux ''
     wrapProgram "$installedTests/libexec/upower/integration-test.py" \
       --prefix GI_TYPELIB_PATH : "${lib.makeSearchPath "lib/girepository-1.0" [
         "$out"
@@ -212,7 +214,7 @@ stdenv.mkDerivation (finalAttrs: {
     changelog = "https://gitlab.freedesktop.org/upower/upower/-/blob/v${finalAttrs.version}/NEWS";
     description = "A D-Bus service for power management";
     maintainers = teams.freedesktop.members;
-    platforms = platforms.linux;
+    platforms = platforms.linux ++ platforms.freebsd;
     license = licenses.gpl2Plus;
   };
 })

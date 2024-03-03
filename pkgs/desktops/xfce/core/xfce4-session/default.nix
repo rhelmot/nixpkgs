@@ -1,4 +1,5 @@
 { lib
+, stdenv
 , mkXfceDerivation
 , fetchpatch
 , polkit
@@ -44,7 +45,7 @@ mkXfceDerivation {
   configureFlags = [ "--with-xsession-prefix=${placeholder "out"}" ];
 
   # See https://github.com/NixOS/nixpkgs/issues/36468
-  env.NIX_CFLAGS_COMPILE = "-I${glib.dev}/include/gio-unix-2.0";
+  env.NIX_CFLAGS_COMPILE = "-I${glib.dev}/include/gio-unix-2.0" + lib.optionalString stdenv.hostPlatform.isFreeBSD " -DHAVE_SYS_SYSCTL_H";
 
   passthru.xinitrc = "${xfce4-session}/etc/xdg/xfce4/xinitrc";
 
