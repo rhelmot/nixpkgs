@@ -286,7 +286,7 @@ stdenv.mkDerivation rec {
           -exec sed -i "s@FFI_LIB_DIR@FFI_LIB_DIR ${numactl.out}/lib@g" {} \;
     '' +
     # Rename needed libraries and binaries, fix interpreter
-    lib.optionalString stdenv.isLinux ''
+    lib.optionalString (stdenv.isLinux || stdenv.isFreeBSD) ''
       find . -type f -executable -exec patchelf \
           --interpreter ${stdenv.cc.bintools.dynamicLinker} {} \;
     '' +
@@ -329,6 +329,8 @@ stdenv.mkDerivation rec {
       test ! -h "$i" || continue
       isScript "$i" || continue
       sed -i -e '2i export PATH="${lib.makeBinPath runtimeDeps}:$PATH"' "$i"
+      sed -i -e '3i export NIX_CFLAGS_COMPILE="-L${gmp.out}/lib -B${gmp.out}/lib $NIX_CFLAGS_COMPILE"' "$i"
+      sed -i -e '4i export NIX_DEBUG=1' "$i"
     done
   '';
 
