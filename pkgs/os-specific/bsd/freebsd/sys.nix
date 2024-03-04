@@ -40,6 +40,9 @@ mkDerivation (let
       "stackprotector"  # generates stack protection for the function generating the stack canary
     ];
 
+    # hardeningDisable = stackprotector doesn't seem to be enough, put it in cflags too
+    NIX_CFLAGS_COMPILE = "-fno-stack-protector";
+
     KODIR = "${builtins.placeholder "out"}/kernel";
     KMODDIR = "${builtins.placeholder "out"}/kernel";
     DTBDIR = "${builtins.placeholder"out"}/dbt";
