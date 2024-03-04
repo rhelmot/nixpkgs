@@ -59,6 +59,8 @@ stdenv.mkDerivation (finalAttrs: {
     ./installCheck-path.patch
   ] ++ lib.optionals withSsh [
     ./ssh-path.patch
+  ] ++ lib.optionals (stdenv.isFreeBSD && !stdenv.buildPlatform.isFreeBSD) [
+    ./freebsd-uname.patch
   ];
 
   postPatch = ''
