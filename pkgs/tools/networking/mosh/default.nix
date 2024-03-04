@@ -43,6 +43,11 @@ stdenv.mkDerivation rec {
   configureFlags = [ "--enable-completion" ]
     ++ lib.optional withUtempter "--with-utempter";
 
+  env = lib.optionalAttrs stdenv.isFreeBSD {
+    ac_cv_have_decl_bswap64 = "yes";
+    ac_cv_have_decl___builtin_bswap64 = "yes";
+  };
+
   postInstall = ''
       wrapProgram $out/bin/mosh --prefix PERL5LIB : $PERL5LIB
   '';
