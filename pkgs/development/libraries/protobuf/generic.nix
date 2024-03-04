@@ -44,6 +44,12 @@ stdenv.mkDerivation (finalAttrs: {
       url = "https://github.com/protocolbuffers/protobuf/commit/a7324f88e92bc16b57f3683403b6c993bf68070b.patch";
       hash = "sha256-SmwaUjOjjZulg/wgNmR/F5b8rhYA2wkKAjHIOxjcQdQ=";
     })
+  ]  ++ lib.optionals (lib.versionOlder version "25" && stdenv.isFreeBSD) [
+    # Fix duplicate definitions of UID_MAX
+    (fetchpatch {
+      url = "https://github.com/protocolbuffers/protobuf/commit/2a952958eb1d4ea13fee2ad657a537ad443adf8f.patch";
+      hash = "sha256-7kHgbuHMau0lmOl9G2jpXd6JwUQtJxxuHd1IrWQWwNY=";
+    })
   ] ++ lib.optionals stdenv.hostPlatform.isStatic [
     ./static-executables-have-no-rpath.patch
   ];
