@@ -111,7 +111,7 @@ stdenv.mkDerivation (finalAttrs: {
     description = "A package manager for Lua";
     license = licenses.mit;
     maintainers = with maintainers; [ raskin teto ];
-    platforms = platforms.linux ++ platforms.darwin;
+    platforms = platforms.linux ++ platforms.darwin ++ platforms.freebsd;
     downloadPage = "http://luarocks.org/releases/";
   };
 })

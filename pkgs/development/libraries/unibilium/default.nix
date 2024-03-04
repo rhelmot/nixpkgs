@@ -21,7 +21,7 @@ stdenv.mkDerivation rec {
   meta = with lib; {
     description = "A very basic terminfo library";
     license = licenses.lgpl3Plus;
-    platforms = platforms.linux ++ platforms.darwin;
+    platforms = platforms.linux ++ platforms.darwin ++ platforms.freebsd;
     maintainers = with maintainers; [ pSub ];
   };
 }
