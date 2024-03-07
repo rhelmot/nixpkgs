@@ -39,6 +39,11 @@ stdenv.mkDerivation rec {
     "-Ddocs=disabled"
   ];
 
+  # mlock support disabled in jail
+  postPatch = lib.optionalString stdenv.isFreeBSD ''
+    sed -E -i -e '/test_ring\(size\);/d' test/test_ring.c
+  '';
+
   doCheck = true;
 
   meta = with lib; {

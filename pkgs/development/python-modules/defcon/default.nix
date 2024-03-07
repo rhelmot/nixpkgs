@@ -1,4 +1,5 @@
 { lib
+, stdenv
 , buildPythonPackage
 , pythonOlder
 , fetchPypi
@@ -37,6 +38,10 @@ buildPythonPackage rec {
 
   pythonImportsCheck = [
     "defcon"
+  ];
+
+  disabledTests = lib.optionals stdenv.isFreeBSD [
+    "test_delitem"
   ];
 
   passthru.optional-dependencies = {

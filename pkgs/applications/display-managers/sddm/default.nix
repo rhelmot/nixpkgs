@@ -35,6 +35,7 @@ in stdenv.mkDerivation {
     qtbase
     qtdeclarative
     qtquickcontrols2
+  ] ++ lib.optionals stdenv.isLinux [
     systemd
   ];
 
@@ -76,7 +77,7 @@ in stdenv.mkDerivation {
     description = "QML based X11 display manager";
     homepage    = "https://github.com/sddm/sddm";
     maintainers = with maintainers; [ abbradar ttuegel ];
-    platforms   = platforms.linux;
+    platforms   = platforms.linux ++ platforms.freebsd;
     license     = licenses.gpl2Plus;
   };
 }

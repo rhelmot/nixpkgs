@@ -1,6 +1,7 @@
 { lib
 , stdenv
 , fetchurl
+, fetchpatch
 , substituteAll
 , pkg-config
 , glib
@@ -32,10 +33,12 @@ stdenv.mkDerivation rec {
 
   patches = [
     # Hardcode dependency paths.
-    (substituteAll {
+    (substituteAll ({
       src = ./fix-paths.patch;
-      inherit shadow coreutils;
-    })
+      inherit coreutils;
+    } // lib.optionalAttrs stdenv.isLinux {
+      inherit shadow;
+    }))
 
     # Do not try to create directories in /var, that will not work in Nix sandbox.
     ./no-create-dirs.patch
@@ -50,6 +53,15 @@ stdenv.mkDerivation rec {
     # Detect DM type from config file.
     # `readlink display-manager.service` won't return any of the candidates.
     ./get-dm-type-from-config.patch
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    (fetchpatch {
+      url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/8f6f86bd48a3b52427e33ed5b05cfec1c7eea4e3/sysutils/accountsservice/files/patch-meson.build";
+      hash = "sha256-nznjhQ39d/dQwqiZOupwRCoLVSd0vnGZ+4cCFLJA4wQ=";
+      extraPrefix = "";
+      postFetch = ''
+        sed -E -i -e 's/\.orig//g' $out
+      '';
+    })
   ];
 
   nativeBuildInputs = [
@@ -70,14 +82,18 @@ stdenv.mkDerivation rec {
     gettext
     glib
     polkit
-    systemd
     libxcrypt
+  ] ++ lib.optionals stdenv.isLinux [
+    systemd
   ];
 
   mesonFlags = [
     "-Dadmin_group=wheel"
     "-Dlocalstatedir=/var"
+  ] ++ lib.optionals stdenv.isLinux [
     "-Dsystemdsystemunitdir=${placeholder "out"}/etc/systemd/system"
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    "-Dsystemdsystemunitdir=no"
   ];
 
   postPatch = ''
@@ -90,6 +106,6 @@ stdenv.mkDerivation rec {
     homepage = "https://www.freedesktop.org/wiki/Software/AccountsService";
     license = licenses.gpl3Plus;
     maintainers = teams.freedesktop.members ++ (with maintainers; [ pSub ]);
-    platforms = platforms.linux;
+    platforms = platforms.linux ++ platforms.freebsd;
   };
 }

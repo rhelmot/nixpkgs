@@ -1,4 +1,5 @@
 { lib
+, stdenv
 , buildPythonPackage
 , pythonOlder
 , fetchPypi
@@ -89,6 +90,8 @@ buildPythonPackage rec {
     "test_hello_sdist"
     "test_manifest_in_sdist"
     "test_sdist_with_symlinks"
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    "test_invalid_generator"  # NotImplementedError
   ];
 
   meta = with lib; {

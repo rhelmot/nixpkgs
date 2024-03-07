@@ -34,7 +34,7 @@
 , Cocoa
 , OpenGL
 , enableGl ? (enableX11 || enableWayland || enableCocoa)
-, enableCdparanoia ? (!stdenv.isDarwin)
+, enableCdparanoia ? (!stdenv.isDarwin && !stdenv.isFreeBSD)
 , cdparanoia
 , glib
 , testers

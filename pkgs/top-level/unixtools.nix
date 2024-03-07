@@ -54,6 +54,7 @@ let
     arp = {
       linux = pkgs.nettools;
       darwin = pkgs.darwin.network_cmds;
+      freebsd = pkgs.freebsd.arp;
     };
     col = {
       linux = pkgs.util-linux;
@@ -123,14 +124,17 @@ let
     mount = {
       linux = pkgs.util-linux;
       darwin = pkgs.darwin.diskdev_cmds;
+      freebsd = freebsd.mount;
     };
     netstat = {
       linux = pkgs.nettools;
       darwin = pkgs.darwin.network_cmds;
+      freebsd = pkgs.freebsd.netstat;
     };
     ping = {
       linux = pkgs.iputils;
       darwin = pkgs.darwin.network_cmds;
+      freebsd = freebsd.ping;
     };
     ps = {
       linux = pkgs.procps;
@@ -144,6 +148,7 @@ let
     route = {
       linux = pkgs.nettools;
       darwin = pkgs.darwin.network_cmds;
+      freebsd = pkgs.freebsd.route;
     };
     script = {
       linux = pkgs.util-linux;
@@ -182,6 +187,7 @@ let
     xxd = {
       linux = pkgs.vim.xxd;
       darwin = pkgs.vim.xxd;
+      freebsd = pkgs.vim.xxd;
     };
   };
 

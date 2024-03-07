@@ -18,6 +18,10 @@ stdenv.mkDerivation rec {
 
   cmakeFlags = [ "-DBUILD_TESTS=OFF" "-DCODE_COVERAGE=OFF" ];
 
+  postPatch = lib.optionalString stdenv.isFreeBSD ''
+    sed -E -i -e "/toh/d" src/hrtf/portable_endian.h
+  '';
+
   meta = with lib; {
     description = "Reader for AES SOFA files to get better HRTFs";
     homepage = "https://github.com/hoene/libmysofa";

@@ -18,10 +18,29 @@ stdenv.mkDerivation rec {
       url = "https://github.com/wolfcw/libfaketime/commit/e0e6b79568d36a8fd2b3c41f7214769221182128.patch";
       sha256 = "sha256-KwwP76v0DXNW73p/YBvwUOPdKMAcVdbQSKexD/uFOYo=";
     })
-  ] ++ (lib.optionals stdenv.cc.isClang [
+  ] ++ (lib.optionals (stdenv.cc.isClang && !stdenv.isFreeBSD) [
     # https://github.com/wolfcw/libfaketime/issues/277
     ./0001-Remove-unsupported-clang-flags.patch
-  ]);
+  ]) ++ lib.optionals stdenv.isFreeBSD [
+    (fetchpatch {
+      url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/8f6f86bd48a3b52427e33ed5b05cfec1c7eea4e3/devel/libfaketime/files/patch-src_libfaketime.c";
+      hash = "sha256-HeMXjf8SMQow7QebTqaxOr8Cp7u7cOD09bw6HKLGIlc=";
+      extraPrefix = "";
+      postFetch = ''
+        sed -E -i -e 's/\.orig//g' $out
+      '';
+    })
+    #(fetchpatch {
+    #  url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/8f6f86bd48a3b52427e33ed5b05cfec1c7eea4e3/devel/libfaketime/files/patch-src_Makefile";
+    #  hash = "sha256-erMgUrMgG7lpGOEAH+tfFOlT7+JGUEZIrUnCTSd+Abs=";
+    #  extraPrefix = "";
+    #  postFetch = ''
+    #    sed -E -i -e 's/\.orig//g' $out
+    #  '';
+    #})
+    ./freebsd-makefile.patch
+    ./freebsd.patch
+  ];
 
   postPatch = ''
     patchShebangs test src
@@ -35,7 +54,8 @@ stdenv.mkDerivation rec {
   PREFIX = placeholder "out";
   LIBDIRNAME = "/lib";
 
-  env.NIX_CFLAGS_COMPILE = lib.optionalString stdenv.cc.isClang "-Wno-error=cast-function-type -Wno-error=format-truncation";
+  env.FEATS = lib.optionalString stdenv.isFreeBSD "-DFAKE_SLEEP -DFAKE_TIMERS -DFAKE_INTERNAL_CALLS";
+  env.NIX_CFLAGS_COMPILE = lib.optionalString stdenv.cc.isClang ("-Wno-error=cast-function-type" + lib.optionalString (!stdenv.isFreeBSD) " -Wno-error=format-truncation");
 
   nativeCheckInputs = [ perl ];
 
@@ -44,6 +64,7 @@ stdenv.mkDerivation rec {
     homepage = "https://github.com/wolfcw/libfaketime/";
     license = licenses.gpl2;
     platforms = platforms.all;
+    broken = stdenv.isFreeBSD;
     maintainers = [ maintainers.bjornfor ];
     mainProgram = "faketime";
   };

@@ -326,6 +326,7 @@ lib.pipe ((callFile ./common/builder.nix {}) ({
   dontDisableStatic = true;
 
   configurePlatforms = [ "build" "host" "target" ];
+  forceFreeBSDVersion = lib.optionalString stdenv.isFreeBSD freebsd.hostVersion;
 
   configureFlags = (callFile ./common/configure-flags.nix { })
     ++ optional (is7 && targetPlatform.isAarch64) "--enable-fix-cortex-a53-843419"

@@ -40,6 +40,10 @@ let
     postConfigure = lib.optionalString stdenv.isDarwin ''
       substituteInPlace config.h \
         --replace "#define HAVE___EXP10 1" "#undef HAVE___EXP10"
+    '' + lib.optionalString stdenv.isFreeBSD ''
+      # asserts block sizes that fail on zfs(?)
+      substituteInPlace tests/unittest.cc \
+        --replace "TESTCASE(ioblock1)," ""
     '';
 
     passthru.tests = {

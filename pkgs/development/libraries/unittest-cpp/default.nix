@@ -32,6 +32,8 @@ stdenv.mkDerivation rec {
 
   doCheck = false;
 
+  env.NIX_CFLAGS_COMPILE = lib.optionals stdenv.isFreeBSD "-Wno-error=unused-command-line-argument";
+
   meta = {
     homepage = "https://github.com/unittest-cpp/unittest-cpp";
     description = "Lightweight unit testing framework for C++";

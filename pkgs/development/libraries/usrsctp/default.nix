@@ -25,6 +25,9 @@ stdenv.mkDerivation rec {
     substituteInPlace usrsctplib/CMakeLists.txt \
       --replace '$'{exec_prefix}/'$'{CMAKE_INSTALL_LIBDIR} '$'{CMAKE_INSTALL_FULL_LIBDIR} \
       --replace '$'{prefix}/'$'{CMAKE_INSTALL_INCLUDEDIR} '$'{CMAKE_INSTALL_FULL_INCLUDEDIR}
+  '' + lib.optionalString stdenv.isFreeBSD ''
+    substituteInPlace usrsctplib/netinet/sctp_os_userspace.h \
+      --replace "ip6protosw.h" "ip6_var.h"
   '';
 
   meta = with lib; {

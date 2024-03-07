@@ -6,7 +6,7 @@
 , ninja
 , eudev
 , systemd
-, enableSystemd ? true
+, enableSystemd ? stdenv.isLinux
 , pkg-config
 , docutils
 , doxygen
@@ -36,7 +36,7 @@
 , gst_all_1
 , ffmpegSupport ? true
 , ffmpeg
-, bluezSupport ? true
+, bluezSupport ? stdenv.isLinux
 , bluez
 , sbc
 , libfreeaptx
@@ -47,7 +47,7 @@
 , ldacbt
 , nativeHspSupport ? true
 , nativeHfpSupport ? true
-, nativeModemManagerSupport ? true
+, nativeModemManagerSupport ? stdenv.isLinux
 , modemmanager
 , ofonoSupport ? true
 , hsphfpdSupport ? true
@@ -64,8 +64,9 @@
 , xorg
 , mysofaSupport ? true
 , libmysofa
+, tinycompressSupport ? !stdenv.isFreeBSD
 , tinycompress
-, ffadoSupport ? x11Support && stdenv.buildPlatform.canExecute stdenv.hostPlatform
+, ffadoSupport ? x11Support && stdenv.buildPlatform.canExecute stdenv.hostPlatform && stdenv.isLinux
 , ffado
 , libselinux
 }:
@@ -119,7 +120,6 @@ stdenv.mkDerivation(finalAttrs: {
     glib
     libjack2
     libusb1
-    libselinux
     libsndfile
     lilv
     ncurses
@@ -127,8 +127,8 @@ stdenv.mkDerivation(finalAttrs: {
     udev
     vulkan-headers
     vulkan-loader
-    tinycompress
-  ] ++ (if enableSystemd then [ systemd ] else [ eudev ])
+  ] ++ lib.optionals stdenv.isLinux (if enableSystemd then [ systemd ] else [ eudev ])
+  ++ lib.optionals tinycompressSupport [ tinycompress ]
   ++ (if lib.meta.availableOn stdenv.hostPlatform webrtc-audio-processing_1 then [ webrtc-audio-processing_1 ] else [ webrtc-audio-processing ])
   ++ lib.optionals gstreamerSupport [ gst_all_1.gst-plugins-base gst_all_1.gstreamer ]
   ++ lib.optionals libcameraSupport [ libcamera libdrm ]
@@ -142,7 +142,8 @@ stdenv.mkDerivation(finalAttrs: {
   ++ lib.optional rocSupport roc-toolkit
   ++ lib.optionals x11Support [ libcanberra xorg.libX11 xorg.libXfixes ]
   ++ lib.optional mysofaSupport libmysofa
-  ++ lib.optional ffadoSupport ffado;
+  ++ lib.optional ffadoSupport ffado
+  ++ lib.optional stdenv.isLinux libselinux;
 
   # Valgrind binary is required for running one optional test.
   nativeCheckInputs = lib.optional withValgrind valgrind;
@@ -207,7 +208,7 @@ stdenv.mkDerivation(finalAttrs: {
     changelog = "https://gitlab.freedesktop.org/pipewire/pipewire/-/releases/${version}";
     homepage = "https://pipewire.org/";
     license = licenses.mit;
-    platforms = platforms.linux;
+    platforms = platforms.linux ++ platforms.freebsd;
     maintainers = with maintainers; [ kranzes k900 ];
   };
 })

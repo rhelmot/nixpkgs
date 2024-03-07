@@ -13,6 +13,8 @@ stdenv.mkDerivation rec {
     "--enable-shared"
     # Define inline as __attribute__ ((__always_inline__))
     "ac_cv_c_inline=yes"
+  ] ++ lib.optional stdenv.isFreeBSD [
+    "--disable-oss"
   ];
 
   makeFlags = [

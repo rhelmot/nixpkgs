@@ -30,6 +30,9 @@ stdenv.mkDerivation (finalAttrs: {
     # ensure test detects musl-based systems too
     substituteInPlace scripts/ocsp-stapling2.test \
       --replace '"linux-gnu"' '"linux-"'
+  '' + lib.optionalString stdenv.isFreeBSD ''
+    # ocsp stapling 2 tests have os-specific behavior which is not inclusive of FreeBSD
+    sed -i -e'2s/.*/exit 77/' scripts/ocsp-stapling2.test
   '';
 
   configureFlags = [

@@ -27,6 +27,8 @@ stdenv.mkDerivation rec {
 
   postPatch = ''
     echo ${version} > .tarball-version
+  '' + lib.optionalString stdenv.isFreeBSD ''
+    sed -E -i -e "/#include/i #include <sys/socket.h>" test/pingtest.c
   '';
 
   meta = with lib; {

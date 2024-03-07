@@ -71,6 +71,9 @@ stdenv.mkDerivation (finalAttrs: {
   ] ++ lib.optionals stdenv.isDarwin [
     Cocoa
     CoreServices
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    libunwind
+    elfutils
   ];
 
   propagatedBuildInputs = [
@@ -86,6 +89,8 @@ stdenv.mkDerivation (finalAttrs: {
     "-Dlibunwind=disabled"
     "-Dlibdw=disabled"
   ];
+
+  env.NIX_CFLAGS_COMPILE = lib.optionalString stdenv.isFreeBSD "-DHAVE_SYS_SOCKET_H";
 
   postPatch = ''
     patchShebangs \

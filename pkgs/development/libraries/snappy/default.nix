@@ -40,6 +40,8 @@ stdenv.mkDerivation rec {
     "-DSNAPPY_BUILD_BENCHMARKS=OFF"
   ];
 
+  env.NIX_CFLAGS_COMPILE = lib.optionalString stdenv.isFreeBSD "-Wno-error=unused-command-line-argument";
+
   postInstall = ''
     substituteInPlace "$out"/lib/cmake/Snappy/SnappyTargets.cmake \
       --replace 'INTERFACE_INCLUDE_DIRECTORIES "''${_IMPORT_PREFIX}/include"' 'INTERFACE_INCLUDE_DIRECTORIES "'$dev'"'

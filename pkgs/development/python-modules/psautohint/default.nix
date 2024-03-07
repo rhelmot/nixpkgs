@@ -1,4 +1,4 @@
-{ lib, buildPythonPackage, fetchFromGitHub, pythonOlder
+{ lib, stdenv, buildPythonPackage, fetchFromGitHub, pythonOlder
 , fonttools
 , lxml, fs # for fonttools extras
 , setuptools-scm
@@ -36,7 +36,7 @@ buildPythonPackage rec {
     pytest-cov
     pytest-xdist
   ];
-  disabledTests = lib.optionals (!runAllTests) [
+  disabledTests = lib.optionals (!runAllTests) ([
     # Slow tests, reduces test time from ~5 mins to ~30s
     "test_mmufo"
     "test_flex_ufo"
@@ -48,7 +48,9 @@ buildPythonPackage rec {
     # flaky tests (see https://github.com/adobe-type-tools/psautohint/issues/385)
     "test_hashmap_old_version"
     "test_hashmap_no_version"
-  ];
+   ] ++ lib.optionals stdenv.isFreeBSD [
+    "test_hashmap_dflt_layer_rehint"
+   ]);
 
   passthru.tests = {
     fullTestsuite = psautohint.override { runAllTests = true; };

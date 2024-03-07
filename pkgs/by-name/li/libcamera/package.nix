@@ -53,17 +53,19 @@ stdenv.mkDerivation rec {
     libevent
     libdrm
 
-    # hotplugging
-    systemd
-
-    # lttng tracing
-    lttng-ust
-
     # yamlparser
     libyaml
 
     gtest
-  ] ++ lib.optionals withQcam [ libtiff qt5.qtbase qt5.qttools ];
+  ] ++ lib.optionals withQcam [ libtiff qt5.qtbase qt5.qttools ]
+  ++ lib.optionals stdenv.isLinux [
+    # lttng tracing
+    lttng-ust
+
+    # hotplugging
+    systemd
+  ];
+
 
   nativeBuildInputs = [
     meson

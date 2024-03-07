@@ -45,7 +45,7 @@ stdenv.mkDerivation (finalAttrs: {
 
     license = licenses.lgpl21Plus;
     pkgConfigModules = [ "alsa" "alsa-topology" ];
-    platforms = platforms.linux;
+    platforms = platforms.linux ++ platforms.freebsd;
     maintainers = with maintainers; [ l-as ];
   };
 })

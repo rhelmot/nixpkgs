@@ -54,6 +54,8 @@ stdenv.mkDerivation rec {
   # Fix installation path for gdk-pixbuf module
   PKG_CONFIG_GDK_PIXBUF_2_0_GDK_PIXBUF_MODULEDIR = "${placeholder "out"}/${gdk-pixbuf.moduleDir}";
 
+  NIX_CFLAGS_COMPILE = lib.optionalString stdenv.isFreeBSD "-Wno-error=unused-command-line-argument";
+
   passthru.tests = {
     inherit gimp imagemagick imlib2Full imv vips;
   };

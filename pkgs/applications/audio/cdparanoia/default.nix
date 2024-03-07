@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchurl, fetchpatch
+{ lib, stdenv, fetchurl, fetchpatch, freebsd
 , updateAutotoolsGnuConfigScriptsHook, autoreconfHook
 , IOKit, Carbon
 }:
@@ -30,7 +30,19 @@ stdenv.mkDerivation rec {
     ./fix_private_keyword.patch
     # Order does not matter
     ./configure.patch
-  ] ++ lib.optional stdenv.hostPlatform.isMusl ./utils.patch;
+  ] ++ lib.optional stdenv.hostPlatform.isMusl ./utils.patch
+  ++ lib.optionals stdenv.isFreeBSD (builtins.map (patch: fetchpatch (patch // { extraPrefix = ""; postFetch = ''sed -E -i -e 's/\.orig//g' $out''; }))[
+    #{
+    #  url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/main/audio/cdparanoia/files/patch-interface_low__interface.h";
+    #  hash = "sha256-/pHh+3yGWpgRlOX5VRc/cBtzVgOUOGINBHxwgr4OpsU=";
+    #}
+    #{
+    #  url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/main/audio/cdparanoia/files/patch-interface_scan__devices.c";
+    #  hash = "sha256-KE3ASu1oJfrC950DHSJccbeuuMp//8fCY1mOdeh9fA0=";
+    #}
+  ] ++ [
+    ./freebsd.patch
+  ]);
 
   nativeBuildInputs = [
     updateAutotoolsGnuConfigScriptsHook
@@ -40,6 +52,10 @@ stdenv.mkDerivation rec {
   propagatedBuildInputs = lib.optionals stdenv.isDarwin [
     Carbon
     IOKit
+  ];
+
+  buildInputs = lib.optionals stdenv.isFreeBSD [
+    freebsd.libcam
   ];
 
   hardeningDisable = [ "format" ];
@@ -57,6 +73,6 @@ stdenv.mkDerivation rec {
     homepage = "https://xiph.org/paranoia";
     description = "A tool and library for reading digital audio from CDs";
     license = with licenses; [ gpl2Plus lgpl21Plus ];
-    platforms = platforms.unix;
+    platforms = platforms.linux ++ platforms.darwin;
   };
 }

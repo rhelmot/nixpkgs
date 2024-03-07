@@ -64,6 +64,8 @@ stdenv.mkDerivation rec {
     OPJ_SOURCE_DIR=.. ctest -S ../tools/ctest_scripts/travis-ci.cmake
   '';
 
+  env.NIX_CFLAGS_COMPILE = lib.optionalString stdenv.isFreeBSD "-D__XSI_VISIBLE";
+
   passthru = {
     incDir = "openjpeg-${lib.versions.majorMinor version}";
     tests = {

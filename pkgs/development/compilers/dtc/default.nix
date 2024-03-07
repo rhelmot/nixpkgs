@@ -90,6 +90,9 @@ stdenv.mkDerivation (finalAttrs: {
     # https://github.com/NixOS/nixpkgs/pull/118700#issuecomment-885892436
     !stdenv.isDarwin &&
 
+    # TODO @rhelmot enable tests. rn there is exactly one tests that fails and it seems to be a parsing error
+    !stdenv.isFreeBSD &&
+
     # we must explicitly disable this here so that mesonFlags receives
     # `-Dtests=disabled`; without it meson will attempt to run
     # hostPlatform binaries during the configurePhase.

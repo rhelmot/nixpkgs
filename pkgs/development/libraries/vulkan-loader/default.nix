@@ -16,7 +16,7 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ cmake pkg-config ];
   buildInputs = [ vulkan-headers ]
-    ++ lib.optionals stdenv.isLinux [ libX11 libxcb libXrandr wayland ];
+    ++ lib.optionals (stdenv.isLinux || stdenv.isFreeBSD) [ libX11 libxcb libXrandr wayland ];
 
   cmakeFlags = [ "-DCMAKE_INSTALL_INCLUDEDIR=${vulkan-headers}/include" ]
     ++ lib.optional stdenv.isDarwin "-DSYSCONFDIR=${moltenvk}/share"

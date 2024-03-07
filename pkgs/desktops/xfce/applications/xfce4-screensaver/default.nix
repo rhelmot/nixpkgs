@@ -16,6 +16,7 @@
 , systemd
 , xfconf
 , lib
+, stdenv
 }:
 
 let
@@ -47,11 +48,17 @@ mkXfceDerivation {
     libxklavier
     pam
     pythonEnv
-    systemd
     xfconf
+  ] ++ lib.optionals stdenv.isLinux [
+    systemd
   ];
 
-  configureFlags = [ "--without-console-kit" ];
+  configureFlags = lib.optionals stdenv.isLinux [
+    "--without-console-kit"
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    "--with-console-kit=yes"
+    "--with-systemd=no"
+  ];
 
   makeFlags = [ "DBUS_SESSION_SERVICE_DIR=$(out)/etc" ];
 

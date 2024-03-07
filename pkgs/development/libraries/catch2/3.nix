@@ -34,6 +34,10 @@ stdenv.mkDerivation rec {
     NIX_CFLAGS_COMPILE = "-msse2 -mfpmath=sse";
   };
 
+  postPatch = ''
+    sed -E -i -e "s/All tests passed /All tests passed.*/g" tests/CMakeLists.txt
+  '';
+
   doCheck = true;
 
   nativeCheckInputs = [

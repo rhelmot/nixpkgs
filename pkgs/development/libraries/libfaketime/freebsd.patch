@@ -1,0 +1,20 @@
+--- a/src/libfaketime.c	2024-03-04 15:29:08.358017000 -0700
++++ b/src/libfaketime.c	2024-03-04 15:33:59.029691000 -0700
+@@ -3091,7 +3091,7 @@
+       case CLOCK_MONOTONIC_RAW:
+         timespecsub(tp, &ftpl_starttime.mon_raw, &tmp_ts);
+         break;
+-#ifdef CLOCK_BOOTTIME
++#ifdef CLOCK_BOOTTIME______CONFLICT
+       case CLOCK_BOOTTIME:
+         timespecsub(tp, &ftpl_starttime.boot, &tmp_ts);
+         break;
+@@ -3236,7 +3236,7 @@
+           case CLOCK_MONOTONIC_RAW:
+             timespecsub(tp, &ftpl_starttime.mon_raw, &tdiff);
+             break;
+-#ifdef CLOCK_BOOTTIME
++#ifdef CLOCK_BOOTTIME_____CONFLICT
+           case CLOCK_BOOTTIME:
+             timespecsub(tp, &ftpl_starttime.boot, &tdiff);
+             break;

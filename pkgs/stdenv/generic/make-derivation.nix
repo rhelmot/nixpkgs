@@ -155,6 +155,7 @@ let
   configurePlatforms ? optionals
     (stdenv.hostPlatform != stdenv.buildPlatform || config.configurePlatformsByDefault)
     [ "build" "host" ]
+, forceFreeBSDVersion ? ""
 
 # TODO(@Ericson2314): Make unconditional / resolve #33599
 # Check phase
@@ -410,9 +411,9 @@ else let
       # This parameter is sometimes a string, sometimes null, and sometimes a list, yuck
       configureFlags =
         configureFlags
-        ++ optional (elem "build"  configurePlatforms) "--build=${stdenv.buildPlatform.config}"
-        ++ optional (elem "host"   configurePlatforms) "--host=${stdenv.hostPlatform.config}"
-        ++ optional (elem "target" configurePlatforms) "--target=${stdenv.targetPlatform.config}";
+        ++ optional (elem "build"  configurePlatforms) "--build=${stdenv.buildPlatform.config}${forceFreeBSDVersion}"
+        ++ optional (elem "host"   configurePlatforms) "--host=${stdenv.hostPlatform.config}${forceFreeBSDVersion}"
+        ++ optional (elem "target" configurePlatforms) "--target=${stdenv.targetPlatform.config}${forceFreeBSDVersion}";
 
       cmakeFlags =
         cmakeFlags

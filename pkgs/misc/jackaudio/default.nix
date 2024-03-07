@@ -4,6 +4,9 @@
 # Darwin Dependencies
 , aften, AudioUnit, CoreAudio, libobjc, Accelerate
 
+# FreeBSD Dependencies
+, libsysinfo
+
 # Optional Dependencies
 , dbus ? null, libffado ? null, alsa-lib ? null
 , libopus ? null
@@ -44,7 +47,11 @@ stdenv.mkDerivation (finalAttrs: {
     optDbus optPythonDBus optLibffado optAlsaLib optLibopus
   ] ++ lib.optionals stdenv.isDarwin [
     aften AudioUnit CoreAudio Accelerate libobjc
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    libsysinfo
   ];
+
+  env.NIX_LDFLAGS = lib.optionalString stdenv.isFreeBSD "-lkvm";
 
   postPatch = ''
     patchShebangs --build svnversion_regenerate.sh

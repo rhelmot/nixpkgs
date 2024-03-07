@@ -11,13 +11,17 @@ stdenv.mkDerivation rec {
 
   patches = [ ./cross-compile.patch ];
 
+  postPatch = lib.optionalString stdenv.isFreeBSD ''
+    sed -E -i -e "/include/i #include <sys/wait.h>" src/bytecode.c
+  '';
+
   nativeBuildInputs = [ makeWrapper asciidoc autoreconfHook ];
 
   doCheck = true;
 
   postInstall = ''
     wrapProgram $out/bin/colm \
-      --prefix PATH ":" ${gcc}/bin
+      --prefix PATH ":" ${stdenv.cc}/bin
   '';
 
   meta = with lib; {

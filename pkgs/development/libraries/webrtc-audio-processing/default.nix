@@ -28,6 +28,15 @@ stdenv.mkDerivation rec {
       url = "https://git.alpinelinux.org/aports/plain/community/webrtc-audio-processing-1/0001-rtc_base-Include-stdint.h-to-fix-build-failures.patch?id=625e19c19972e69e034c0870a31b375833d1ab5d";
       hash = "sha256-9nI22SJoU0H3CzsPSAObtCFTadtvkzdnqIh6mxmUuds=";
     })
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    (fetchurl {
+      url = "https://gitlab.freedesktop.org/pulseaudio/webrtc-audio-processing/-/merge_requests/6.diff";
+      hash = "sha256-5hZgvog2ZiExeSSju9aoUuB+4JEulsvL4zK/dqV3Ybk=";
+    })
+    (fetchurl {
+      url = "https://gitlab.freedesktop.org/pulseaudio/webrtc-audio-processing/-/merge_requests/17.diff";
+      hash = "sha256-Ct22F3YlzAG9uBk7xpXG9sXtShMezR3Rcm2vOvOGsp4=";
+    })
   ];
 
   outputs = [ "out" "dev" ];

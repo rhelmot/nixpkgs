@@ -18,6 +18,7 @@
 , libgcrypt
 , audit
 , busybox
+, coreutils
 , polkit
 , accountsservice
 , gtk-doc
@@ -59,7 +60,6 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     accountsservice
-    audit
     glib
     libXdmcp
     libgcrypt
@@ -67,7 +67,10 @@ stdenv.mkDerivation rec {
     libxklavier
     pam
     polkit
-  ] ++ lib.optional withQt5 qtbase;
+  ] ++ lib.optional withQt5 qtbase
+  ++ lib.optionals stdenv.isLinux [
+    audit
+  ];
 
   patches = [
     # Adds option to disable writing dmrc files
@@ -75,7 +78,7 @@ stdenv.mkDerivation rec {
       url = "https://src.fedoraproject.org/rpms/lightdm/raw/4cf0d2bed8d1c68970b0322ccd5dbbbb7a0b12bc/f/lightdm-1.25.1-disable_dmrc.patch";
       sha256 = "06f7iabagrsiws2l75sx2jyljknr9js7ydn151p3qfi104d1541n";
     })
-
+  ] ++ lib.optionals stdenv.isLinux [
     # Hardcode plymouth to fix transitions.
     # For some reason it can't find `plymouth`
     # even when it's in PATH in environment.systemPackages.
@@ -101,12 +104,15 @@ stdenv.mkDerivation rec {
     "localstatedir=\${TMPDIR}"
   ];
 
-  prePatch = ''
+  prePatch = let 
+  whichProvider = if stdenv.isLinux then buildPackages.busybox else buildPackages.which;
+  rmProvider = if stdenv.isLinux then busybox else coreutils;
+  in ''
     substituteInPlace autogen.sh \
-      --replace "which" "${buildPackages.busybox}/bin/which"
+      --replace "which" "${whichProvider}/bin/which"
 
     substituteInPlace src/shared-data-manager.c \
-      --replace /bin/rm ${busybox}/bin/rm
+      --replace /bin/rm ${rmProvider}/bin/rm
   '';
 
   postInstall = ''
@@ -121,7 +127,7 @@ stdenv.mkDerivation rec {
   meta = with lib; {
     homepage = "https://github.com/canonical/lightdm";
     description = "A cross-desktop display manager";
-    platforms = platforms.linux;
+    platforms = platforms.linux ++ platforms.freebsd;
     license = licenses.gpl3;
     maintainers = with maintainers; [ ] ++ teams.pantheon.members;
   };

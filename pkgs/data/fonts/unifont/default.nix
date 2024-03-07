@@ -16,14 +16,17 @@ stdenv.mkDerivation rec {
     hash = "sha256-XHKP8xx+GvhFYBW03Sambpd2gclKvQUz1JAjIlb59OI=";
   };
 
-  nativeBuildInputs = [ libfaketime xorg.fonttosfnt xorg.mkfontscale ];
+  nativeBuildInputs = [ xorg.fonttosfnt xorg.mkfontscale ]
+  ++ lib.optionals (!stdenv.isFreeBSD) [
+    libfaketime
+  ];
 
   dontUnpack = true;
 
   buildPhase =
     ''
       # convert pcf font to otb
-      faketime -f "1970-01-01 00:00:01" \
+      ${lib.optionalString (!stdenv.isFreeBSD) ''faketime -f "1970-01-01 00:00:01"''} \
       fonttosfnt -g 2 -m 2 -v -o "unifont.otb" "${pcf}"
     '';
 

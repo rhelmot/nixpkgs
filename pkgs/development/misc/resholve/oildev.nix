@@ -11,6 +11,7 @@
 , # oil deps
   file
 , pkgsBuildBuild
+, freebsd
 , six
 , typing
 }:
@@ -97,6 +98,8 @@ rec {
       "${patchSrc}/0011-disable-fanos.patch"
       "${patchSrc}/0012-disable-doc-cmark.patch"
       "${patchSrc}/0013-fix-pyverify.patch"
+    ] ++ lib.optionals stdenv.isFreeBSD [
+      ./0014-disable_more_libc_tests.patch
     ];
 
     configureFlags = [
@@ -124,6 +127,7 @@ rec {
 
     # See earlier note on glibcLocales TODO: verify needed?
     LOCALE_ARCHIVE = lib.optionalString (stdenv.buildPlatform.libc == "glibc") "${pkgsBuildBuild.glibcLocales}/lib/locale/locale-archive";
+    PATH_LOCALE = lib.optionalString stdenv.isFreeBSD "${freebsd.locales}/share/locale";
 
     # not exhaustive; sample what resholve uses as a sanity check
     pythonImportsCheck = [

@@ -27690,6 +27690,8 @@ with pkgs;
 
   libossp_uuid = callPackage ../development/libraries/libossp-uuid { };
 
+  libsysinfo = callPackage ../os-specific/bsd/freebsd/libsysinfo.nix { };
+
   libuuid = if stdenv.isLinux then util-linuxMinimal
     else if stdenv.isFreeBSD then e2fsprogs
     else null;

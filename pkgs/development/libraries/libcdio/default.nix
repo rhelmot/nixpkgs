@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchurl, fetchpatch, libcddb, pkg-config, ncurses, help2man, libiconv, Carbon, IOKit }:
+{ lib, stdenv, fetchurl, fetchpatch, libcddb, pkg-config, ncurses, help2man, libiconv, Carbon, IOKit, freebsd }:
 
 stdenv.mkDerivation rec {
   pname = "libcdio";
@@ -31,7 +31,8 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ pkg-config help2man ];
   buildInputs = [ libcddb libiconv ncurses ]
-    ++ lib.optionals stdenv.isDarwin [ Carbon IOKit ];
+    ++ lib.optionals stdenv.isDarwin [ Carbon IOKit ]
+    ++ lib.optionals stdenv.isFreeBSD [ freebsd.libcam ];
 
   enableParallelBuilding = true;
 
