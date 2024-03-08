@@ -137,7 +137,7 @@ stdenv.mkDerivation rec {
     gobject-introspection
   ] ++ lib.optionals enableDocumentation [
     hotdoc
-  ] ++ lib.optionals stdenv.isLinux [
+  ] ++ lib.optionals (stdenv.isLinux || stdenv.isFreeBSD) [
     wayland # for wayland-scanner
   ];
 
@@ -235,6 +235,19 @@ stdenv.mkDerivation rec {
 
     libGL
     libGLU
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    libgudev
+    chromaprint
+    flite
+    ladspaH
+    lrdf
+    lilv
+    lv2
+    serd
+    sord
+    sratom
+    spandsp
+    libdrm
   ] ++ lib.optionals guiSupport [
     gtk3
   ] ++ lib.optionals (stdenv.isLinux && guiSupport) [
@@ -315,6 +328,12 @@ stdenv.mkDerivation rec {
     "-Duvch264=disabled" # requires gudev
     "-Dv4l2codecs=disabled" # requires gudev
     "-Dladspa=disabled" # requires lrdf
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    "-Ddvb=disabled"
+    "-Dfbdev=disabled"
+    "-Duvch264=disabled"
+    "-Dv4l2codecs=disabled"
+    "-Dsbc=disabled"
   ] ++ lib.optionals (!stdenv.isLinux || !stdenv.isx86_64) [
     "-Dqsv=disabled" # Linux (and Windows) x86 only
   ] ++ lib.optionals (!gst-plugins-base.glEnabled) [
@@ -337,6 +356,8 @@ stdenv.mkDerivation rec {
     "-Dresindvd=disabled"
     "-Dx265=disabled"
   ]);
+
+  env.LDFLAGS = lib.optionalString stdenv.isFreeBSD "-lm";
 
   # Argument list too long
   strictDeps = true;

@@ -73,6 +73,7 @@ stdenv.mkDerivation rec {
     [ libtool libsndfile soxr speexdsp fftwFloat check ]
     ++ lib.optionals stdenv.isLinux [ glib dbus ]
     ++ lib.optionals stdenv.isDarwin [ AudioUnit Cocoa CoreServices CoreAudio libintl ]
+    ++ lib.optionals stdenv.isFreeBSD [ libintl dbus glib ]
     ++ lib.optionals (!libOnly) (
       [ libasyncns webrtc-audio-processing ]
       ++ lib.optional jackaudioSupport libjack2
@@ -129,6 +130,8 @@ stdenv.mkDerivation rec {
     (lib.mesonEnable "dbus" false)
     (lib.mesonEnable "glib" false)
     (lib.mesonEnable "oss-output" false)
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    "-Db_lundef=false"
   ];
 
   # tests fail on Darwin because of timeouts

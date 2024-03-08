@@ -16,6 +16,7 @@
 , libintl
 , lib
 , opencore-amr
+, freebsd
 , IOKit
 , CoreFoundation
 , DiskArbitration
@@ -61,6 +62,8 @@ stdenv.mkDerivation rec {
     IOKit
     CoreFoundation
     DiskArbitration
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    freebsd.libcam
   ];
 
   mesonFlags = [
@@ -81,6 +84,10 @@ stdenv.mkDerivation rec {
     patchShebangs \
       scripts/extract-release-date-from-doap-file.py
   '';
+
+  NIX_LDFLAGS = lib.optionals stdenv.isFreeBSD [
+    "-lm"
+  ];
 
   meta = with lib; {
     description = "Gstreamer Ugly Plugins";

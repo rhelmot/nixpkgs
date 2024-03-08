@@ -20,6 +20,7 @@ stdenv.mkDerivation rec {
     "ac_cv_func_malloc_0_nonnull=yes"
   ];
   hardeningDisable = [ "format" ];
+  env.LDFLAGS = lib.optionalString stdenv.isFreeBSD "-lm";
 
   meta = {
     homepage = "https://bs2b.sourceforge.net/";

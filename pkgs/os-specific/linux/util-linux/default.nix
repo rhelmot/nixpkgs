@@ -4,7 +4,7 @@
 , libxcrypt
 , ncursesSupport ? true
 , ncurses
-, pamSupport ? true
+, pamSupport ? stdenv.isLinux
 , linux-pam
 , systemdSupport ? lib.meta.availableOn stdenv.hostPlatform systemd
 , systemd
@@ -14,6 +14,8 @@
 , installShellFiles
 , writeSupport ? stdenv.isLinux
 , shadowSupport ? stdenv.isLinux
+, ipcsSupport ? stdenv.isLinux
+, hardlinkSupport ? stdenv.isLinux
 , memstreamHook
 , gitUpdater
 }:
@@ -47,6 +49,8 @@ stdenv.mkDerivation rec {
   '' + lib.optionalString shadowSupport ''
     substituteInPlace include/pathnames.h \
       --replace "/bin/login" "${shadow}/bin/login"
+  '' + lib.optionalString stdenv.isFreeBSD ''
+    sed -E -i -e "s/__APPLE__/__FreeBSD__/g" lib/c_strtod.c
   '';
 
   # !!! It would be better to obtain the path to the mount helpers
@@ -61,6 +65,9 @@ stdenv.mkDerivation rec {
     "--disable-su" # provided by shadow
     (lib.enableFeature writeSupport "write")
     (lib.enableFeature nlsSupport "nls")
+    (lib.enableFeature ipcsSupport "ipcs")
+    (lib.enableFeature ipcsSupport "ipcrm")
+    (lib.enableFeature hardlinkSupport "hardlink")
     (lib.withFeature ncursesSupport "ncursesw")
     (lib.withFeature systemdSupport "systemd")
     (lib.withFeatureAs systemdSupport
@@ -76,6 +83,8 @@ stdenv.mkDerivation rec {
     "usrlib_execdir=${placeholder "lib"}/lib"
     "usrsbin_execdir=${placeholder "bin"}/sbin"
   ];
+
+  env.CFLAGS = lib.optionalString stdenv.isFreeBSD "-D_GNU_SOURCE -D_BSD_SOURCE -D_DEFAULT_SOURCE";
 
   nativeBuildInputs = [ pkg-config installShellFiles ]
     ++ lib.optionals translateManpages [ po4a ];

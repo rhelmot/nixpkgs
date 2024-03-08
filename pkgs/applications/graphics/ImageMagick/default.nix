@@ -33,6 +33,7 @@
 , nixos-icons
 , perlPackages
 , python3
+, libcxx
 }:
 
 assert libXtSupport -> libX11Support;
@@ -100,6 +101,9 @@ stdenv.mkDerivation (finalAttrs: {
     ++ lib.optionals stdenv.isDarwin [
       ApplicationServices
       Foundation
+    ]
+    ++ lib.optionals stdenv.isFreeBSD [
+      libcxx
     ];
 
   propagatedBuildInputs = [ curl ]
@@ -110,6 +114,12 @@ stdenv.mkDerivation (finalAttrs: {
     ++ lib.optional libX11Support libX11
     ++ lib.optional libXtSupport libXt
     ++ lib.optional libwebpSupport libwebp;
+
+  postConfigure = lib.optionalString stdenv.isFreeBSD ''
+    # scorched earth
+    find -type f | xargs -n1 sed -E -i -e 's/-lstdc\+\+/-lc++/g'
+    find | xargs touch -h
+  '';
 
   postInstall = ''
     (cd "$dev/include" && ln -s ImageMagick* ImageMagick)

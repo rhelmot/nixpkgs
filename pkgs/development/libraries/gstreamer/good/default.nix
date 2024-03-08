@@ -44,6 +44,7 @@
 , wavpack
 , glib
 , openssl
+, mesa
 # Checks meson.is_cross_build(), so even canExecute isn't enough.
 , enableDocumentation ? stdenv.hostPlatform == stdenv.buildPlatform, hotdoc
 }:
@@ -141,6 +142,9 @@ stdenv.mkDerivation rec {
     wayland
   ] ++ lib.optionals enableJack [
     libjack2
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    mesa  # ???
+    wayland.dev  # ????
   ];
 
   mesonFlags = [
@@ -179,6 +183,8 @@ stdenv.mkDerivation rec {
     # linking error on Darwin
     # https://github.com/NixOS/nixpkgs/pull/70690#issuecomment-553694896
     "-lncurses"
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    "-lm"
   ];
 
   # fails 1 tests with "Unexpected critical/warning: g_object_set_is_valid_property: object class 'GstRtpStorage' has no property named ''"

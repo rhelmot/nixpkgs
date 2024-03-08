@@ -67,5 +67,6 @@ stdenv.mkDerivation rec {
     license = licenses.mpl20;
     maintainers = with maintainers; [ bgamari ];
     platforms = platforms.unix;
+    broken = stdenv.isFreeBSD;
   };
 }

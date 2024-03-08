@@ -1,4 +1,5 @@
 { lib
+, stdenv
 , stdenvNoCC
 , fetchFromGitHub
 , makeWrapper
@@ -39,7 +40,7 @@ stdenvNoCC.mkDerivation rec {
     patchShebangs $out/bin/xvfb-run
     wrapProgram $out/bin/xvfb-run \
       --set-default FONTCONFIG_FILE "${fontsConf}" \
-      --prefix PATH : ${lib.makeBinPath [ getopt xorgserver xauth which util-linux gawk coreutils ]}
+      --prefix PATH : ${lib.makeBinPath ([ getopt xorgserver xauth which gawk coreutils util-linux ])}
   '';
 
   doInstallCheck = true;
@@ -57,7 +58,7 @@ stdenvNoCC.mkDerivation rec {
 
   meta = with lib; {
     description = "Convenience script to run a virtualized X-Server";
-    platforms = platforms.linux;
+    platforms = platforms.linux ++ platforms.freebsd;
     license = licenses.gpl2;
     maintainers = [ maintainers.artturin ];
     mainProgram = "xvfb-run";

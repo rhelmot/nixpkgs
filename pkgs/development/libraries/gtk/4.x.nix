@@ -33,10 +33,10 @@
 , gsettings-desktop-schemas
 , gst_all_1
 , sassc
-, trackerSupport ? stdenv.isLinux
+, trackerSupport ? (stdenv.isLinux || stdenv.isFreeBSD)
 , tracker
-, x11Support ? stdenv.isLinux
-, waylandSupport ? stdenv.isLinux
+, x11Support ? (stdenv.isLinux || stdenv.isFreeBSD)
+, waylandSupport ? (stdenv.isLinux || stdenv.isFreeBSD)
 , libGL
 # experimental and can cause crashes in inspector
 , vulkanSupport ? false
@@ -46,7 +46,7 @@
 , wayland
 , wayland-protocols
 , wayland-scanner
-, xineramaSupport ? stdenv.isLinux
+, xineramaSupport ? (stdenv.isLinux || stdenv.isFreeBSD)
 , cupsSupport ? stdenv.isLinux
 , compileSchemas ? stdenv.hostPlatform.emulatorAvailable buildPackages
 , cups
@@ -188,7 +188,7 @@ stdenv.mkDerivation rec {
   # See: https://developer.gnome.org/gtk3/stable/gtk-building.html#extra-configuration-options
   env = {
     NIX_CFLAGS_COMPILE = "-DG_ENABLE_DEBUG -DG_DISABLE_CAST_CHECKS";
-  } // lib.optionalAttrs stdenv.hostPlatform.isMusl {
+  } // lib.optionalAttrs (stdenv.hostPlatform.isMusl || stdenv.isFreeBSD) {
     NIX_LDFLAGS = "-lexecinfo";
   };
 

@@ -175,7 +175,7 @@ buildPythonPackage rec {
       system_freetype = true;
       system_qhull = true;
       # LTO not working in darwin stdenv, see #19312
-      enable_lto = !stdenv.isDarwin;
+      enable_lto = !stdenv.isDarwin && !stdenv.isFreeBSD;
     };
   };
 

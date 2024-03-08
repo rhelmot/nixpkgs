@@ -68,7 +68,7 @@ stdenv.mkDerivation rec {
 
   nativeCheckInputs = [
     gnome.adwaita-icon-theme
-  ] ++ lib.optionals (stdenv.isLinux) [
+  ] ++ lib.optionals (!stdenv.isDarwin) [
     xvfb-run
   ];
 

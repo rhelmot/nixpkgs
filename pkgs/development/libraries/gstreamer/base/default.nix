@@ -20,11 +20,11 @@
 , tremor # provides 'virbisidec'
 , libGL
 , gobject-introspection
-, enableX11 ? stdenv.isLinux
+, enableX11 ? (stdenv.isLinux || stdenv.isFreeBSD)
 , libXext
 , libXi
 , libXv
-, enableWayland ? stdenv.isLinux
+, enableWayland ? (stdenv.isLinux || stdenv.isFreeBSD)
 , wayland
 , wayland-protocols
 , enableAlsa ? stdenv.isLinux
@@ -123,6 +123,11 @@ stdenv.mkDerivation (finalAttrs: {
   ++ lib.optional (!enableCdparanoia) "-Dcdparanoia=disabled"
   ++ lib.optionals stdenv.isDarwin [
     "-Dlibvisual=disabled"
+  ] ++ lib.optionals (stdenv.isFreeBSD && enableGl) [
+    #"-Dgl_api=opengl,gles2"
+    "-Dgl_api=gles2"
+    #"-Dgl_platform=glx,egl"
+    #"-Dgl_platform=egl"
   ];
 
   postPatch = ''

@@ -108,7 +108,9 @@ stdenv.mkDerivation rec {
     # https://gitlab.gnome.org/GNOME/tracker/-/issues/402
     !stdenv.isDarwin
     # https://gitlab.gnome.org/GNOME/tracker/-/issues/398
-    && !stdenv.is32bit;
+    && !stdenv.is32bit
+    # wants to create sockets with unsupported protocols?
+    && !stdenv.isFreeBSD;
 
   postPatch = ''
     chmod +x \
@@ -122,7 +124,7 @@ stdenv.mkDerivation rec {
 
   preCheck =
     let
-      linuxDot0 = lib.optionalString stdenv.isLinux ".0";
+      linuxDot0 = lib.optionalString (stdenv.isLinux || stdenv.isFreeBSD) ".0";
       darwinDot0 = lib.optionalString stdenv.isDarwin ".0";
       extension = stdenv.hostPlatform.extensions.sharedLibrary;
     in

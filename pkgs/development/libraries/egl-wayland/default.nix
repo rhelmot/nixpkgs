@@ -60,7 +60,7 @@ stdenv.mkDerivation rec {
     description = "The EGLStream-based Wayland external platform";
     homepage = "https://github.com/NVIDIA/egl-wayland/";
     license = licenses.mit;
-    platforms = platforms.linux;
+    platforms = platforms.linux ++ platforms.freebsd;
     maintainers = with maintainers; [ hedning ];
   };
 }

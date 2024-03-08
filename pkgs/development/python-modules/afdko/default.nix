@@ -123,6 +123,8 @@ buildPythonPackage rec {
   ] ++ lib.optionals (stdenv.hostPlatform.isi686) [
     "test_dump_option"
     "test_type1mm_inputs"
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    "test_hashmap_dflt_layer_rehint"
   ];
 
   passthru.tests = {

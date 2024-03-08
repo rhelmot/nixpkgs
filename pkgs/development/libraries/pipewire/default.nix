@@ -1,6 +1,7 @@
 { stdenv
 , lib
 , fetchFromGitLab
+, fetchpatch
 , python3
 , meson
 , ninja
@@ -29,7 +30,7 @@
 , nixosTests
 , withValgrind ? lib.meta.availableOn stdenv.hostPlatform valgrind
 , valgrind
-, libcameraSupport ? true
+, libcameraSupport ? !stdenv.isFreeBSD
 , libcamera
 , libdrm
 , gstreamerSupport ? true
@@ -57,7 +58,7 @@
 , avahi
 , raopSupport ? true
 , openssl
-, rocSupport ? true
+, rocSupport ? !stdenv.isFreeBSD
 , roc-toolkit
 , x11Support ? true
 , libcanberra
@@ -69,6 +70,8 @@
 , ffadoSupport ? x11Support && stdenv.buildPlatform.canExecute stdenv.hostPlatform && stdenv.isLinux
 , ffado
 , libselinux
+, epoll-shim
+, libinotify-kqueue
 }:
 
 # Bluetooth codec only makes sense if general bluetooth enabled
@@ -100,6 +103,32 @@ stdenv.mkDerivation(finalAttrs: {
     ./0060-libjack-path.patch
     # Move installed tests into their own output.
     ./0070-installed-tests-path.patch
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    # uncomment to attempt to build with alsa support
+    #(fetchpatch {
+    #  url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/6a6ba556400b5737ceabfc81f666aa536327e01e/multimedia/pipewire/files/patch-spa_plugins_meson.build";
+    #  hash = "sha256-SCv1XMSp3nLSj0C9+rqPcUgXz3033WhfoLC0AndBKAE=";
+    #  extraPrefix = "";
+    #  postFetch = ''
+    #    sed -E -i -e 's/\.orig//g' $out
+    #  '';
+    #})
+    (fetchpatch {
+      url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/6a6ba556400b5737ceabfc81f666aa536327e01e/multimedia/pipewire/files/patch-spa_plugins_vulkan_dmabuf__fallback.c";
+      hash = "sha256-OX/jRNYXuKRhxZlszwlkB7oEmnCKBrZ+dmVFE3t10sU=";
+      extraPrefix = "";
+      postFetch = ''
+        sed -E -i -e 's/\.orig//g' $out
+      '';
+    })
+    (fetchpatch {
+      url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/6a6ba556400b5737ceabfc81f666aa536327e01e/multimedia/pipewire/files/patch-src_modules_module-netjack2-manager.c";
+      hash = "sha256-L09TmEXt7H8Tmqpj+l1mGbEGXjVXfWv3JAJ5JQSr4Zo=";
+      extraPrefix = "";
+      postFetch = ''
+        sed -E -i -e 's/\.orig//g' $out
+      '';
+    })
   ];
 
   strictDeps = true;
@@ -143,7 +172,8 @@ stdenv.mkDerivation(finalAttrs: {
   ++ lib.optionals x11Support [ libcanberra xorg.libX11 xorg.libXfixes ]
   ++ lib.optional mysofaSupport libmysofa
   ++ lib.optional ffadoSupport ffado
-  ++ lib.optional stdenv.isLinux libselinux;
+  ++ lib.optional stdenv.isLinux libselinux
+  ++ lib.optionals stdenv.isFreeBSD [ epoll-shim libinotify-kqueue libdrm ];
 
   # Valgrind binary is required for running one optional test.
   nativeCheckInputs = lib.optional withValgrind valgrind;
@@ -161,9 +191,16 @@ stdenv.mkDerivation(finalAttrs: {
     (lib.mesonEnable "avahi" zeroconfSupport)
     (lib.mesonEnable "gstreamer" gstreamerSupport)
     (lib.mesonEnable "systemd-system-service" enableSystemd)
+    (lib.mesonEnable "systemd" enableSystemd)
+    (lib.mesonEnable "selinux" stdenv.isLinux)
+    (lib.mesonEnable "avb" stdenv.isLinux)
+    (lib.mesonEnable "v4l2" stdenv.isLinux)
+    (lib.mesonEnable "pipewire-v4l2" stdenv.isLinux)
+    (lib.mesonEnable "pipewire-alsa" stdenv.isLinux)
     (lib.mesonEnable "udev" (!enableSystemd))
     (lib.mesonEnable "ffmpeg" ffmpegSupport)
     (lib.mesonEnable "bluez5" bluezSupport)
+    (lib.mesonEnable "opus" bluezSupport)
     (lib.mesonEnable "bluez5-backend-hsp-native" nativeHspSupport)
     (lib.mesonEnable "bluez5-backend-hfp-native" nativeHfpSupport)
     (lib.mesonEnable "bluez5-backend-native-mm" nativeModemManagerSupport)
@@ -186,6 +223,12 @@ stdenv.mkDerivation(finalAttrs: {
     (lib.mesonEnable "compress-offload" true)
     (lib.mesonEnable "man" true)
   ];
+
+  env.CFLAGS = lib.optionalString stdenv.isFreeBSD "-Dthread_local=_Thread_local";
+  postPatch = lib.optionalString stdenv.isFreeBSD ''
+    sed -E -i -e "s/EBADFD/EINVAL/g" pipewire-alsa/alsa-plugins/ctl_pipewire.c
+    sed -E -i -e "/threads.h/d" pipewire-jack/src/pipewire-jack.c
+  '';
 
   # Fontconfig error: Cannot load default config file
   FONTCONFIG_FILE = makeFontsConf { fontDirectories = [ ]; };
