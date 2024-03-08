@@ -16,6 +16,23 @@ stdenv.mkDerivation rec {
       url = "https://git.alpinelinux.org/aports/plain/main/vde2/musl-build-fix.patch?id=ddee2f86a48e087867d4a2c12849b2e3baccc238";
       sha256 = "0b5382v541bkxhqylilcy34bh83ag96g71f39m070jzvi84kx8af";
     })
+  ] ++ lib.optionals stdenv.hostPlatform.isFreeBSD [
+    (fetchpatch {
+      url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/8f6f86bd48a3b52427e33ed5b05cfec1c7eea4e3/net/vde2/files/patch-src__dpipe.c";
+      hash = "sha256-OTwySBJSzCK7wF+PvqKo1i5paF4gG4vZokd01CuQYBA=";
+      extraPrefix = "";
+      postFetch = ''
+        sed -E -i -e 's/\.orig//g' $out
+      '';
+    })
+    (fetchpatch {
+      url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/8f6f86bd48a3b52427e33ed5b05cfec1c7eea4e3/net/vde2/files/patch-src_vde__pcapplug.c";
+      hash = "sha256-fn33S8RIlMjb5UJrwk2iw1Amq/xTswvsPnCs+A1Xw1o=";
+      extraPrefix = "";
+      postFetch = ''
+        sed -E -i -e 's/\.orig//g' $out
+      '';
+    })
   ];
 
   preConfigure = lib.optionalString (lib.versionAtLeast stdenv.hostPlatform.darwinMinVersion "11") ''

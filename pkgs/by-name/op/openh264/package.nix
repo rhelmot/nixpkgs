@@ -20,6 +20,10 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-ai7lcGcQQqpsLGSwHkSs7YAoEfGCIbxdClO6JpGA+MI=";
   };
 
+  postPatch = lib.optionalString stdenv.isFreeBSD ''
+    sed -E -i -e "s/\\['linux', 'android', 'ios', 'darwin'\\]/['linux', 'android', 'ios', 'darwin', 'freebsd']/g" meson.build
+  '';
+
   outputs = [ "out" "dev" ];
 
   nativeBuildInputs = [

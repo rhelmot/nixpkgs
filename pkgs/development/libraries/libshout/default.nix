@@ -31,6 +31,8 @@ stdenv.mkDerivation rec {
   nativeBuildInputs = [ pkg-config ];
   propagatedBuildInputs = [ libvorbis libtheora speex ];
 
+  env.NIX_CFLAGS_COMPILE = lib.optionalString stdenv.isFreeBSD "-D__BSD_VISIBLE=1";
+
   meta = {
     description = "icecast 'c' language bindings";
 

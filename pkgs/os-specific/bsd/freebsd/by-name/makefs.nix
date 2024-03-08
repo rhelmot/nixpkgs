@@ -12,4 +12,5 @@ mkDerivation {
   ];
   buildInputs = compatIfNeeded ++ [libnetbsd libsbuf];
   MK_TESTS = "no";
+  MK_PIE = "no";
 }

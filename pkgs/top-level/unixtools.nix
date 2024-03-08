@@ -157,10 +157,12 @@ let
     sysctl = {
       linux = pkgs.procps;
       darwin = pkgs.darwin.system_cmds;
+      freebsd = pkgs.freebsd.sysctl;
     };
     top = {
       linux = pkgs.procps;
       darwin = pkgs.darwin.top;
+      freebsd = pkgs.freebsd.top;
     };
     umount = {
       linux = pkgs.util-linux;
@@ -177,8 +179,9 @@ let
       linux = pkgs.procps;
 
       # watch is the only command from procps that builds currently on
-      # Darwin. Unfortunately no other implementations exist currently!
+      # Darwin/FreeBSD. Unfortunately no other implementations exist currently!
       darwin = pkgs.callPackage ../os-specific/linux/procps-ng {};
+      freebsd = pkgs.callPackage ../os-specific/linux/procps-ng {};
     };
     write = {
       linux = pkgs.util-linux;
