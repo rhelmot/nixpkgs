@@ -3,7 +3,7 @@
 , sslSupport ? true, openssl
 , graphicsSupport ? !stdenv.isDarwin, imlib2
 , x11Support ? graphicsSupport, libX11
-, mouseSupport ? !stdenv.isDarwin, gpm-ncurses
+, mouseSupport ? stdenv.isLinux, gpm-ncurses
 , perl, man, pkg-config, buildPackages, w3m
 , testers
 }:
@@ -69,7 +69,7 @@ in stdenv.mkDerivation rec {
   configureFlags =
     [ "--with-ssl=${openssl.dev}" "--with-gc=${boehmgc.dev}" ]
     ++ lib.optionals (stdenv.buildPlatform != stdenv.hostPlatform) [
-      "ac_cv_func_setpgrp_void=yes"
+      "ac_cv_func_setpgrp_void=${if stdenv.hostPlatform.isFreeBSD then "no" else "yes"}"
     ]
     ++ lib.optional graphicsSupport "--enable-image=${lib.optionalString x11Support "x11,"}fb"
     ++ lib.optional (graphicsSupport && !x11Support) "--without-x";
