@@ -446,7 +446,7 @@ in
       preHook = ''
           export NIX_ENFORCE_PURITY="''${NIX_ENFORCE_PURITY-1}"
           export NIX_ENFORCE_NO_NATIVE="''${NIX_ENFORCE_NO_NATIVE-1}"
-          export PATH_LOCALE=${prevStage.freebsd.locale}/share/locale
+          export PATH_LOCALE=${prevStage.freebsd.locales}/share/locale
         '';
     };
   })
