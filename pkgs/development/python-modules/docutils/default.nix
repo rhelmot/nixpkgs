@@ -26,10 +26,6 @@ buildPythonPackage rec {
     ${python.interpreter} test/alltests.py
   '';
 
-  env = lib.optionalAttrs stdenv.hostPlatform.isFreeBSD {
-    PATH_LOCALE = "${freebsd.locales}/share/locale";
-  };
-
   # Create symlinks lacking a ".py" suffix, many programs depend on these names
   postFixup = ''
     for f in $out/bin/*.py; do

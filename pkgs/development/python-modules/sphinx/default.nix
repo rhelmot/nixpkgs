@@ -98,10 +98,6 @@ buildPythonPackage rec {
     export HOME=$TMPDIR
   '';
 
-  env = lib.optionalAttrs stdenv.hostPlatform.isFreeBSD {
-    PATH_LOCALE = "${freebsd.locales}/share/locale";
-  };
-
   disabledTests = [
     # requires network access
     "test_latex_images"

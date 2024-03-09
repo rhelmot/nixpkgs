@@ -65,10 +65,6 @@ stdenv.mkDerivation {
   installFlags = [ "TEXMF=$(out)/texmf-dist" ];
   installTargets = [ "install" "install-tex" ];
 
-  env = lib.optionalAttrs (stdenv.buildPlatform.isFreeBSD && interactive) {
-    PATH_LOCALE = "${freebsd.locales}/share/locale";
-  };
-
   nativeCheckInputs = [ procps ]
     ++ optional stdenv.buildPlatform.isFreeBSD [ freebsd.locale ];
 
