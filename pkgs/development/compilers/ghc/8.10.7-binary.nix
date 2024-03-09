@@ -286,7 +286,7 @@ stdenv.mkDerivation rec {
           -exec sed -i "s@FFI_LIB_DIR@FFI_LIB_DIR ${numactl.out}/lib@g" {} \;
     '' +
     # Rename needed libraries and binaries, fix interpreter
-    lib.optionalString stdenv.isLinux ''
+    lib.optionalString (stdenv.isLinux || stdenv.isFreeBSD) ''
       find . -type f -executable -exec patchelf \
           --interpreter ${stdenv.cc.bintools.dynamicLinker} {} \;
     '' +
@@ -401,6 +401,9 @@ stdenv.mkDerivation rec {
     # legal reasons (retaining the legal notices etc)
     # As a last resort we could unpack the docs separately and symlink them in.
     # They're in $out/share/{doc,man}.
+  '' + lib.optionalString stdenv.isFreeBSD ''
+    # girls looooove going scorched earth on patching binary distributions. it's like, their favorite thing.
+    find $out -type f | xargs sed -E -i -e "s_usr/local/lib_/////////////_g"
   '';
 
   # In nixpkgs, musl based builds currently enable `pie` hardening by default

@@ -10,6 +10,7 @@
 
 , libiconv ? null, ncurses
 , glibcLocales ? null
+, freebsd
 
 , # GHC can be built with system libffi or a bundled one.
   libffi ? null
@@ -246,6 +247,8 @@ stdenv.mkDerivation (rec {
     sed -i -e 's|-isysroot /Developer/SDKs/MacOSX10.5.sdk||' configure
   '' + lib.optionalString (stdenv.isLinux && hostPlatform.libc == "glibc") ''
     export LOCALE_ARCHIVE="${glibcLocales}/lib/locale/locale-archive"
+  '' + lib.optionalString (stdenv.isFreeBSD) ''
+    export PATH_LOCALE="${freebsd.locales}/share/locale"
   '' + lib.optionalString (!stdenv.isDarwin) ''
     export NIX_LDFLAGS+=" -rpath $out/lib/ghc-${version}"
   '' + lib.optionalString stdenv.isDarwin ''
