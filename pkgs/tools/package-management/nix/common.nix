@@ -253,6 +253,7 @@ self = stdenv.mkDerivation ({
     license = licenses.lgpl2Plus;
     inherit maintainers;
     platforms = platforms.unix;
+    broken = stdenv.isFreeBSD;
     outputsToInstall = [ "out" ] ++ optional enableDocumentation "man";
     mainProgram = "nix";
   };
