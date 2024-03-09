@@ -47,7 +47,7 @@ mkDerivation (let
     KMODDIR = "${builtins.placeholder "out"}/kernel";
     DTBDIR = "${builtins.placeholder"out"}/dbt";
 
-    KERN_DEBUGDIR = "${builtins.placeholder "debug"}/debug";
+    KERN_DEBUGDIR = "${builtins.placeholder "debug"}/lib/debug";
     KERN_DEBUGDIR_KODIR = "${KERN_DEBUGDIR}/kernel";
     KERN_DEBUGDIR_KMODDIR = "${KERN_DEBUGDIR}/kernel";
 

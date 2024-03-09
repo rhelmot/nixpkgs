@@ -259,5 +259,5 @@ mkDerivation rec {
   # definitely a bad idea to enable stack protection on the stack protection initializers
   hardeningDisable = [ "stackprotector" ];
 
-  outputs = ["out"];
+  outputs = [ "out" "man" "debug" ];
 }

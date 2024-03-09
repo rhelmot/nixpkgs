@@ -35,6 +35,8 @@ mkDerivation {
 
   clangFixup = true;
 
+  outputs = [ "out" "man" "debug" ];
+
   meta = with lib; {
     platforms = platforms.freebsd;
     license = with licenses; [
