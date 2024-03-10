@@ -86,7 +86,7 @@ stdenv.mkDerivation (finalAttrs: {
     docbook-xsl-nons
     docbook_xml_dtd_43
   ] ++ lib.optional withIntrospection gobject-introspection
-  ++ lib.optional stdenv.hostPlatform.isFreeBSD freebsd.ldd;
+  ++ lib.optional stdenv.buildPlatform.isFreeBSD freebsd.ldd;
 
   buildInputs = [ glib freetype ]
     ++ lib.optionals withCoreText [ ApplicationServices CoreText ];

@@ -77,7 +77,7 @@ in
   meta = with lib; {
     homepage = "http://www.gnuplot.info/";
     description = "A portable command-line driven graphing utility for many platforms";
-    platforms = platforms.linux ++ platforms.darwin;
+    platforms = platforms.linux ++ platforms.darwin ++ platforms.freebsd;
     license = {
       # Essentially a BSD license with one modifaction:
       # Permission to modify the software is granted, but not the right to

@@ -9,4 +9,6 @@ mkDerivation {
     buildFreebsd.install buildPackages.m4
   ];
   clangFixup = true;
+
+  meta.platforms = lib.platforms.freebsd;
 }
