@@ -73,6 +73,9 @@ stdenv.mkDerivation rec {
     # /usr/bin/env is used in test commands and embedded scripts.
     find test -name '*.sh' \
       -exec sed -ie 's|/usr/bin/env|${coreutils}/bin/env|g' {} +
+  '' + lib.optionalString stdenv.isFreeBSD ''
+    substituteInPlace source/libsys/CMakeLists.txt \
+      --replace 'ls /lib/libc.so.*' 'ls ${stdenv.cc.libc}/lib/libc.so.*'
   '';
 
   # Functional tests use loopback networking.

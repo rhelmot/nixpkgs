@@ -34,7 +34,8 @@ let
         "-DBUILD_SHARED_LIBS=${if enableShared then "ON" else "OFF"}"
       ];
 
-      doCheck = true;
+      # Hex float tests are flaky on FreeBSD
+      doCheck = !stdenv.isFreeBSD;
 
       passthru.tests = {
         inherit mpd openimageio fcitx5 spdlog;
