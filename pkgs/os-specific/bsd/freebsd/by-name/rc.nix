@@ -1,4 +1,4 @@
-{mkDerivation, lib, sysctl, bash, rcorder, bin, stat, id, protect, mount, ...}:
+{mkDerivation, patchesRoot, lib, sysctl, bash, rcorder, bin, stat, id, protect, mount, ...}:
 let
   rcDepsPath = lib.makeBinPath [
     sysctl
@@ -13,6 +13,10 @@ let
 in
 mkDerivation rec {
   path = "libexec/rc";
+
+  patches = [
+    /${patchesRoot}/rc-user.patch
+  ];
 
   # no idea why but the normal derivation setup refuses to produce output even with the CONF* vars set.
   # TODO @rhelmot this is hardcoded for freebsd14
