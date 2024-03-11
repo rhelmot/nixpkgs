@@ -131,10 +131,18 @@ let
       darwin = pkgs.darwin.network_cmds;
       freebsd = pkgs.freebsd.netstat;
     };
+    pgrep = {
+      linux = pkgs.procps;
+      freebsd = pkgs.freebsd.bin;
+    };
     ping = {
       linux = pkgs.iputils;
       darwin = pkgs.darwin.network_cmds;
       freebsd = freebsd.ping;
+    };
+    pkill = {
+      linux = pkgs.procps;
+      freebsd = pkgs.freebsd.bin;
     };
     ps = {
       linux = pkgs.procps;

@@ -17,7 +17,7 @@
 , python3
 , cmake
 , fishPlugins
-, procps
+, unixtools
 
 # used to generate autocompletions from manpages and for configuration editing in the browser
 , usePython ? true
@@ -169,7 +169,7 @@ let
       sed -i 's|/usr/bin|${coreutils}/bin|' tests/checks/vars_as_commands.fish
 
       # tests/checks/jobs.fish
-      sed -i 's|ps -o stat|${procps}/bin/ps -o stat|' tests/checks/jobs.fish
+      sed -i 's|ps -o stat|${unixtools.ps}/bin/ps -o stat|' tests/checks/jobs.fish
       sed -i 's|/bin/echo|${coreutils}/bin/echo|' tests/checks/jobs.fish
 
       # tests/checks/job-control-noninteractive.fish
@@ -191,6 +191,9 @@ let
       # pexpect tests are flaky on aarch64-linux (also x86_64-linux)
       # See https://github.com/fish-shell/fish-shell/issues/8789
       rm tests/pexpects/exit_handlers.py
+    '' + lib.optionalString stdenv.isFreeBSD ''
+      # pexpect tests also seem flaky on freebsd
+      rm tests/pexpects/signals.py
     '';
 
     outputs = [ "out" "doc" ];
@@ -242,7 +245,9 @@ let
     nativeCheckInputs = [
       coreutils
       (python3.withPackages (ps: [ ps.pexpect ]))
-      procps
+    ] ++ lib.optionals (!stdenv.isDarwin) [
+      unixtools.pgrep
+      unixtools.pkill
     ];
 
     checkPhase = ''
