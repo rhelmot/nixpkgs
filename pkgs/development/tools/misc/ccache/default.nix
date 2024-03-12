@@ -10,6 +10,7 @@
 , bashInteractive
 , xcodebuild
 , makeWrapper
+, freebsd
 , nix-update-script
 }:
 
@@ -53,7 +54,8 @@ stdenv.mkDerivation (finalAttrs: {
     # test/run requires the compgen function which is available in
     # bashInteractive, but not bash.
     bashInteractive
-  ] ++ lib.optional stdenv.isDarwin xcodebuild;
+  ] ++ lib.optional stdenv.isDarwin xcodebuild
+    ++ lib.optional stdenv.isFreeBSD freebsd.elfdump;
 
   checkPhase =
     let
@@ -63,6 +65,9 @@ stdenv.mkDerivation (finalAttrs: {
         "test.basedir"
         "test.fileclone" # flaky on hydra (possibly filesystem-specific?)
         "test.multi_arch"
+        "test.nocpp2"
+      ] ++ lib.optionals stdenv.isFreeBSD [
+        # confused by clang "unused argument" warnings
         "test.nocpp2"
       ];
     in
