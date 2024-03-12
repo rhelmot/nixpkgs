@@ -398,7 +398,7 @@ in
       initialPath = [ prevStage.coreutils prevStage.gnutar prevStage.findutils prevStage.gnumake prevStage.gnused prevStage.patchelf prevStage.gnugrep prevStage.gawk prevStage.diffutils prevStage.patch prevStage.bash prevStage.gzip prevStage.bzip2 prevStage.xz bsdcp];
       extraNativeBuildInputs = [./unpack-source.sh ./always-patchelf.sh ./autotools-abspath.sh];
       shell = "${prevStage.bash}/bin/bash";
-      cc = import ../../build-support/cc-wrapper ({
+      cc = lib.makeOverridable (import ../../build-support/cc-wrapper) {
         inherit lib stdenvNoCC;
         name = "freebsd-cc";
         inherit (prevStage.freebsd) libc;
@@ -425,7 +425,7 @@ in
           nativeLibc = false;
           buildPackages = prevStage.buildPackages;
         };
-      });
+      };
       overrides = self: super: {
         curl = prevStage.curlReal;
         cacert = prevStage.cacert;
