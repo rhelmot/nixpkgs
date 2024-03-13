@@ -9,7 +9,7 @@ stdenv.mkDerivation rec {
     hash = "sha256-QUiUJ1oXdzlLrWyOOtONtcGzalCtdZ19bbehaLvmFGk=";
   };
 
-  nativeBuildInputs = [ freebsd.bmakeMinimal ../setup-hook.sh ./setup-hook.sh ];
+  nativeBuildInputs = [ freebsd.bmakeMinimal ../setup-hook.sh ./by-name/freebsdSetupHook/setup-hook.sh ];
 
   MACHINE_ARCH = freebsd.hostArchBsd;
   MACHINE = freebsd.hostArchBsd;
