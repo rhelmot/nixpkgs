@@ -1,4 +1,4 @@
-{ mkDerivation, buildPackages, buildFreebsd, stdenv, lib, ... }:
+{ mkDerivation, buildPackages, buildFreebsd, stdenv, lib, patchesRoot, ... }:
 mkDerivation {
   path = "lib/libnetbsd";
   nativeBuildInputs = [
@@ -9,8 +9,7 @@ mkDerivation {
      else buildFreebsd.install)
   ];
   patches = [
-    ./libnetbsd-do-install.patch
-    #./libnetbsd-define-__va_list.patch
+    /${patchesRoot}/libnetbsd-do-install.patch
   ];
   makeFlags = [
     "STRIP=-s" # flag to install, not command

@@ -62,39 +62,14 @@ in byName // (with self; { inherit stdenv;
 
   patchesRoot = ./patches/${hostVersion};
 
-  freebsdSetupHook = makeSetupHook {
-    name = "freebsd-setup-hook";
-  } ./setup-hook.sh;
-
   compatIfNeeded = lib.optional compatIsNeeded compat;
-  filterSource = callPackage ./filter-src.nix {};
-  mkDerivation = callPackage ./make-derivation.nix {};
 
   # for cross-compiling or bootstrapping
-  compat = callPackage ./compat.nix { stdenv = pkgsHostHost.stdenv; };
-  bmakeMinimal = callPackage ./bmake-minimal.nix {};
   install-wrapper = builtins.readFile ./install-wrapper.sh;
-  xinstallBootstrap = callPackage ./boot-install.nix {};
   boot-install = buildPackages.writeShellScriptBin "boot-install" (install-wrapper + ''
     ${xinstallBootstrap}/bin/xinstall "''${args[@]}"
   '');
-  xargs-j = substituteAll {
-    name = "xargs-j";
-    shell = runtimeShell;
-    src = ../xargs-j.sh;
-    dir = "bin";
-    isExecutable = true;
-  };
-
-  # core c/c++ deps
-  include = callPackage ./include.nix {};
-  libc = callPackage ./libc.nix {};
 
   # libs, bins, and data
   libncurses-tinfo = if hostVersion == "13.2" then libncurses else byName.libncurses-tinfo;
-  libnetbsd = callPackage ./libnetbsd.nix {};
-  rpcgen = callPackage ./rpcgen.nix {};
-
-  # kernel
-  sys = callPackage ./sys.nix {};
 }))

@@ -23,7 +23,7 @@ mkDerivation (let
     ]);
 
     patches = [
-      ./sys-gnu-date.patch
+      /${patchesRoot}/sys-gnu-date.patch
       /${patchesRoot}/sys-no-explicit-intrinsics-dep.patch
     ];
 

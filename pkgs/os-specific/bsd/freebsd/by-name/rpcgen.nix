@@ -1,4 +1,4 @@
-{ mkDerivation, lib, stdenv, ... }:
+{ mkDerivation, lib, stdenv, patchesRoot, ... }:
 mkDerivation {
   path = "usr.bin/rpcgen";
   patches = lib.optionals (stdenv.hostPlatform.libc == "glibc") [
@@ -16,6 +16,6 @@ mkDerivation {
     #
     # This hacks around this by manually including `WUNTRACED` until
     # the problem is fixed properly in glibc.
-    ./rpcgen-glibc-hack.patch
+    /${patchesRoot}/rpcgen-glibc-hack.patch
   ];
 }

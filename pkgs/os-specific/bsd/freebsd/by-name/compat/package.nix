@@ -1,5 +1,7 @@
-{ mkDerivation, stdenv, lib, hostArchBsd, buildPackages, buildFreebsd, pkgs, patchesRoot, hostVersion, ... }:
-assert stdenv.hostPlatform == stdenv.targetPlatform;
+{ mkDerivation, lib, hostArchBsd, buildPackages, buildFreebsd, patchesRoot, hostVersion, pkgsHostHost }:
+let stdenv = pkgsHostHost.stdenv;
+in
+assert stdenv.hostPlatform == stdenv.buildPlatform;
 mkDerivation {
   pname = "compat";
   path = "tools/build";
@@ -107,7 +109,7 @@ mkDerivation {
   '';
 
   setupHooks = [
-    ../../../build-support/setup-hooks/role.bash
+    ../../../../../build-support/setup-hooks/role.bash
     ./compat-setup-hook.sh
   ];
 

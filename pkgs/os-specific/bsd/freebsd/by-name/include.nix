@@ -1,4 +1,4 @@
-{ mkDerivation, buildPackages, buildFreebsd, lib, hostVersion, pkgsBuildBuild, ... }:
+{ mkDerivation, buildPackages, buildFreebsd, lib, hostVersion, patchesRoot, ... }:
 mkDerivation {
   isStatic = true;
   inherit hostVersion;
@@ -19,7 +19,7 @@ mkDerivation {
   ];
 
   patches = [
-    ./no-perms-BSD.include.dist.patch
+    /${patchesRoot}/no-perms-BSD.include.dist.patch
   ];
 
   # The makefiles define INCSDIR per subdirectory, so we have to set
