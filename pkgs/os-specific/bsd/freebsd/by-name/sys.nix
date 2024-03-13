@@ -29,6 +29,15 @@ let
         -e '/KDTRACE/d'
     '';
   };
+
+  # Kernel modules need this for kern.opts.mk
+  env = {
+    MK_CTF = "no";
+  } // (lib.flip lib.mapAttrs' extraFlags (name: value: {
+    name = "MK_${lib.toUpper name}";
+    value = if value then "yes" else "no";
+  }));
+
 in mkDerivation rec {
   pname = "sys";
 
@@ -67,12 +76,8 @@ in mkDerivation rec {
   # hardeningDisable = stackprotector doesn't seem to be enough, put it in cflags too
   NIX_CFLAGS_COMPILE = "-fno-stack-protector";
 
-  env = {
-    MK_CTF = "no";
-  } // (lib.flip lib.mapAttrs' extraFlags (name: value: {
-    name = "MK_${lib.toUpper name}";
-    value = if value then "yes" else "no";
-  }));
+  inherit env;
+  passthru.env = env;
 
   KODIR = "${builtins.placeholder "out"}/kernel";
   KMODDIR = "${builtins.placeholder "out"}/kernel";

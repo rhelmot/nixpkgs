@@ -72,4 +72,7 @@ in byName // (with self; { inherit stdenv;
 
   # libs, bins, and data
   libncurses-tinfo = if hostVersion == "13.2" then libncurses else byName.libncurses-tinfo;
+
+  drm-kmod-firmware-amd = self.drm-kmod-firmware.override { withIntel = false; };
+  drm-kmod-firmware-intel = self.drm-kmod-firmware.override { withAmd = false; };
 }))
