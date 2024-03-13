@@ -86,6 +86,47 @@ stdenv.mkDerivation rec {
       src = ./fix-paths.patch;
       plymouth = "${plymouth}/bin/plymouth";
     })
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    (fetchpatch {
+      url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/ea678ae15ce13bf16f5a2ea2b1d5a34a267e3127/x11/lightdm/files/patch-liblightdm-gobject_language.c";
+      hash = "sha256-KX+Zybb9io7w+uGZZcaDDVze8/0HM6KTHOYqihwfIis=";
+      extraPrefix = "";
+      postFetch = ''
+        sed -E -i -e 's/\.orig//g' $out
+      '';
+    })
+    (fetchpatch {
+      url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/ea678ae15ce13bf16f5a2ea2b1d5a34a267e3127/x11/lightdm/files/patch-src_session-child.c";
+      hash = "sha256-4PLuK6BwdY9MeLKzqJ12LkFlNwn46x83C24t0FCU0X4=";
+      extraPrefix = "";
+      postFetch = ''
+        sed -E -i -e 's/\.orig//g' $out
+      '';
+    })
+    (fetchpatch {
+      url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/ea678ae15ce13bf16f5a2ea2b1d5a34a267e3127/x11/lightdm/files/patch-tests_src_libsystem.c";
+      hash = "sha256-vItXFqAS263PmlAq/FrOEoZsETlOIp8fvQGLcTE1v70=";
+      extraPrefix = "";
+      postFetch = ''
+        sed -E -i -e 's/\.orig//g' $out
+      '';
+    })
+    (fetchpatch {
+      url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/ea678ae15ce13bf16f5a2ea2b1d5a34a267e3127/x11/lightdm/files/patch-src_x-server.c";
+      hash = "sha256-CDnANUhZLvpR90d+etCwlrOUqzLa+ar3T4pkrmvxLAU=";
+      extraPrefix = "";
+      postFetch = ''
+        sed -E -i -e 's/\.orig//g' $out
+      '';
+    })
+    (fetchpatch {
+      url = "https://raw.githubusercontent.com/freebsd/freebsd-ports/ea678ae15ce13bf16f5a2ea2b1d5a34a267e3127/x11/lightdm/files/patch-data_lightdm.conf";
+      hash = "sha256-UByI6G9fgbD4VNus9oCiDm4wIVpf126MxMswdCA8KaM=";
+      extraPrefix = "";
+      postFetch = ''
+        sed -E -i -e 's/\.orig//g' $out
+      '';
+    })
   ];
 
   dontWrapQtApps = true;
@@ -104,7 +145,7 @@ stdenv.mkDerivation rec {
     "localstatedir=\${TMPDIR}"
   ];
 
-  prePatch = let 
+  prePatch = let
   whichProvider = if stdenv.isLinux then buildPackages.busybox else buildPackages.which;
   rmProvider = if stdenv.isLinux then busybox else coreutils;
   in ''

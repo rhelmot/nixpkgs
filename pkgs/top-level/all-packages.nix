@@ -1,4 +1,4 @@
-/* The top-level package collection of nixpkgs.
+/* The top-level package collection of nixpkgs.all-packages
  * It is sorted by categories corresponding to the folder names in the /pkgs
  * folder. Inside the categories packages are roughly sorted by alphabet, but
  * strict sorting has been long lost due to merges. Please use the full-text
@@ -20377,7 +20377,11 @@ with pkgs;
   };
   abseil-cpp = abseil-cpp_202401;
 
-  accountsservice = callPackage ../development/libraries/accountsservice { };
+  accountsservice-linux = callPackage ../development/libraries/accountsservice { };
+  accountsservice-freebsd = callPackage ../development/libraries/accountsservice/freebsd.nix { };
+  accountsservice = if stdenv.isFreeBSD then accountsservice-freebsd else accountsservice-linux;
+
+  consolekit2 = callPackage ../development/libraries/consolekit2 { };
 
   acl = callPackage ../development/libraries/acl { };
 
