@@ -33,7 +33,7 @@ stdenv.mkDerivation rec {
     inherit (src.meta) homepage;
     mainProgram = "swaylock";
     license = licenses.mit;
-    platforms = platforms.linux;
+    platforms = platforms.linux ++ platforms.freebsd;
     maintainers = with maintainers; [ primeos ];
   };
 }

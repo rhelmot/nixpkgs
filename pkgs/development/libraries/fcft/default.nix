@@ -1,5 +1,6 @@
 { stdenv, lib, fetchFromGitea, pkg-config, meson, ninja, scdoc
 , freetype, fontconfig, pixman, tllist, check
+, freebsd
 # Text shaping methods to enable, empty list disables all text shaping.
 # See `availableShapingTypes` or upstream meson_options.txt for available types.
 , withShapingTypes ? [ "grapheme" "run" ]
@@ -30,6 +31,7 @@ stdenv.mkDerivation rec {
   depsBuildBuild = [ pkg-config ];
   nativeBuildInputs = [ pkg-config meson ninja scdoc ];
   buildInputs = [ freetype fontconfig pixman tllist ]
+    ++ lib.optionals stdenv.isFreeBSD [ freebsd.libstdthreads ]
     ++ lib.optionals (withShapingTypes != []) [ harfbuzz ]
     ++ lib.optionals (builtins.elem "run" withShapingTypes) [ utf8proc ];
   nativeCheckInputs = [ check ];
@@ -57,6 +59,6 @@ stdenv.mkDerivation rec {
       sternenseemann
     ];
     license = with licenses; [ mit zlib ];
-    platforms = with platforms; linux;
+    platforms = platforms.linux ++ platforms.freebsd;
   };
 }

@@ -19,7 +19,10 @@
 , wayland-scanner
 , pkg-config
 , utf8proc
-, allowPgo ? !stdenv.hostPlatform.isMusl
+, evdev-proto
+, epoll-shim
+, freebsd
+, allowPgo ? !stdenv.hostPlatform.isMusl && !stdenv.hostPlatform.isFreeBSD
 , python3  # for PGO
 # for clang stdenv check
 , foot
@@ -129,6 +132,10 @@ stdenv.mkDerivation {
     libxkbcommon
     fcft
     utf8proc
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    epoll-shim
+    evdev-proto
+    freebsd.libstdthreads
   ];
 
   # recommended build flags for performance optimized foot builds
@@ -147,14 +154,16 @@ stdenv.mkDerivation {
 
   # See https://codeberg.org/dnkl/foot/src/tag/1.9.2/INSTALL.md#options
   mesonFlags = [
-    # Use lto
-    "-Db_lto=true"
     # “Build” and install terminfo db
     "-Dterminfo=enabled"
     # Ensure TERM=foot is used
     "-Ddefault-terminfo=foot"
     # Tell foot to set TERMINFO and where to install the terminfo files
     "-Dcustom-terminfo-install-location=${terminfoDir}"
+  ] ++ lib.optionals doPgo [
+    # Use lto
+    "-Db_lto=true"
+  ] ++ lib.optionals stdenv.isLinux [
     # Install systemd user units for foot-server
     "-Dsystemd-units-dir=${placeholder "out"}/lib/systemd/user"
   ];
@@ -207,7 +216,7 @@ stdenv.mkDerivation {
     description = "A fast, lightweight and minimalistic Wayland terminal emulator";
     license = licenses.mit;
     maintainers = [ maintainers.sternenseemann maintainers.abbe ];
-    platforms = platforms.linux;
+    platforms = platforms.linux ++ platforms.freebsd;
     # From (presumably) ncurses version 6.3, it will ship a foot
     # terminfo file. This however won't include some non-standard
     # capabilities foot's bundled terminfo file contains. Unless we
