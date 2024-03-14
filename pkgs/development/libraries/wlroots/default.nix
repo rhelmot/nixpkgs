@@ -6,6 +6,8 @@
 , ninja
 , pkg-config
 , wayland-scanner
+, epoll-shim
+, evdev-proto
 , libGL
 , wayland
 , wayland-protocols
@@ -59,7 +61,6 @@ let
 
       buildInputs = [
         libGL
-        libcap
         libinput
         libpng
         libxkbcommon
@@ -74,8 +75,12 @@ let
         xorg.xcbutilimage
         xorg.xcbutilrenderutil
         xorg.xcbutilwm
-      ]
-      ++ lib.optional finalAttrs.enableXWayland xwayland
+      ] ++ lib.optionals stdenv.isLinux [
+        libcap
+      ] ++ lib.optionals stdenv.isFreeBSD [
+        epoll-shim
+        evdev-proto
+      ] ++ lib.optional finalAttrs.enableXWayland xwayland
       ++ extraBuildInputs;
 
       mesonFlags =
@@ -106,7 +111,7 @@ let
         inherit (finalAttrs.src.meta) homepage;
         changelog = "https://gitlab.freedesktop.org/wlroots/wlroots/-/tags/${version}";
         license = lib.licenses.mit;
-        platforms = lib.platforms.linux;
+        platforms = lib.platforms.linux ++ lib.platforms.freebsd;
         maintainers = with lib.maintainers; [ primeos synthetica rewine ];
       };
     });

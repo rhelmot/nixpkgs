@@ -29,7 +29,7 @@ stdenv.mkDerivation rec {
     inherit (src.meta) homepage;
     changelog = "https://github.com/emersion/libliftoff/releases/tag/v${version}";
     license     = licenses.mit;
-    platforms   = platforms.linux;
+    platforms   = platforms.linux ++ platforms.freebsd;
     maintainers = with maintainers; [ primeos Scrumplex ];
   };
 }

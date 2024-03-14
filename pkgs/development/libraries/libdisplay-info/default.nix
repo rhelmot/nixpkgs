@@ -32,7 +32,7 @@ stdenv.mkDerivation rec {
     description = "EDID and DisplayID library";
     homepage = "https://gitlab.freedesktop.org/emersion/libdisplay-info";
     license = licenses.mit;
-    platforms = platforms.linux;
+    platforms = platforms.linux ++ platforms.freebsd;
     maintainers = with maintainers; [ pedrohlc ];
   };
 }

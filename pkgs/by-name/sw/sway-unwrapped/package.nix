@@ -3,6 +3,7 @@
 , libGL, wayland, libxkbcommon, pcre2, json_c, libevdev
 , pango, cairo, libinput, gdk-pixbuf, librsvg
 , wlroots_0_16, wayland-protocols, libdrm
+, evdev-proto
 , nixosTests
 # Used by the NixOS module:
 , isNixOS ? false
@@ -63,6 +64,8 @@ stdenv.mkDerivation (finalAttrs: {
     pango cairo libinput gdk-pixbuf librsvg
     wayland-protocols libdrm
     (wlroots.override { inherit (finalAttrs) enableXWayland; })
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    evdev-proto
   ] ++ lib.optionals finalAttrs.enableXWayland [
     xorg.xcbutilwm
   ];
@@ -97,7 +100,7 @@ stdenv.mkDerivation (finalAttrs: {
     homepage    = "https://swaywm.org";
     changelog   = "https://github.com/swaywm/sway/releases/tag/${version}";
     license     = licenses.mit;
-    platforms   = platforms.linux;
+    platforms   = platforms.linux ++ platforms.freebsd;
     maintainers = with maintainers; [ primeos synthetica ];
     mainProgram = "sway";
   };

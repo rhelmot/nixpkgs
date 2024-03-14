@@ -25,7 +25,8 @@ buildPythonPackage rec {
     ./002-rfc2217-timeout-setter-for-rfc2217.patch
   ];
 
-  doCheck = !stdenv.hostPlatform.isDarwin; # broken on darwin
+  doCheck = !stdenv.hostPlatform.isDarwin # broken on darwin
+    && !stdenv.hostPlatform.isFreeBSD; # hangs forever on FreeBSD
 
   nativeCheckInputs = [ unittestCheckHook ];
 

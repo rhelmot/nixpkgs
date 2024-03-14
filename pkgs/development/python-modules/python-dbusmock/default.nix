@@ -1,4 +1,5 @@
 { lib
+, stdenv
 , buildPythonPackage
 , fetchFromGitHub
 , nose
@@ -41,10 +42,11 @@ in buildPythonPackage rec {
   nativeCheckInputs = [
     dbus
     pygobject3
+    nose
+  ] ++ lib.optionals stdenv.isLinux [
     bluez
     pbap-client
     networkmanager
-    nose
   ];
 
   # TODO: Get the rest of these tests running?
@@ -81,6 +83,6 @@ in buildPythonPackage rec {
     homepage = "https://github.com/martinpitt/python-dbusmock";
     license = licenses.lgpl3Plus;
     maintainers = with maintainers; [ callahad ];
-    platforms = platforms.linux;
+    platforms = platforms.linux ++ platforms.freebsd;
   };
 }
