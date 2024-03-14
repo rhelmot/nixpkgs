@@ -32,6 +32,21 @@
       "crocus" # Intel legacy, x86 only
       "i915" # Intel extra legacy, x86 only
     ]
+  else if stdenv.isFreeBSD then
+    [
+      "swrast"
+      "zink"
+      "r300"
+      "r600"
+      "radeonsi"
+    ] ++ lib.optionals stdenv.isAarch64 [
+      "panfrost"
+    ] ++ lib.optionals stdenv.hostPlatform.isx86 [
+      "crocus"
+      "i915"
+      "iris"
+      "svga"
+    ]
   else [ "auto" ]
 , vulkanDrivers ?
   if stdenv.isLinux then
@@ -55,6 +70,14 @@
       "intel" # Intel (aka ANV), could work on non-x86 with PCIe cards, but doesn't build
       "intel_hasvk" # Intel Haswell/Broadwell, "legacy" Vulkan driver (https://www.phoronix.com/news/Intel-HasVK-Drop-Dead-Code)
     ]
+  else if stdenv.isFreeBSD then
+    [
+      "swrast"
+      "amd"
+    ] ++ lib.optionals stdenv.hostPlatform.isx86 [
+      "intel"
+      "intel_hasvk"
+    ]
   else [ "auto" ]
 , eglPlatforms ? [ "x11" ] ++ lib.optionals stdenv.isLinux [ "wayland" ]
 , vulkanLayers ? lib.optionals (!stdenv.isDarwin) [ "device-select" "overlay" "intel-nullhw" ] # No Vulkan support on Darwin
@@ -62,7 +85,7 @@
 , withValgrind ? lib.meta.availableOn stdenv.hostPlatform valgrind-light && !valgrind-light.meta.broken, valgrind-light
 , withLibunwind ? lib.meta.availableOn stdenv.hostPlatform libunwind
 , enableGalliumNine ? stdenv.isLinux
-, enableOSMesa ? stdenv.isLinux
+, enableOSMesa ? (stdenv.isLinux || stdenv.isFreeBSD)
 , enableOpenCL ? stdenv.isLinux && stdenv.isx86_64
 , enablePatentEncumberedCodecs ? true
 , jdupes
@@ -145,7 +168,7 @@ self = stdenv.mkDerivation {
 
   outputs = [ "out" "dev" "drivers" ]
     ++ lib.optional enableOSMesa "osmesa"
-    ++ lib.optional stdenv.isLinux "driversdev"
+    ++ lib.optional (stdenv.isLinux || stdenv.isFreeBSD) "driversdev"
     ++ lib.optional enableOpenCL "opencl"
     # the Dozen drivers depend on libspirv2dxil, but link it statically, and
     # libspirv2dxil itself is pretty chonky, so relocate it to its own output
@@ -191,9 +214,9 @@ self = stdenv.mkDerivation {
     # meson auto_features enables these features, but we do not want them
     "-Dandroid-libbacktrace=disabled"
 
-  ] ++ lib.optionals stdenv.isLinux [
+  ] ++ lib.optionals (stdenv.isLinux || stdenv.isFreeBSD) [
     "-Dglvnd=true"
-
+  ] ++ lib.optionals stdenv.isLinux [
     # Enable RT for Intel hardware
     # https://gitlab.freedesktop.org/mesa/mesa/-/issues/9080
     (lib.mesonEnable "intel-clc" (stdenv.buildPlatform == stdenv.hostPlatform))
@@ -263,7 +286,7 @@ self = stdenv.mkDerivation {
   postInstall = ''
     # Some installs don't have any drivers so this directory is never created.
     mkdir -p $drivers $osmesa
-  '' + lib.optionalString stdenv.isLinux ''
+  '' + lib.optionalString (stdenv.isLinux || stdenv.isFreeBSD) ''
     mkdir -p $drivers/lib
 
     if [ -n "$(shopt -s nullglob; echo "$out/lib/libxatracker"*)" -o -n "$(shopt -s nullglob; echo "$out/lib/libvulkan_"*)" ]; then
@@ -315,7 +338,7 @@ self = stdenv.mkDerivation {
     mv -t $spirv2dxil/bin $out/bin/spirv2dxil
   '';
 
-  postFixup = lib.optionalString stdenv.isLinux ''
+  postFixup = lib.optionalString (stdenv.isLinux || stdenv.isFreeBSD) ''
     # set the default search path for DRI drivers; used e.g. by X server
     for pc in lib/pkgconfig/{dri,d3d}.pc; do
       [ -f "$dev/$pc" ] && substituteInPlace "$dev/$pc" --replace "$drivers" "${libglvnd.driverLink}"
