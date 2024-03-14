@@ -17,6 +17,14 @@ in mkDerivation {
 
   extraNativeBuildInputs = [ buildFreebsd.xargs-j ];
 
+  hardeningDisable = [
+    "pic"  # generates relocations the linker can't handle
+    "stackprotector"  # generates stack protection for the function generating the stack canary
+  ];
+
+  # hardeningDisable = stackprotector doesn't seem to be enough, put it in cflags too
+  NIX_CFLAGS_COMPILE = "-fno-stack-protector";
+
   env = sys.passthru.env;
   SYSDIR = "${sys.src}/sys";
 
@@ -24,6 +32,7 @@ in mkDerivation {
 
   meta = with lib; {
     description = "Linux drm driver, ported to FreeBSD";
+    platforms = lib.platforms.freebsd;
     license = with licenses; [ bsd2 gpl2Only ];
   };
 }

@@ -15,6 +15,14 @@ mkDerivation rec {
 
   extraNativeBuildInputs = [ buildFreebsd.xargs-j ];
 
+  hardeningDisable = [
+    "pic"  # generates relocations the linker can't handle
+    "stackprotector"  # generates stack protection for the function generating the stack canary
+  ];
+
+  # hardeningDisable = stackprotector doesn't seem to be enough, put it in cflags too
+  NIX_CFLAGS_COMPILE = "-fno-stack-protector";
+
   KMODS = lib.optional withIntel "i915kmsfw"
     ++ lib.optionals withAmd [ "amdgpukmsfw" "radeonkmsfw" ];
 
@@ -25,6 +33,7 @@ mkDerivation rec {
 
   meta = with lib; {
     description = "GPU firmware for FreeBSD drm-kmod";
+    platforms = lib.platforms.freebsd;
     license = lib.optional withAmd licenses.unfreeRedistributableFirmware
     # Intel license requires no modification, this will wrap firmware files in an ELF
       ++ lib.optional withIntel licenses.unfree;
