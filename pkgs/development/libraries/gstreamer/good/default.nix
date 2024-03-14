@@ -143,8 +143,9 @@ stdenv.mkDerivation rec {
   ] ++ lib.optionals enableJack [
     libjack2
   ] ++ lib.optionals stdenv.isFreeBSD [
-    mesa  # ???
-    wayland.dev  # ????
+    libGL
+    mesa
+    wayland
   ];
 
   mesonFlags = [
