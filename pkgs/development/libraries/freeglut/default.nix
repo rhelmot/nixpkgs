@@ -1,5 +1,5 @@
 { lib, stdenv, fetchurl, libICE, libXext, libXi, libXrandr, libXxf86vm, libGL, libGLU, cmake
-, testers
+, freebsd, testers
 }:
 
 stdenv.mkDerivation (finalAttrs: {
@@ -14,7 +14,8 @@ stdenv.mkDerivation (finalAttrs: {
   outputs = [ "out" "dev" ];
 
   nativeBuildInputs = [ cmake ];
-  buildInputs = [ libICE libXext libXi libXrandr libXxf86vm libGL libGLU ];
+  buildInputs = [ libICE libXext libXi libXrandr libXxf86vm libGL libGLU ]
+    ++ lib.optional stdenv.isFreeBSD freebsd.libusbhid;
 
   cmakeFlags = lib.optionals stdenv.isDarwin [
                  "-DOPENGL_INCLUDE_DIR=${libGL}/include"
@@ -23,6 +24,10 @@ stdenv.mkDerivation (finalAttrs: {
                  "-DFREEGLUT_BUILD_DEMOS:BOOL=OFF"
                  "-DFREEGLUT_BUILD_STATIC:BOOL=OFF"
                ];
+
+  env = lib.optionalAttrs stdenv.isFreeBSD {
+    NIX_LDFLAGS = "-lusbhid";
+  };
 
   passthru.tests.pkg-config = testers.testMetaPkgConfig finalAttrs.finalPackage;
 
