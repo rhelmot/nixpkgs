@@ -13,7 +13,7 @@
 , xmlto
 , autoreconfHook
 , autoconf-archive
-, x11Support ? (stdenv.isLinux || stdenv.isDarwin)
+, x11Support ? (stdenv.isLinux || stdenv.isDarwin || stdenv.isFreeBSD)
 , xorg
 }:
 
