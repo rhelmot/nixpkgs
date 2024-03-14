@@ -34,7 +34,7 @@ stdenv.mkDerivation (finalAttrs: {
   pname = "upower";
   version = "1.90.2";
 
-  outputs = [ "out" "dev" "installedTests" ]
+  outputs = [ "out" "dev" ] ++ lib.optionals stdenv.isLinux [ "installedTests" ]
     ++ lib.optionals withDocs [ "devdoc" ];
 
   src = fetchFromGitLab {
@@ -115,13 +115,14 @@ stdenv.mkDerivation (finalAttrs: {
   mesonFlags = [
     "--localstatedir=/var"
     "--sysconfdir=/etc"
-    "-Dos_backend=linux"
     "-Dsystemdsystemunitdir=${placeholder "out"}/etc/systemd/system"
     "-Dudevrulesdir=${placeholder "out"}/lib/udev/rules.d"
     "-Dudevhwdbdir=${placeholder "out"}/lib/udev/hwdb.d"
     (lib.mesonEnable "introspection" withIntrospection)
     (lib.mesonBool "gtk-doc" withDocs)
+  ] ++ lib.optionals stdenv.isLinux [
     "-Dinstalled_test_prefix=${placeholder "installedTests"}"
+    "-Dos_backend=linux"
   ];
 
   doCheck = stdenv.isLinux;
