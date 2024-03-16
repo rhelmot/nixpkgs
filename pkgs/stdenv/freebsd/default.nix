@@ -250,7 +250,6 @@ in
         cc = prevStage.llvmPackages.clang-unwrapped;
         isClang = true;
         extraPackages = [
-          prevStage.libcxx.cxxabi
           prevStage.llvmPackages.compiler-rt
         ];
         extraBuildCommands = mkExtraBuildCommands prevStage.llvmPackages.clang-unwrapped prevStage.llvmPackages.compiler-rt;
@@ -326,7 +325,6 @@ in
         cc = prevStage.llvmPackages.clang-unwrapped;
         isClang = true;
         extraPackages = [
-          prevStage.llvmPackages.libcxx.cxxabi
           prevStage.llvmPackages.compiler-rt
         ];
         extraBuildCommands = mkExtraBuildCommands prevStage.llvmPackages.clang-unwrapped prevStage.llvmPackages.compiler-rt;
@@ -410,7 +408,6 @@ in
         cc = prevStage.llvmPackages.clang-unwrapped;
         isClang = true;
         extraPackages = [
-          prevStage.llvmPackages.libcxx.cxxabi
           prevStage.llvmPackages.compiler-rt
         ];
         extraBuildCommands = mkExtraBuildCommands prevStage.llvmPackages.clang-unwrapped prevStage.llvmPackages.compiler-rt;

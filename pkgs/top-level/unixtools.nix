@@ -1,4 +1,4 @@
-{ pkgs, buildEnv, runCommand, lib, stdenv }:
+{ pkgs, buildEnv, runCommand, lib, stdenv, freebsd }:
 
 # These are some unix tools that are commonly included in the /usr/bin
 # and /usr/sbin directory under more normal distributions. Along with
