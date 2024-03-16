@@ -23,7 +23,7 @@ in stdenv.mkDerivation rec {
 
   src = fetchurl {
     url = "http://download.virtualbox.org/virtualbox/${version}/VBoxGuestAdditions_${version}.iso";
-    sha256 = "b37f6aabe5a32e8b96ccca01f37fb49f4fd06674f1b29bc8fe0f423ead37b917";
+    sha256 = "0efbcb9bf4722cb19292ae00eba29587432e918d3b1f70905deb70f7cf78e8ce";
   };
 
   KERN_DIR = "${kernel.dev}/lib/modules/${kernel.modDirVersion}/build";
@@ -118,8 +118,8 @@ in stdenv.mkDerivation rec {
     #ln -s $out/lib/VBoxOGL.so $out/lib/dri/vboxvideo_dri.so
 
     # Install desktop file
-    mkdir -p $out/share/autostart
-    cp -v other/vboxclient.desktop $out/share/autostart
+    mkdir -p $out/etc/xdg/autostart
+    cp -v other/vboxclient.desktop $out/etc/xdg/autostart
 
     # Install Xorg drivers
     mkdir -p $out/lib/xorg/modules/{drivers,input}

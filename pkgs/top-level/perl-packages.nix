@@ -9839,7 +9839,7 @@ with self; {
     meta = {
       description = "File locking with fcntl(2)";
       license = with lib.licenses; [ artistic1 ];
-      maintainers = with maintainers; [ ajs124 das_j ];
+      maintainers = with maintainers; [ das_j ];
     };
   };
 
@@ -13574,10 +13574,10 @@ with self; {
 
   LaTeXML = buildPerlPackage rec {
     pname = "LaTeXML";
-    version = "0.8.7";
+    version = "0.8.8";
     src = fetchurl {
       url = "mirror://cpan/authors/id/B/BR/BRMILLER/${pname}-${version}.tar.gz";
-      hash = "sha256-JdqdlEB3newNrdTMLUIn6Oq4dDfAcZh3J03PuQakzHk=";
+      hash = "sha256-fSu+LOJSuvhro/OIzQ3sOqSDj0nWErnsfMT/iBBbrcw=";
     };
     outputs = [ "out" "tex" ];
     propagatedBuildInputs = [ ArchiveZip DBFile FileWhich IOString ImageMagick ImageSize JSONXS LWP ParseRecDescent PodParser TextUnidecode XMLLibXSLT ];
@@ -13606,7 +13606,7 @@ with self; {
       homepage = "https://dlmf.nist.gov/LaTeXML/";
       license = with lib.licenses; [ publicDomain ];
       maintainers = with maintainers; [ xworld21 ];
-      mainProgram = "latexml";
+      mainProgram = "latexmlc";
     };
   };
 
@@ -28452,9 +28452,9 @@ with self; {
     };
     env.AUTOMATED_TESTING = false;
     nativeBuildInputs = [ pkgs.pkg-config ];
-    buildInputs = [ pkgs.xorg.libxcb pkgs.xorg.xcbproto pkgs.xorg.xcbutil pkgs.xorg.xcbutilwm ExtUtilsDepends ExtUtilsPkgConfig TestDeep TestException XSObjectMagic ];
-    propagatedBuildInputs = [ DataDump MouseXNativeTraits XMLDescent XMLSimple ];
-    NIX_CFLAGS_LINK = "-lxcb -lxcb-util -lxcb-xinerama -lxcb-icccm";
+    buildInputs = [ pkgs.xorg.libxcb pkgs.xorg.xcbproto pkgs.xorg.xcbutil pkgs.xorg.xcbutilwm ExtUtilsDepends ExtUtilsPkgConfig TestDeep TestException ];
+    propagatedBuildInputs = [ DataDump MouseXNativeTraits XMLDescent XMLSimple XSObjectMagic ];
+    NIX_CFLAGS_LINK = "-lxcb -lxcb-util -lxcb-xinerama -lxcb-icccm -lxcb-randr -lxcb-xkb";
     doCheck = false; # requires an X server
     meta = {
       description = "Perl bindings for libxcb";

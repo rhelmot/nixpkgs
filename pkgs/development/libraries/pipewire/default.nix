@@ -19,6 +19,7 @@
 , libusb1
 , udev
 , libsndfile
+, vulkanSupport ? true
 , vulkan-headers
 , vulkan-loader
 , webrtc-audio-processing
@@ -58,6 +59,7 @@
 , avahi
 , raopSupport ? true
 , openssl
+, opusSupport ? true
 , rocSupport ? !stdenv.isFreeBSD
 , roc-toolkit
 , x11Support ? true
@@ -66,7 +68,6 @@
 , mysofaSupport ? true
 , libmysofa
 , tinycompressSupport ? !stdenv.isFreeBSD
-, tinycompress
 , ffadoSupport ? x11Support && stdenv.buildPlatform.canExecute stdenv.hostPlatform && stdenv.isLinux
 , ffado
 , libselinux
@@ -79,7 +80,7 @@ assert ldacbtSupport -> bluezSupport;
 
 stdenv.mkDerivation(finalAttrs: {
   pname = "pipewire";
-  version = "1.0.3";
+  version = "1.0.4";
 
   outputs = [
     "out"
@@ -95,7 +96,7 @@ stdenv.mkDerivation(finalAttrs: {
     owner = "pipewire";
     repo = "pipewire";
     rev = finalAttrs.version;
-    sha256 = "sha256-QVw7Q+RNo8BBy/uxoZeSQQn/vQcIl1bOiA9fYMR0+oI=";
+    sha256 = "sha256-LROI1rGQELlGXkapX3XfDqB7Rc5YAOdCwaMQUG/iU8c=";
   };
 
   patches = [
@@ -154,21 +155,21 @@ stdenv.mkDerivation(finalAttrs: {
     ncurses
     readline
     udev
-    vulkan-headers
-    vulkan-loader
   ] ++ lib.optionals stdenv.isLinux (if enableSystemd then [ systemd ] else [ eudev ])
   ++ lib.optionals tinycompressSupport [ tinycompress ]
   ++ (if lib.meta.availableOn stdenv.hostPlatform webrtc-audio-processing_1 then [ webrtc-audio-processing_1 ] else [ webrtc-audio-processing ])
   ++ lib.optionals gstreamerSupport [ gst_all_1.gst-plugins-base gst_all_1.gstreamer ]
-  ++ lib.optionals libcameraSupport [ libcamera libdrm ]
+  ++ lib.optionals libcameraSupport [ libcamera ]
   ++ lib.optional ffmpegSupport ffmpeg
   ++ lib.optionals bluezSupport [ bluez libfreeaptx liblc3 sbc fdk_aac libopus ]
   ++ lib.optional ldacbtSupport ldacbt
   ++ lib.optional nativeModemManagerSupport modemmanager
+  ++ lib.optional opusSupport libopus
   ++ lib.optional pulseTunnelSupport libpulseaudio
   ++ lib.optional zeroconfSupport avahi
   ++ lib.optional raopSupport openssl
   ++ lib.optional rocSupport roc-toolkit
+  ++ lib.optionals vulkanSupport [ libdrm vulkan-headers vulkan-loader ]
   ++ lib.optionals x11Support [ libcanberra xorg.libX11 xorg.libXfixes ]
   ++ lib.optional mysofaSupport libmysofa
   ++ lib.optional ffadoSupport ffado
@@ -199,6 +200,7 @@ stdenv.mkDerivation(finalAttrs: {
     (lib.mesonEnable "pipewire-alsa" stdenv.isLinux)
     (lib.mesonEnable "udev" (!enableSystemd))
     (lib.mesonEnable "ffmpeg" ffmpegSupport)
+    (lib.mesonEnable "pw-cat-ffmpeg" ffmpegSupport)
     (lib.mesonEnable "bluez5" bluezSupport)
     (lib.mesonEnable "opus" bluezSupport)
     (lib.mesonEnable "bluez5-backend-hsp-native" nativeHspSupport)
@@ -210,10 +212,11 @@ stdenv.mkDerivation(finalAttrs: {
     (lib.mesonEnable "bluez5-codec-lc3plus" false)
     (lib.mesonEnable "bluez5-codec-lc3" bluezSupport)
     (lib.mesonEnable "bluez5-codec-ldac" ldacbtSupport)
+    (lib.mesonEnable "opus" opusSupport)
     (lib.mesonOption "sysconfdir" "/etc")
     (lib.mesonEnable "raop" raopSupport)
     (lib.mesonOption "session-managers" "")
-    (lib.mesonEnable "vulkan" true)
+    (lib.mesonEnable "vulkan" vulkanSupport)
     (lib.mesonEnable "x11" x11Support)
     (lib.mesonEnable "x11-xfixes" x11Support)
     (lib.mesonEnable "libcanberra" x11Support)

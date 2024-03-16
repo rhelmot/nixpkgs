@@ -74,11 +74,16 @@ buildPythonPackage rec {
     # test_multi tries to create directories under /var
     "t/unit/bin/test_multi.py"
     "t/unit/apps/test_multi.py"
+    # requires moto<5
+    "t/unit/backends/test_s3.py"
   ];
 
   disabledTests = [
     "msgpack"
     "test_check_privileges_no_fchown"
+    # seems to only fail on higher core counts
+    # AssertionError: assert 3 == 0
+    "test_setup_security_disabled_serializers"
     # fails with pytest-xdist
     "test_itercapture_limit"
     "test_stamping_headers_in_options"

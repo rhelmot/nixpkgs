@@ -30,10 +30,11 @@
 , darwin
 , libsForQt5
 , freebsd
+, gitUpdater
 }:
 
 let
-  inherit (darwin.apple_sdk.frameworks) SystemConfiguration CoreServices;
+  inherit (darwin.apple_sdk.frameworks) CoreServices SystemConfiguration;
   inherit (libsForQt5) qtbase wrapQtAppsHook;
   cursesUI = lib.elem "ncurses" uiToolkits;
   qt5UI = lib.elem "qt5" uiToolkits;
@@ -47,11 +48,11 @@ stdenv.mkDerivation (finalAttrs: {
     + lib.optionalString isMinimalBuild "-minimal"
     + lib.optionalString cursesUI "-cursesUI"
     + lib.optionalString qt5UI "-qt5UI";
-  version = "3.28.1";
+  version = "3.28.3";
 
   src = fetchurl {
     url = "https://cmake.org/files/v${lib.versions.majorMinor finalAttrs.version}/cmake-${finalAttrs.version}.tar.gz";
-    hash = "sha256-FelPg+ZH99YgoUCnpdp2NJ/Eehv+1m0PXN7o5zRAea0=";
+    hash = "sha256-crdXDlyFk95qxKtDO3PqsYxfsyiIBGDIbOMmCBQa1cE=";
   };
 
   patches = [
@@ -98,7 +99,7 @@ stdenv.mkDerivation (finalAttrs: {
   ++ lib.optional useOpenSSL openssl
   ++ lib.optional cursesUI ncurses
   ++ lib.optional qt5UI qtbase
-  ++ lib.optional (stdenv.isDarwin) CoreServices
+  ++ lib.optional stdenv.isDarwin CoreServices
   ++ lib.optional (stdenv.isDarwin && !isMinimalBuild) SystemConfiguration
   ++ lib.optional stdenv.isFreeBSD freebsd.libkvm;
 
@@ -179,6 +180,12 @@ stdenv.mkDerivation (finalAttrs: {
 
   doCheck = false; # fails
 
+  passthru.updateScript = gitUpdater {
+    url = "https://gitlab.kitware.com/cmake/cmake.git";
+    rev-prefix = "v";
+    ignoredVersions = "-"; # -rc1 and friends
+  };
+
   meta = {
     homepage = "https://cmake.org/";
     description = "Cross-platform, open-source build system generator";
@@ -193,6 +200,7 @@ stdenv.mkDerivation (finalAttrs: {
     license = lib.licenses.bsd3;
     maintainers = with lib.maintainers; [ ttuegel lnl7 AndersonTorres ];
     platforms = lib.platforms.all;
+    mainProgram = "cmake";
     broken = (qt5UI && stdenv.isDarwin);
   };
 })

@@ -15,7 +15,9 @@ python3Packages.buildPythonApplication rec {
   };
 
   pythonRelaxDeps = [
+    "aiosqlite"
     "pillow"
+    "httpx"
   ];
 
   propagatedBuildInputs = with python3Packages; [

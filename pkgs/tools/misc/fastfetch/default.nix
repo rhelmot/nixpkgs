@@ -43,13 +43,13 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "fastfetch";
-  version = "2.7.1";
+  version = "2.8.9";
 
   src = fetchFromGitHub {
     owner = "fastfetch-cli";
     repo = "fastfetch";
     rev = finalAttrs.version;
-    hash = "sha256-s0N3Rt3lLOCyaeXeNYu6hlGtNtGR+YC7Aj4/3SeVMpQ=";
+    hash = "sha256-UvAIIkH9PNlvLzlh0jm1kG+4OfWsWtt2LSFbFPm7Yv4=";
   };
 
   outputs = [ "out" "man" ];
@@ -95,11 +95,12 @@ stdenv.mkDerivation (finalAttrs: {
     xorg.libXau
     xorg.libXdmcp
     xorg.libXext
-  ] ++ lib.optionals (x11Support && (!stdenv.isDarwin))  [
+  ] ++ lib.optionals (x11Support && (!stdenv.isDarwin)) [
     xfce.xfconf
   ] ++ lib.optionals stdenv.isDarwin (with darwin.apple_sdk_11_0.frameworks; [
     Apple80211
     AppKit
+    AVFoundation
     Cocoa
     CoreDisplay
     CoreVideo
@@ -130,11 +131,6 @@ stdenv.mkDerivation (finalAttrs: {
     (lib.cmakeBool "ENABLE_XRANDR" x11Support)
   ];
 
-  env.NIX_CFLAGS_COMPILE = toString [
-    # Needed with GCC 12
-    "-Wno-error=uninitialized"
-  ];
-
   postInstall = ''
     wrapProgram $out/bin/fastfetch \
       --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath finalAttrs.buildInputs}"
@@ -155,7 +151,7 @@ stdenv.mkDerivation (finalAttrs: {
     description = "Like neofetch, but much faster because written in C";
     homepage = "https://github.com/fastfetch-cli/fastfetch";
     license = lib.licenses.mit;
-    maintainers = with lib.maintainers; [ gerg-l khaneliman federicoschonborn ];
+    maintainers = with lib.maintainers; [ gerg-l khaneliman ];
     platforms = lib.platforms.all;
     mainProgram = "fastfetch";
   };

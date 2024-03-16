@@ -2,6 +2,7 @@
 , callPackage
 , python3Packages
 , fetchFromGitHub
+, fetchpatch2
 , installShellFiles
 , platformio
 , esptool
@@ -19,26 +20,34 @@ let
 in
 python.pkgs.buildPythonApplication rec {
   pname = "esphome";
-  version = "2023.12.9";
+  version = "2024.2.2";
   pyproject = true;
 
   src = fetchFromGitHub {
     owner = pname;
     repo = pname;
     rev = "refs/tags/${version}";
-    hash = "sha256-8SHf6cbPYPZctjJgIuEb7eOJVi5hWNONyRnMXK0iBXc=";
+    hash = "sha256-SIp4hrllPgWNnrflUStSIcUB00eGU5pHoYveBPg7CVw=";
   };
+
+  patches = [
+    (fetchpatch2 {
+      name = "esphome-voluptuous-0.14.2-compat.patch";
+      url = "https://github.com/esphome/esphome/commit/256d886d77fbff37e803593fdc6fce7be0b49487.patch";
+      hash = "sha256-Gm1iSSCMeHK2W41GpUjQWlQTpIyXzq44wSdGEtWiu0g=";
+    })
+  ];
 
   nativeBuildInputs = with python.pkgs; [
     setuptools
     argcomplete
     installShellFiles
+    pythonRelaxDepsHook
   ];
 
-  postPatch = ''
-    # remove all version pinning (E.g tornado==5.1.1 -> tornado)
-    sed -i -e "s/==[0-9.]*//" requirements.txt
+  pythonRelaxDeps = true;
 
+  postPatch = ''
     # drop coverage testing
     sed -i '/--cov/d' pytest.ini
   '';
@@ -59,7 +68,9 @@ python.pkgs.buildPythonApplication rec {
     colorama
     cryptography
     esphome-dashboard
+    icmplib
     kconfiglib
+    packaging
     paho-mqtt
     pillow
     platformio

@@ -13,24 +13,24 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "pict-rs";
-  version = "0.5.1";
+  version = "0.5.9";
 
   src = fetchFromGitea {
     domain = "git.asonix.dog";
     owner = "asonix";
     repo = pname;
     rev = "v${version}";
-    sha256 = "sha256-m0je0SfyjeMDJP/OTx41Goc6mcNavnlSDBZS5Uqw0p0=";
+    sha256 = "sha256-ZRT382ClImnlwvWyA1w7ZIIF4PXr3rWmeIsqJYngkfM=";
   };
 
-  cargoHash = "sha256-O92m3Va8BAPZyDc4arufSkeHxGC8QpwOPx9FAG0A+TE=";
+  cargoHash = "sha256-FTb8VoQJFS55CKlQvoWkBQEBUCvUnFaUAxIW22zEIHI=";
 
   # needed for internal protobuf c wrapper library
   PROTOC = "${protobuf}/bin/protoc";
   PROTOC_INCLUDE = "${protobuf}/include";
 
   nativeBuildInputs = [ makeWrapper ];
-  buildInputs = lib.optionals stdenv.isDarwin [ darwin.apple_sdk.frameworks ];
+  buildInputs = lib.optional stdenv.isDarwin darwin.apple_sdk.frameworks.Security;
 
   postInstall = ''
     wrapProgram "$out/bin/pict-rs" \
@@ -40,6 +40,7 @@ rustPlatform.buildRustPackage rec {
   passthru.tests = { inherit (nixosTests) pict-rs; };
 
   meta = with lib; {
+    broken = stdenv.isDarwin;
     description = "A simple image hosting service";
     homepage = "https://git.asonix.dog/asonix/pict-rs";
     license = with licenses; [ agpl3Plus ];

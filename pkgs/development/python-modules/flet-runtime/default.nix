@@ -10,13 +10,13 @@
 
 buildPythonPackage rec {
   pname = "flet-runtime";
-  version = "0.19.0";
+  version = "0.21.1";
   pyproject = true;
 
   src = fetchPypi {
     pname = "flet_runtime";
     inherit version;
-    hash = "sha256-no2oDGZG1svrOZLNAao279qeHwyk5SGibDG4UqpriiU=";
+    hash = "sha256-48diTMTWbiZNF4jU6ABgWYsdhNNs3bte7brgdEJE3es=";
   };
 
   nativeBuildInputs = [

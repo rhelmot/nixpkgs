@@ -549,6 +549,12 @@
       '';
   });
 
+  elixir-tools-nvim = super.elixir-tools-nvim.overrideAttrs {
+    fixupPhase = ''
+      patchShebangs $(find $out/bin/ -type f -not -name credo-language-server)
+    '';
+  };
+
   executor-nvim = super.executor-nvim.overrideAttrs {
     dependencies = with self; [ nui-nvim ];
   };
@@ -949,6 +955,10 @@
     dependencies = with self; [ nui-nvim ];
   };
 
+  none-ls-nvim = super.none-ls-nvim.overrideAttrs {
+    dependencies = [ self.plenary-nvim ];
+  };
+
   null-ls-nvim = super.null-ls-nvim.overrideAttrs {
     dependencies = with self; [ plenary-nvim ];
   };
@@ -986,9 +996,9 @@
       spectre_oxi = rustPlatform.buildRustPackage {
         pname = "spectre_oxi";
         inherit (old) version src;
-        sourceRoot = "source/spectre_oxi";
+        sourceRoot = "${old.src.name}/spectre_oxi";
 
-        cargoHash = "sha256-y2ZIgOApIShkIesXmItPKDO6XjFrG4GS5HCPncJUmN8=";
+        cargoHash = "sha256-gCGuD5kipgfR0Le8npNmyBxNsUq0PavXvKkxkiPx13E=";
 
 
         preCheck = ''
@@ -1124,7 +1134,7 @@
         pname = "sg-nvim-rust";
         inherit (old) version src;
 
-        cargoHash = "sha256-BDNFZ/7nnfvtBA7T6a7MDNJsq/cOI9tgW0kxUoIcbV8=";
+        cargoHash = "sha256-nlPSsp/HbS1DxhOHh5+7x1re46oiQa9FQMLClc7TQLg=";
 
         nativeBuildInputs = [ pkg-config ];
 
@@ -1661,6 +1671,14 @@
     dependencies = with self; [ vim-repeat ];
   };
 
+  vim-tabby = super.vim-tabby.overrideAttrs {
+    postPatch = ''
+      substituteInPlace autoload/tabby/globals.vim --replace-fail \
+        "let g:tabby_node_binary = get(g:, 'tabby_node_binary', 'node')" \
+        "let g:tabby_node_binary = get(g:, 'tabby_node_binary', '${nodejs}/bin/node')"
+    '';
+  };
+
   vim-textobj-entire = super.vim-textobj-entire.overrideAttrs {
     dependencies = with self; [ vim-textobj-user ];
     meta.maintainers = with lib.maintainers; [ farlion ];
@@ -1762,6 +1780,10 @@
 
   vim-zettel = super.vim-zettel.overrideAttrs {
     dependencies = with self; [ vimwiki fzf-vim ];
+  };
+
+  windows-nvim = super.windows-nvim.overrideAttrs {
+    dependencies = with self; [ luaPackages.middleclass animation-nvim ];
   };
 
   wtf-nvim = super.wtf-nvim.overrideAttrs {

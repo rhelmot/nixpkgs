@@ -2,11 +2,11 @@
 
 stdenv.mkDerivation rec {
   pname = "revanced-cli";
-  version = "4.4.0";
+  version = "4.4.2";
 
   src = fetchurl {
     url = "https://github.com/revanced/revanced-cli/releases/download/v${version}/revanced-cli-${version}-all.jar";
-    hash = "sha256-ydP9iPClWNKlbBhsNC1bzqfJYRyit1WsxIgwbQQbgi8=";
+    hash = "sha256-zdkasyYwyPB6mPvRVMP3/UoaXdaRxAI8GyOxsCYBMEE=";
   };
 
   nativeBuildInputs = [ makeWrapper ];
@@ -32,5 +32,6 @@ stdenv.mkDerivation rec {
     license = licenses.gpl3Only;
     sourceProvenance = with sourceTypes; [ binaryBytecode ];
     maintainers = with maintainers; [ jopejoe1 ];
+    mainProgram = "revanced-cli";
   };
 }

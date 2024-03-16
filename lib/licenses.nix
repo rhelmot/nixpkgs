@@ -412,6 +412,11 @@ in mkLicense lset) ({
     fullName = "Detection Rule License 1.0";
   };
 
+  dtoa = {
+    spdxId = "dtoa";
+    fullName = "dtoa License";
+  };
+
   eapl = {
     fullName = "EPSON AVASYS PUBLIC LICENSE";
     url = "https://avasys.jp/hp/menu000000700/hpg000000603.htm";
@@ -854,6 +859,11 @@ in mkLicense lset) ({
     fullName = "Mozilla Public License 2.0";
   };
 
+  mplus = {
+    spdxId = "mplus";
+    fullName = "M+ Font License";
+  };
+
   mspl = {
     spdxId = "MS-PL";
     fullName = "Microsoft Public License";
@@ -1061,6 +1071,11 @@ in mkLicense lset) ({
     url = "https://sources.debian.org/copyright/license/debianutils/4.9.1/";
   };
 
+  smlnj = {
+    spdxId = "SMLNJ";
+    fullName = "Standard ML of New Jersey License";
+  };
+
   sspl = {
     shortName = "SSPL";
     fullName = "Server Side Public License";
@@ -1210,6 +1225,11 @@ in mkLicense lset) ({
     url = "https://mcj.sourceforge.net/authors.html#xfig";
   };
 
+  xinetd = {
+    spdxId = "xinetd";
+    fullName = "xinetd License";
+  };
+
   zlib = {
     spdxId = "Zlib";
     fullName = "zlib License";
@@ -1223,6 +1243,11 @@ in mkLicense lset) ({
   zpl21 = {
     spdxId = "ZPL-2.1";
     fullName = "Zope Public License 2.1";
+  };
+
+  xskat = {
+    spdxId = "XSkat";
+    fullName = "XSkat License";
   };
 } // {
   # TODO: remove legacy aliases

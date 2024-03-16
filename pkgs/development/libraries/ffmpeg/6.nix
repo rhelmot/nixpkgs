@@ -1,4 +1,6 @@
 import ./generic.nix {
-  version = "6.1";
-  hash = "sha256-NzhD2D16bCVCyCXo0TRwZYp3Ta5eFSfoQPa+iRkeNZg=";
+  version = "6.1.1";
+  hash = "sha256-Q0c95hbCVUHQWPoh5uC8uzMylmB4BnWg+VhXEgSouzo=";
+  extraPatches = [
+  ];
 }

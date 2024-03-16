@@ -41,15 +41,16 @@
 }:
 
 buildPythonPackage rec {
-  pname = "Django";
-  version = "4.2.10";
+  pname = "django";
+  version = "4.2.11";
   format = "pyproject";
 
   disabled = pythonOlder "3.8";
 
   src = fetchPypi {
-    inherit pname version;
-    hash = "sha256-sSYO04GxChF1PHNERAjhmGnzJB/EXJhc1VowF3x4nRM=";
+    pname = "Django";
+    inherit version;
+    hash = "sha256-bm/z2y2N0MmGtO7IVUyOT5GbXB/2KltDkMF6/y7W5cQ=";
   };
 
   patches = [
@@ -60,6 +61,7 @@ buildPythonPackage rec {
     # make sure the tests don't remove packages from our pythonpath
     # and disable failing tests
     ./django_4_tests.patch
+
   ] ++ lib.optionals withGdal [
     (substituteAll {
       src = ./django_4_set_geos_gdal_lib.patch;
