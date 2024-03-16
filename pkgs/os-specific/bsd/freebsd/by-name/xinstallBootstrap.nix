@@ -18,7 +18,7 @@ in mkDerivation {
   skipIncludesPhase = true;
   buildInputs = compatIfNeeded ++ [libmd];
   buildPhase = ''
-    make -C $BSDSRCDIR/usr.bin/xinstall STRIP=-s MK_WERROR=no TESTDIR=${builtins.placeholder "test"}
+    make -C $BSDSRCDIR/usr.bin/xinstall STRIP=-s MK_WERROR=no TESTDIR=${builtins.placeholder "test"} BOOTSTRAPPING=1
   '';
   installPhase = ''
     mkdir -p $out/bin
