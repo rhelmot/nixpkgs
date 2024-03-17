@@ -199,7 +199,6 @@ in
         curlReal = super.curl;
         freebsd = super.freebsd.overrideScope (self': super': {
           inherit locales;
-          localesReal = super'.locales;
         });
       };
       preHook = ''
@@ -251,7 +250,11 @@ in
         isClang = true;
         extraPackages = [
           prevStage.llvmPackages.compiler-rt
+          prevStage.llvmPackages.libunwind
         ];
+        nixSupport = {
+          libcxx-ldflags = ["-lunwind"];
+        };
         extraBuildCommands = mkExtraBuildCommands prevStage.llvmPackages.clang-unwrapped prevStage.llvmPackages.compiler-rt;
         bintools = import ../../build-support/bintools-wrapper {
           inherit lib stdenvNoCC;
@@ -273,7 +276,6 @@ in
         freebsd = super.freebsd.overrideScope (self': super': {
           #stdenv = prevStage.overrideCC stdenv prevStage.llvmPackages_16.clang;
           locales = prevStage.freebsd.locales;
-          localesReal = super'.locales;
         });
       };
       preHook = ''
@@ -326,7 +328,11 @@ in
         isClang = true;
         extraPackages = [
           prevStage.llvmPackages.compiler-rt
+          prevStage.llvmPackages.libunwind
         ];
+        nixSupport = {
+          libcxx-ldflags = ["-lunwind"];
+        };
         extraBuildCommands = mkExtraBuildCommands prevStage.llvmPackages.clang-unwrapped prevStage.llvmPackages.compiler-rt;
         bintools = import ../../build-support/bintools-wrapper {
           inherit lib stdenvNoCC;
@@ -409,7 +415,11 @@ in
         isClang = true;
         extraPackages = [
           prevStage.llvmPackages.compiler-rt
+          prevStage.llvmPackages.libunwind
         ];
+        nixSupport = {
+          libcxx-ldflags = ["-lunwind"];
+        };
         extraBuildCommands = mkExtraBuildCommands prevStage.llvmPackages.clang-unwrapped prevStage.llvmPackages.compiler-rt;
         bintools = import ../../build-support/bintools-wrapper {
           inherit lib stdenvNoCC;
@@ -428,7 +438,7 @@ in
         cacert = prevStage.cacert;
         inherit (prevStage) fetchurl;
         freebsd = super.freebsd.overrideScope (self': super': {
-          localesPrev = prevStage.freebsd.locales;
+          localesPrev = prevStage.freebsd.localesReal;
         });
         haskellPackages = super.haskellPackages.override {
           overrides = (self: super: {
@@ -443,7 +453,7 @@ in
       preHook = ''
           export NIX_ENFORCE_PURITY="''${NIX_ENFORCE_PURITY-1}"
           export NIX_ENFORCE_NO_NATIVE="''${NIX_ENFORCE_NO_NATIVE-1}"
-          export PATH_LOCALE=${prevStage.freebsd.locales}/share/locale
+          export PATH_LOCALE=${prevStage.freebsd.localesReal}/share/locale
         '';
     };
   })
