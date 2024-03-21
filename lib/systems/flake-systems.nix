@@ -25,4 +25,5 @@
   "powerpc64le-linux"
   "riscv64-linux"
   "x86_64-freebsd"
+  "aarch64-freebsd"
 ]

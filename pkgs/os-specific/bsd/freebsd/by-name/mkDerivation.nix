@@ -1,4 +1,4 @@
-{ lib, crossLibcStdenv, stdenv, hostVersion, buildPackages, buildFreebsd, hostArchBsd, compatIfNeeded, filterSource, ... }:
+{ lib, crossLibcStdenv, stdenv, hostVersion, buildPackages, buildFreebsd, hostArchBsd, hostMachineBsd, compatIfNeeded, filterSource, ... }:
 lib.makeOverridable (attrs: let
   # the use of crossLibcStdenv in the isStatic case is kind of a misnomer but I think it works
   stdenv' = if (attrs.isStatic or false) then crossLibcStdenv else stdenv;
@@ -26,9 +26,9 @@ in stdenv'.mkDerivation (rec {
   # amd64 not x86_64 for this on unlike NetBSD
   MACHINE_ARCH = hostArchBsd;
 
-  MACHINE = hostArchBsd;
+  MACHINE = hostMachineBsd;
 
-  MACHINE_CPUARCH = MACHINE_ARCH;
+  MACHINE_CPUARCH = hostArchBsd;
 
   COMPONENT_PATH = attrs.path or null;
 

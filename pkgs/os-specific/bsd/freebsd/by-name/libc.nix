@@ -59,6 +59,8 @@ mkDerivation {
     "lib/Makefile.inc"
   ] ++ lib.optionals (stdenv.hostPlatform.isx86_32) [
     "lib/libssp_nonshared"
+  ] ++ lib.optionals stdenv.hostPlatform.isAarch64 [
+    "contrib/arm-optimized-routines"
   ] ++ [
     "lib/libexecinfo"
     "contrib/libexecinfo"

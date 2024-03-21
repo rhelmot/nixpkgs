@@ -327,6 +327,11 @@ rec {
     useLLVM = true;
   };
 
+  aarch64-freebsd = {
+    config = "aarch64-unknown-freebsd";
+    useLLVM = true;
+  };
+
   x86_64-netbsd = {
     config = "x86_64-unknown-netbsd";
   };

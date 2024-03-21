@@ -54,6 +54,14 @@ in byName // (with self; { inherit stdenv;
 
   hostArchBsd = {
     x86_64 = "amd64";
+    aarch64 = "aarch64";
+    i486 = "i386";
+    i586 = "i386";
+    i686 = "i386";
+  }.${self.stdenv.hostPlatform.parsed.cpu.name} or self.stdenv.hostPlatform.parsed.cpu.name;
+
+  hostMachineBsd = {
+    x86_64 = "amd64";
     aarch64 = "arm64";
     i486 = "i386";
     i586 = "i386";

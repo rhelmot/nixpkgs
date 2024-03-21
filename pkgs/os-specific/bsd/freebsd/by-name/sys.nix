@@ -1,4 +1,4 @@
-{ lib, mkDerivation, buildPackages, buildFreebsd, hostArchBsd, patchesRoot
+{ lib, stdenv, mkDerivation, buildPackages, buildFreebsd, hostMachineBsd, patchesRoot
 , filterSource, applyPatches
 , baseConfig ? "GENERIC"
 , extraFlags ? { }
@@ -24,7 +24,7 @@ let
         substituteInPlace "$f" --replace 'KERN_DEBUGDIR}''${' 'KERN_DEBUGDIR_'
       done
 
-      sed -i sys/${hostArchBsd}/conf/${baseConfig} \
+      sed -i sys/${hostMachineBsd}/conf/${baseConfig} \
         -e 's/WITH_CTF=1/WITH_CTF=0/' \
         -e '/KDTRACE/d'
     '';
@@ -59,14 +59,18 @@ in mkDerivation rec {
     file2c
     bintrans
     xargs-j
-  ]);
+  ]) ++ lib.optionals stdenv.hostPlatform.isAarch64 [
+    buildPackages.dtc
+  ];
 
   # --dynamic-linker /red/herring is used when building the kernel.
   NIX_ENFORCE_PURITY = 0;
 
   AWK = "${buildPackages.gawk}/bin/awk";
 
-  CWARNEXTRA = "-Wno-error=shift-negative-value -Wno-address-of-packed-member";
+  CWARNEXTRA = "-Wno-error=shift-negative-value -Wno-address-of-packed-member"
+  # Some aarch64 functions are only used in debug kernels, which is off by default
+    + lib.optionalString stdenv.hostPlatform.isAarch64 " -Wno-error=unused-function";
 
   hardeningDisable = [
     "pic"  # generates relocations the linker can't handle
@@ -81,7 +85,8 @@ in mkDerivation rec {
 
   KODIR = "${builtins.placeholder "out"}/kernel";
   KMODDIR = "${builtins.placeholder "out"}/kernel";
-  DTBDIR = "${builtins.placeholder"out"}/dbt";
+  DTBDIR = "${builtins.placeholder"out"}/dtb";
+  DTBODIR = "${builtins.placeholder"out"}/dtb/overlays";
 
   KERN_DEBUGDIR = "${builtins.placeholder "debug"}/lib/debug";
   KERN_DEBUGDIR_KODIR = "${KERN_DEBUGDIR}/kernel";
@@ -92,7 +97,7 @@ in mkDerivation rec {
   configurePhase = ''
     runHook preConfigure
 
-    cd ${hostArchBsd}/conf
+    cd ${hostMachineBsd}/conf
     config ${baseConfig}
 
     runHook postConfigure

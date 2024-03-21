@@ -1,4 +1,4 @@
-{ hostVersion, lib, stdenv, mkDerivation, include, buildPackages, buildFreebsd, hostArchBsd, ... }:
+{ hostVersion, lib, stdenv, mkDerivation, include, buildPackages, buildFreebsd, hostMachineBsd, ... }:
 mkDerivation {
   path = "stand/efi";
   extraPaths = [
@@ -31,12 +31,14 @@ mkDerivation {
 
   # ???
   preBuild = ''
-    NIX_CFLAGS_COMPILE+=" -I${include}/include -I$BSDSRCDIR/sys/sys -I$BSDSRCDIR/sys/${hostArchBsd}/include"
+    NIX_CFLAGS_COMPILE+=" -I${include}/include -I$BSDSRCDIR/sys/sys -I$BSDSRCDIR/sys/${hostMachineBsd}/include"
     export NIX_CFLAGS_COMPILE
 
     make -C $BSDSRCDIR/stand/libsa $makeFlags
     make -C $BSDSRCDIR/stand/ficl $makeFlags
     make -C $BSDSRCDIR/stand/liblua $makeFlags
+  '' + lib.optionalString stdenv.hostPlatform.isAarch64 ''
+    make -C $BSDSRCDIR/sys/contrib/libfdt $makeFlags
   '';
 
   postPatch = ''

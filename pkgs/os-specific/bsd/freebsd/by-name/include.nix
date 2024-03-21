@@ -1,4 +1,4 @@
-{ mkDerivation, buildPackages, buildFreebsd, lib, hostVersion, patchesRoot, ... }:
+{ stdenv, mkDerivation, buildPackages, buildFreebsd, lib, hostVersion, patchesRoot, ... }:
 mkDerivation {
   isStatic = true;
   inherit hostVersion;
@@ -8,6 +8,8 @@ mkDerivation {
     "contrib/libc-vis"
     "etc/mtree/BSD.include.dist"
     "sys"
+  ] ++ lib.optionals stdenv.hostPlatform.isAarch64 [
+    "lib/msun/arm"
   ];
 
   nativeBuildInputs = [
