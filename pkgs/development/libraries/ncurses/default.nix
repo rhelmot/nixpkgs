@@ -56,6 +56,12 @@ stdenv.mkDerivation (finalAttrs: {
   # Only the C compiler, and explicitly not C++ compiler needs this flag on solaris:
   CFLAGS = lib.optionalString stdenv.isSunOS "-D_XOPEN_SOURCE_EXTENDED";
 
+  # lld 16 enables --no-undefined-version by default
+  # ncurses has undefined symbols from over a decade ago in version maps
+  env = lib.optionalAttrs (stdenv.hostPlatform.linker == "lld") {
+    NIX_LDFLAGS = "--undefined-version";
+  };
+
   strictDeps = true;
 
   nativeBuildInputs = [
