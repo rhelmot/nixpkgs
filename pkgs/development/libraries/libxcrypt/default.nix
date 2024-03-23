@@ -31,6 +31,12 @@ stdenv.mkDerivation (finalAttrs: {
   # fixes: can't build x86_64-w64-mingw32 shared library unless -no-undefined is specified
   makeFlags = lib.optionals stdenv.hostPlatform.isWindows [ "LDFLAGS=-no-undefined"] ;
 
+  # lld 16 enables --no-undefined-version by default
+  env = lib.optionalAttrs (stdenv.hostPlatform.linker == "lld") {
+    NIX_LDFLAGS = "--undefined-version";
+  };
+
+
   nativeBuildInputs = [
     perl
   ];
