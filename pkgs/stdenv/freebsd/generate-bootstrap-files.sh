@@ -4,7 +4,7 @@ set -e
 OUT_DIR="${1-result}"
 mkdir -p "$OUT_DIR"
 
-URL_BASE="${2-https://f005.backblazeb2.com/file/nixbsd}"
+URL_BASE="${2-https://nixbsd.mildlyfunctional.gay/dist}"
 SELF_DIRNAME="$(dirname $(realpath $0))"
 export NIX_PATH="$SELF_DIRNAME/../../../.."
 TMPCFG="$(mktemp)"
