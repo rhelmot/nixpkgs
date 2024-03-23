@@ -168,14 +168,19 @@ stdenv.mkDerivation (finalAttrs: {
     touch gas/doc/as.info
   '';
 
-  # As binutils takes part in the stdenv building, we don't want references
-  # to the bootstrap-tools libgcc (as uses to happen on arm/mips)
-  env.NIX_CFLAGS_COMPILE =
-    if hostPlatform.isDarwin
-    then "-Wno-string-plus-int -Wno-deprecated-declarations"
-    else if stdenv.cc.isGNU
-    then "-static-libgcc"
-    else "";
+  env = {
+    # As binutils takes part in the stdenv building, we don't want references
+    # to the bootstrap-tools libgcc (as uses to happen on arm/mips)
+    NIX_CFLAGS_COMPILE =
+      if hostPlatform.isDarwin
+      then "-Wno-string-plus-int -Wno-deprecated-declarations"
+      else if stdenv.cc.isGNU
+      then "-static-libgcc"
+      else "";
+  } // lib.optionalAttrs (stdenv.hostPlatform.linker == "lld") {
+  # lld 16 enables --no-undefined-version by default, breaking dynamic library builds
+    NIX_LDFLAGS = "--undefined-version";
+  };
 
   hardeningDisable = [ "format" "pie" ];
 
