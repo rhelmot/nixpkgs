@@ -18,7 +18,9 @@ let
 in
   tar-all "${system}-bootstrap-files.tar.xz" ([
     # static programs
-    static.patchelf
+    # Workaround for #166205
+    # The fix in #292043 only applies to dynamic linking.
+    (static.patchelf.overrideAttrs { NIX_LDFLAGS = "-lc++abi"; })
   ] ++ (with pkgs; [
     # dynamic programs
     bash                 # shell
@@ -64,7 +66,6 @@ in
     (lib.getLib llvmPackages_16.clang-unwrapped)
     (lib.getLib llvmPackages_16.libllvm)
     (lib.getLib llvmPackages_16.libcxx)
-    (lib.getLib llvmPackages_16.libcxxabi)
     (lib.getLib llvmPackages_16.libunwind)
     (lib.getLib llvmPackages_16.compiler-rt)
     (lib.getLib curl)
@@ -91,7 +92,6 @@ in
     (lib.getDev bzip2)
     (lib.getDev openssl)
     (lib.getDev llvmPackages_16.libcxx)
-    (lib.getDev llvmPackages_16.libcxxabi)
     (lib.getDev llvmPackages_16.compiler-rt)
 
     # misc
