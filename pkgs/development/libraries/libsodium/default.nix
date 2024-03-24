@@ -30,6 +30,11 @@ stdenv.mkDerivation (finalAttrs: {
   enableParallelBuilding = true;
   hardeningDisable = lib.optional (stdenv.hostPlatform.isMusl && stdenv.hostPlatform.isx86_32) "stackprotector";
 
+  env = lib.optionalAttrs (stdenv.isAarch64 && stdenv.cc.isClang) {
+    # Only LLVM seems to complain about use of crypto extensions
+    NIX_CFLAGS_COMPILE = "-march=armv8-a+crypto";
+  };
+
   # FIXME: the hardeingDisable attr above does not seems effective, so
   # the need to disable stackprotector via configureFlags
   configureFlags = lib.optional (stdenv.hostPlatform.isMusl && stdenv.hostPlatform.isx86_32) "--disable-ssp";
