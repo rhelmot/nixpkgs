@@ -1,9 +1,9 @@
 { lib
+, stdenv
 , buildPythonPackage
 , pythonOlder
 , fetchFromGitHub
 , isPyPy
-, freebsd
 
 # nativeBuildInputs
 , flit-core
