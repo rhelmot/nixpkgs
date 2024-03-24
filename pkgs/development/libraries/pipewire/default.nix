@@ -67,7 +67,6 @@
 , xorg
 , mysofaSupport ? true
 , libmysofa
-, tinycompressSupport ? !stdenv.isFreeBSD
 , ffadoSupport ? x11Support && stdenv.buildPlatform.canExecute stdenv.hostPlatform && stdenv.isLinux
 , ffado
 , libselinux
@@ -156,7 +155,6 @@ stdenv.mkDerivation(finalAttrs: {
     readline
     udev
   ] ++ lib.optionals stdenv.isLinux (if enableSystemd then [ systemd ] else [ eudev ])
-  ++ lib.optionals tinycompressSupport [ tinycompress ]
   ++ (if lib.meta.availableOn stdenv.hostPlatform webrtc-audio-processing_1 then [ webrtc-audio-processing_1 ] else [ webrtc-audio-processing ])
   ++ lib.optionals gstreamerSupport [ gst_all_1.gst-plugins-base gst_all_1.gstreamer ]
   ++ lib.optionals libcameraSupport [ libcamera ]
