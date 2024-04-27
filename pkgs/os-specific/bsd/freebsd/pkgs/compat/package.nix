@@ -1,16 +1,8 @@
-{ lib, stdenv, mkDerivation, patchesRoot
-, bsdSetupHook, freebsdSetupHook
-, makeMinimal, boot-install
-, which
-, freebsd-lib
-, expat, zlib,
-}:
+{ lib, stdenv, mkDerivation, hostArchBsd, patchesRoot, hostVersion, pkgsHostHost, bsdSetupHook, freebsdSetupHook, makeMinimal, which, expat, zlib }:
 
-let
-  inherit (freebsd-lib) mkBsdArch;
-in
+assert stdenv.hostPlatform == stdenv.buildPlatform;
 
-mkDerivation rec {
+mkDerivation {
   pname = "compat";
   path = "tools/build";
   extraPaths = [
@@ -30,6 +22,9 @@ mkDerivation rec {
     # Take only individual headers, or else we will clobber native libc, etc.
 
     "sys/rpc/types.h"
+  ] ++ lib.optionals (hostVersion == "14.0") [
+    "sys/sys/bitcount.h"
+  ] ++ [
 
     # Listed in Makekfile as INC
     "include/mpool.h"
@@ -43,6 +38,11 @@ mkDerivation rec {
     "include/nl_types.h"
     "include/elf.h"
     "sys/sys/ctf.h"
+  ] ++ lib.optionals (hostVersion == "14.0") [
+    "include/bitstring.h"
+    "sys/sys/bitstring.h"
+    "sys/sys/nv_namespace.h"
+  ] ++ [
 
     # Listed in Makekfile as SYSINC
 
@@ -58,7 +58,7 @@ mkDerivation rec {
     "sys/sys/elf64.h"
     "sys/sys/elf_common.h"
     "sys/sys/elf_generic.h"
-    "sys/${mkBsdArch stdenv}/include"
+    "sys/${hostArchBsd}/include"
   ] ++ lib.optionals stdenv.hostPlatform.isx86 [
     "sys/x86/include"
   ] ++ [
@@ -70,6 +70,12 @@ mkDerivation rec {
     "sys/sys/font.h"
     "sys/sys/consio.h"
     "sys/sys/fnv_hash.h"
+    #"sys/sys/cdefs.h"
+    #"sys/sys/param.h"
+    "sys/sys/_null.h"
+    #"sys/sys/types.h"
+    "sys/sys/_pthreadtypes.h"
+    "sys/sys/_stdint.h"
 
     "sys/crypto/chacha20/_chacha.h"
     "sys/crypto/chacha20/chacha.h"
@@ -82,6 +88,10 @@ mkDerivation rec {
 
     "lib/libcapsicum"
     "lib/libcasper"
+    "lib/libmd"
+
+    # idk bro
+    "sys/sys/kbio.h"
   ];
 
   patches = [
@@ -92,8 +102,8 @@ mkDerivation rec {
   preBuild = ''
     NIX_CFLAGS_COMPILE+=' -I../../include -I../../sys'
 
-    cp ../../sys/${mkBsdArch stdenv}/include/elf.h ../../sys/sys
-    cp ../../sys/${mkBsdArch stdenv}/include/elf.h ../../sys/sys/${mkBsdArch stdenv}
+    cp ../../sys/${hostArchBsd}/include/elf.h ../../sys/sys
+    cp ../../sys/${hostArchBsd}/include/elf.h ../../sys/sys/${hostArchBsd}
   '' + lib.optionalString stdenv.hostPlatform.isx86 ''
     cp ../../sys/x86/include/elf.h ../../sys/x86
   '';
@@ -111,22 +121,40 @@ mkDerivation rec {
   nativeBuildInputs = [
     bsdSetupHook freebsdSetupHook
     makeMinimal
-    boot-install
 
     which
+    expat
+    zlib
   ];
-  buildInputs = [ expat zlib ];
+  buildInputs = [];
 
   makeFlags = [
     "STRIP=-s" # flag to install, not command
     "MK_WERROR=no"
     "HOST_INCLUDE_ROOT=${lib.getDev stdenv.cc.libc}/include"
-    "INSTALL=boot-install"
   ];
 
-  preIncludes = ''
-    mkdir -p $out/{0,1}-include
+  installPhase = ''
+    mkdir -p $out/{0,1}-include $out/lib $out/share/man $out/bin $out/include
     cp --no-preserve=mode -r cross-build/include/common/* $out/0-include
+    cp libegacy.a $out/lib
+    cp *.3.gz $out/share/man
+    for grp in $(make $makeFlags -V INCSGROUPS); do
+      DIR=$(make $makeFlags -V ''${grp}DIR)
+      mkdir -p $DIR
+      for inc in $(make $makeFlags -V ''$grp); do
+        found=0
+        for makedir in / . $(make $makeFlags -V .PATH); do
+          if [ -e "$makedir/$inc" ]; then
+            found=$(($found+1))
+            cp "$makedir/$inc" $DIR
+          fi
+        done
+        if [ "$found" = "0" ]; then
+          echo "Could not find header $inc during install"
+        fi
+      done
+    done
   '' + lib.optionalString stdenv.hostPlatform.isLinux ''
     cp --no-preserve=mode -r cross-build/include/linux/* $out/1-include
   '' + lib.optionalString stdenv.hostPlatform.isDarwin ''

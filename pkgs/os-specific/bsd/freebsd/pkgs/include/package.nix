@@ -1,12 +1,8 @@
-{ lib, mkDerivation, patchesRoot
-, buildPackages
-, bsdSetupHook, freebsdSetupHook
-, makeMinimal
-, install
-, mandoc, groff, rsync /*, nbperf*/, rpcgen
-}:
+{ mkDerivation, buildPackages, lib, hostVersion, patchesRoot, rpcgen, mtree }:
 
 mkDerivation {
+  isStatic = true;
+  inherit hostVersion;
   path = "include";
 
   extraPaths = [
@@ -15,14 +11,9 @@ mkDerivation {
     "sys"
   ];
 
-  nativeBuildInputs =  [
-    bsdSetupHook freebsdSetupHook
-    makeMinimal
-    install
-    mandoc groff rsync /*nbperf*/ rpcgen
-
-    # HACK use NetBSD's for now
-    buildPackages.netbsd.mtree
+  extraNativeBuildInputs = [
+    rpcgen
+    mtree
   ];
 
   patches = [
@@ -37,6 +28,7 @@ mkDerivation {
       sed -i -E \
         -e 's_/usr/include_''${INCSDIR0}_' \
         {} \;
+    sed -E -i -e "/_PATH_LOGIN/d" $BSDSRCDIR/include/paths.h
   '';
 
   makeFlags = [

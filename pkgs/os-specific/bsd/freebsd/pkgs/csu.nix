@@ -1,12 +1,6 @@
-{ lib, mkDerivation
-, bsdSetupHook, freebsdSetupHook
-, makeMinimal
-, install
-, flex, byacc, gencat
-, include
-}:
-
+{ mkDerivation, include, lib, bsdSetupHook, freebsdSetupHook, makeMinimal, install, flex, byacc, gencat }:
 mkDerivation {
+  isStatic = true;
   path = "lib/csu";
   extraPaths = [
     "lib/Makefile.inc"

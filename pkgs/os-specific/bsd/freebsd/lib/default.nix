@@ -1,8 +1,6 @@
-{ version }:
+{ }:
 
 {
-  inherit version;
-
   mkBsdArch = stdenv':  {
     x86_64 = "amd64";
     aarch64 = "arm64";

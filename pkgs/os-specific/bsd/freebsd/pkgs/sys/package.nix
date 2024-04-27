@@ -3,6 +3,7 @@
 , bsdSetupHook, freebsdSetupHook
 , makeMinimal, install, mandoc, groff
 , config, rpcgen, file2c, gawk, uudecode, xargs-j #, ctfconvert
+, patchesRoot
 }:
 
 mkDerivation (let

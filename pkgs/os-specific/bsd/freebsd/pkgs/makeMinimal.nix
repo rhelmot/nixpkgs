@@ -1,24 +1,34 @@
-{ lib, stdenv, mkDerivation
-, make
-, bsdSetupHook, freebsdSetupHook
-}:
-
-mkDerivation rec {
-  inherit (make) path;
+{ lib, stdenv, mkDerivation, bsdSetupHook, freebsdSetupHook, patchesRoot, hostVersion }:
+mkDerivation {
+  path = "contrib/bmake";
+  extraPaths = [ "share/mk" ]
+    ++ lib.optional (!stdenv.hostPlatform.isFreeBSD) "tools/build/mk";
 
   buildInputs = [];
-  nativeBuildInputs = [
-    bsdSetupHook freebsdSetupHook
-  ];
+  nativeBuildInputs = [ bsdSetupHook freebsdSetupHook ];
 
   skipIncludesPhase = true;
 
   makeFlags = [];
 
+  patches = [
+    /${patchesRoot}/bmake-no-compiler-rt.patch
+  ];
+
   postPatch = ''
     patchShebangs configure
-    ${make.postPatch}
+    # make needs this to pick up our sys make files
+    export NIX_CFLAGS_COMPILE+=" -D_PATH_DEFSYSPATH=\"$out/share/mk\""
+  '' + lib.optionalString stdenv.isDarwin ''
+    substituteInPlace $BSDSRCDIR/share/mk/bsd.sys.mk \
+      --replace '-Wl,--fatal-warnings' "" \
+      --replace '-Wl,--warn-shared-textrel' ""
+  '' + lib.optionalString (stdenv.targetPlatform.isFreeBSD && hostVersion != "13.2") ''
+    substituteInPlace $BSDSRCDIR/share/mk/local.sys.dirdeps.env.mk \
+      --replace 'MK_host_egacy= yes' 'MK_host_egacy= no'
   '';
+
+  configureFlags = ["--with-filemon=no"];
 
   buildPhase = ''
     runHook preBuild
@@ -56,6 +66,4 @@ mkDerivation rec {
       substituteInPlace "$out/share/mk/$m" --replace '../../../share/mk' '../mk.orig'
     done
   '';
-
-  extraPaths = make.extraPaths;
 }
