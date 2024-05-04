@@ -63,6 +63,7 @@ in stdenv.mkDerivation (finalAttrs: {
        # uses libstdc++, but the target (used for building std) uses libc++
        optional (stdenv.isLinux && !withBundledLLVM && !stdenv.targetPlatform.isFreeBSD) "--push-state --as-needed -lstdc++ --pop-state"
     ++ optional (stdenv.isDarwin && !withBundledLLVM) "-lc++ -lc++abi"
+    ++ optional stdenv.isFreeBSD "-rpath ${llvmPackages.libunwind}/lib"
     ++ optional stdenv.isDarwin "-rpath ${llvmSharedForHost}/lib");
 
   # Increase codegen units to introduce parallelism within the compiler.
