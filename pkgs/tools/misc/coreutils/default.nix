@@ -115,7 +115,7 @@ stdenv.mkDerivation rec {
     ++ optional withPrefix "--program-prefix=g"
     # the shipped configure script doesn't enable nls, but using autoreconfHook
     # does so which breaks the build
-    ++ optional stdenv.isDarwin "--disable-nls"
+    ++ optional (stdenv.isDarwin || stdenv.isFreeBSD) "--disable-nls"
     ++ optionals (isCross && stdenv.hostPlatform.libc == "glibc") [
       # TODO(19b98110126fde7cbb1127af7e3fe1568eacad3d): Needed for fstatfs() I
       # don't know why it is not properly detected cross building with glibc.
