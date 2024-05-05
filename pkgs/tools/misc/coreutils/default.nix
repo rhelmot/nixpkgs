@@ -16,7 +16,7 @@
 , minimal ? true
 , withOpenssl ? !minimal, openssl
 , withPrefix ? false
-, singleBinary ? if stdenv.isFreeBSD then false else "symlinks" # you can also pass "shebangs" or false
+, singleBinary ? "symlinks" # you can also pass "shebangs" or false
 , withAutoreconf ? true,
 }:
 
