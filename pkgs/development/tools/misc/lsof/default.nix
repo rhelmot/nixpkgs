@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchFromGitHub, buildPackages, perl, which, ncurses, nukeReferences }:
+{ lib, stdenv, fetchFromGitHub, buildPackages, perl, which, ncurses, nukeReferences, freebsd, ed }:
 
 let
   dialect = with lib; last (splitString "-" stdenv.hostPlatform.system);
@@ -23,10 +23,14 @@ stdenv.mkDerivation rec {
     sed -i lib/dialects/*/Makefile -e 's/version.h:\s*FRC/version.h:/'
   '' + lib.optionalString stdenv.isDarwin ''
     sed -i 's|lcurses|lncurses|g' Configure
+  '' + lib.optionalString stdenv.isFreeBSD ''
+    # lsof wants FreeBSD source it can modify
+    cp -R ${freebsd.sys.src}/sys sys
+    export FREEBSD_SYS=$PWD/sys
   '';
 
   depsBuildBuild = [ buildPackages.stdenv.cc ];
-  nativeBuildInputs = [ nukeReferences perl which ];
+  nativeBuildInputs = [ nukeReferences perl which ] ++ lib.optional stdenv.isFreeBSD ed;
   buildInputs = [ ncurses ];
 
   # Stop build scripts from searching global include paths
