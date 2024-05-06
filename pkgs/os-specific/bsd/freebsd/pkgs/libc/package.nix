@@ -1,4 +1,9 @@
-{ stdenv, mkDerivation, csu, include, buildPackages, lib, hostVersion, patchesRoot, bsdSetupHook, freebsdSetupHook, makeMinimal, install, flex, byacc, gencat, rpcgen, mkcsmapper, mkesdb }:
+{ stdenv, mkDerivation
+, csu, include, buildPackages
+, lib, freebsd-lib
+, patchesRoot
+, bsdSetupHook, freebsdSetupHook
+, makeMinimal, install, flex, byacc, gencat, rpcgen, mkcsmapper, mkesdb }:
 
 mkDerivation {
   isStatic = true;
