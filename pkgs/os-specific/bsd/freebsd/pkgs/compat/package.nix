@@ -1,4 +1,4 @@
-{ lib, stdenv, mkDerivation, hostArchBsd, patchesRoot, hostVersion, pkgsHostHost, bsdSetupHook, freebsdSetupHook, makeMinimal, which, expat, zlib }:
+{ lib, freebsd-lib, stdenv, mkDerivation, patchesRoot, bsdSetupHook, freebsdSetupHook, makeMinimal, which, expat, zlib }:
 
 assert stdenv.hostPlatform == stdenv.buildPlatform;
 
@@ -22,7 +22,7 @@ mkDerivation {
     # Take only individual headers, or else we will clobber native libc, etc.
 
     "sys/rpc/types.h"
-  ] ++ lib.optionals (hostVersion == "14.0") [
+  ] ++ lib.optionals ((lib.versions.major freebsd-lib.version) == "13") [
     "sys/sys/bitcount.h"
   ] ++ [
 
@@ -38,7 +38,7 @@ mkDerivation {
     "include/nl_types.h"
     "include/elf.h"
     "sys/sys/ctf.h"
-  ] ++ lib.optionals (hostVersion == "14.0") [
+  ] ++ lib.optionals ((lib.versions.major freebsd-lib.version) == "14") [
     "include/bitstring.h"
     "sys/sys/bitstring.h"
     "sys/sys/nv_namespace.h"
@@ -58,7 +58,7 @@ mkDerivation {
     "sys/sys/elf64.h"
     "sys/sys/elf_common.h"
     "sys/sys/elf_generic.h"
-    "sys/${hostArchBsd}/include"
+    "sys/${freebsd-lib.mkBsdArch stdenv}/include"
   ] ++ lib.optionals stdenv.hostPlatform.isx86 [
     "sys/x86/include"
   ] ++ [
@@ -102,8 +102,8 @@ mkDerivation {
   preBuild = ''
     NIX_CFLAGS_COMPILE+=' -I../../include -I../../sys'
 
-    cp ../../sys/${hostArchBsd}/include/elf.h ../../sys/sys
-    cp ../../sys/${hostArchBsd}/include/elf.h ../../sys/sys/${hostArchBsd}
+    cp ../../sys/${freebsd-lib.mkBsdArch stdenv}/include/elf.h ../../sys/sys
+    cp ../../sys/${freebsd-lib.mkBsdArch stdenv}/include/elf.h ../../sys/sys/${freebsd-lib.mkBsdArch stdenv}
   '' + lib.optionalString stdenv.hostPlatform.isx86 ''
     cp ../../sys/x86/include/elf.h ../../sys/x86
   '';

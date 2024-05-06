@@ -1,10 +1,10 @@
-{ lib, crossLibcStdenv, stdenv, hostVersion, hostArchBsd, compatIfNeeded, filterSource, bsdSetupHook, freebsdSetupHook, makeMinimal, install, tsort, lorder, mandoc, groff }:
+{ lib, freebsd-lib, crossLibcStdenv, stdenv, compatIfNeeded, filterSource, bsdSetupHook, freebsdSetupHook, makeMinimal, install, tsort, lorder, mandoc, groff }:
 lib.makeOverridable (attrs: let
   # the use of crossLibcStdenv in the isStatic case is kind of a misnomer but I think it works
   stdenv' = if (attrs.isStatic or false) then crossLibcStdenv else stdenv;
 in stdenv'.mkDerivation (rec {
   pname = "${attrs.pname or (baseNameOf attrs.path)}";
-  version = hostVersion;
+  inherit (freebsd-lib) version;
   src = filterSource { inherit pname; inherit (attrs) path; extraPaths = attrs.extraPaths or []; };
 
   nativeBuildInputs = [
@@ -24,9 +24,9 @@ in stdenv'.mkDerivation (rec {
   ] ++ lib.optional (!stdenv'.hostPlatform.isFreeBSD) "MK_WERROR=no";
 
   # amd64 not x86_64 for this on unlike NetBSD
-  MACHINE_ARCH = hostArchBsd;
+  MACHINE_ARCH = freebsd-lib.mkBsdArch stdenv;
 
-  MACHINE = hostArchBsd;
+  MACHINE = freebsd-lib.mkBsdArch stdenv;
 
   MACHINE_CPUARCH = MACHINE_ARCH;
 

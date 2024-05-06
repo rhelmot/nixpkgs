@@ -1,8 +1,7 @@
-{ mkDerivation, buildPackages, lib, hostVersion, patchesRoot, rpcgen, mtree }:
+{ mkDerivation, buildPackages, lib, patchesRoot, rpcgen, mtree }:
 
 mkDerivation {
   isStatic = true;
-  inherit hostVersion;
   path = "include";
 
   extraPaths = [

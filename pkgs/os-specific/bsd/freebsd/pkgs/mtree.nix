@@ -1,4 +1,4 @@
-{ mkDerivation, patchesRoot, libnetbsd, libmd, compatIfNeeded, compatIsNeeded, lib, libutil, stdenv }:
+{ mkDerivation, patchesRoot, libnetbsd, libmd, compatIfNeeded, lib, libutil, stdenv }:
 mkDerivation {
   path = "contrib/mtree";
   extraPaths = [ "contrib/mknod" ];
@@ -11,6 +11,6 @@ mkDerivation {
   '';
 
   preBuild = ''
-    export NIX_LDFLAGS="$NIX_LDFLAGS -lmd -lnetbsd ${if compatIsNeeded then "-legacy" else ""} ${if stdenv.isFreeBSD then "-lutil" else ""}"
+    export NIX_LDFLAGS="$NIX_LDFLAGS -lmd -lnetbsd ${if (!stdenv.hostPlatform.isFreeBSD) then "-legacy" else ""} ${if stdenv.isFreeBSD then "-lutil" else ""}"
   '';
 }

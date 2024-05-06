@@ -26,9 +26,9 @@ mkDerivation {
     "contrib/gdtoa"
     "contrib/libc-pwcache"
     "contrib/libc-vis"
-  ] ++ lib.optionals (hostVersion == "13.2") [
+  ] ++ lib.optionals ((lib.versions.major freebsd-lib.version) == "13") [
     "contrib/tzcode/stdtime"
-  ] ++ lib.optionals (hostVersion == "14.0") [
+  ] ++ lib.optionals ((lib.versions.major freebsd-lib.version) == "14") [
     "contrib/tzcode"
   ] ++ [
 

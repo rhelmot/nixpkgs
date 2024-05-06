@@ -33,7 +33,7 @@ lib.packagesFromDirectoryRecursive {
 
   compat = self.callPackage ./pkgs/compat/package.nix {
     inherit stdenv;
-    inherit (buildFreebsd) makeMinimal boot-install;
+    inherit (buildFreebsd) makeMinimal;
   };
 
   csu = self.callPackage ./pkgs/csu.nix {
@@ -42,17 +42,17 @@ lib.packagesFromDirectoryRecursive {
   };
 
   include = self.callPackage ./pkgs/include/package.nix {
-    inherit (buildFreebsd) makeMinimal install rpcgen;
+    inherit (buildFreebsd) rpcgen mtree;
   };
 
   install = self.callPackage ./pkgs/install.nix {
     inherit (buildFreebsd) makeMinimal;
-    inherit (self) mtree libnetbsd;
+    inherit (self) mtree libnetbsd libmd;
   };
 
   libc = self.callPackage ./pkgs/libc/package.nix {
-    inherit (buildFreebsd) makeMinimal install gencat rpcgen;
     inherit (self) csu include;
+    inherit (buildFreebsd) makeMinimal install gencat rpcgen mkcsmapper mkesdb;
   };
 
   libnetbsd = self.callPackage ./pkgs/libnetbsd/package.nix {
@@ -60,12 +60,26 @@ lib.packagesFromDirectoryRecursive {
   };
 
   mkDerivation = self.callPackage ./pkgs/mkDerivation.nix {
-    inherit stdenv;
-    inherit (buildFreebsd) makeMinimal install tsort;
+    inherit (buildFreebsd) makeMinimal install tsort lorder;
   };
 
-  makeMinimal = self.callPackage ./pkgs/makeMinimal.nix {
-    inherit (self) make;
+  mtree = self.callPackage ./pkgs/mtree.nix {
+    inherit (self) libmd libnetbsd;
   };
 
+  libmd = self.callPackage ./pkgs/libmd.nix {
+    inherit (buildFreebsd) makeMinimal;
+  };
+
+  tsort = self.callPackage ./pkgs/tsort.nix {
+    inherit (buildFreebsd) makeMinimal install;
+  };
+
+  mkcsmapper = self.callPackage ./pkgs/mkcsmapper.nix {
+    inherit (buildFreebsd) makeMinimal install tsort lorder;
+  };
+
+  mkesdb = self.callPackage ./pkgs/mkesdb.nix {
+    inherit (buildFreebsd) makeMinimal install tsort lorder;
+  };
 }
