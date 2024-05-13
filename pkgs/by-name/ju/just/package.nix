@@ -58,6 +58,9 @@ rustPlatform.buildRustPackage rec {
     "--skip=run_shebang" # test case very rarely fails with "Text file busy"
     "--skip=invoke_error_function" # wants JUST_CHOOSER to be fzf
     "--skip=choose::default" # symlinks cat->fzf which fails as coreutils doesn't understand name
+  ] ++ lib.optionals stdenv.isFreeBSD [
+    "--skip=os_attributes::os" # No os attribute for FreeBSD
+    "--skip=attributes::multiple_attributes_one_line" # Only windows, macOS, Linux
   ];
 
   postInstall = ''
