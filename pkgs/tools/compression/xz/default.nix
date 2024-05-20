@@ -22,6 +22,7 @@ stdenv.mkDerivation (finalAttrs: {
   };
 
   strictDeps = true;
+  # has old configure scripts baked in which hardcode /usr/bin/uname on FreeBSD
   outputs = [ "bin" "dev" "out" "man" "doc" ];
 
   configureFlags = lib.optional enableStatic "--disable-shared";
@@ -32,6 +33,10 @@ stdenv.mkDerivation (finalAttrs: {
   preCheck = ''
     # Tests have a /bin/sh dependency...
     patchShebangs tests
+  '';
+
+  postPatch = ''
+    substituteInPlace ./build-aux/config.guess --replace-fail /usr/bin/uname uname
   '';
 
   # In stdenv-linux, prevent a dependency on bootstrap-tools.

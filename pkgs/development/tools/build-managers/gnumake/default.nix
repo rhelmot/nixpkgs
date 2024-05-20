@@ -6,6 +6,7 @@
 , inBootstrap ? false
 , pkg-config
 , gnumake
+, autoreconfHook
 }:
 
 let
@@ -31,7 +32,7 @@ stdenv.mkDerivation rec {
     ./0002-remove-impure-dirs.patch
   ];
 
-  nativeBuildInputs = lib.optionals guileEnabled [ pkg-config ];
+  nativeBuildInputs = [ autoreconfHook ] ++ lib.optionals guileEnabled [ pkg-config ];
   buildInputs = lib.optionals guileEnabled [ guile ];
 
   configureFlags = lib.optional guileEnabled "--with-guile"

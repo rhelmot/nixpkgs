@@ -1,4 +1,4 @@
-postPatchHooks+=(autotoolsAbspathHook)
+#postPatchHooks+=(autotoolsAbspathHook)
 
 autotoolsAbspathHook() {
     if [ -z "$dontAutopatchAutotools" ]; then

@@ -1,5 +1,6 @@
 { lib, stdenv, fetchurl, writeTextDir
 , withCMake ? true, cmake
+, autoreconfHook
 
 # sensitive downstream packages
 , curl
@@ -22,7 +23,7 @@ stdenv.mkDerivation rec {
 
   outputs = [ "out" "dev" "man" ];
 
-  nativeBuildInputs = lib.optionals withCMake [ cmake ];
+  nativeBuildInputs = [ autoreconfHook ] ++ lib.optionals withCMake [ cmake ];
 
   cmakeFlags = [] ++ lib.optionals stdenv.hostPlatform.isStatic [
     "-DCARES_SHARED=OFF"

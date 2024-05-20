@@ -27,6 +27,10 @@ stdenv.mkDerivation (finalAttrs: {
     ./32-bit-time_t.patch
   ];
 
+  postPatch = ''
+    substituteInPlace ./config.guess --replace-fail /usr/bin/uname uname
+  '';
+
   strictDeps = true;
   enableParallelBuilding = true;
 

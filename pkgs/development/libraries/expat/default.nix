@@ -8,6 +8,7 @@
 , luaPackages
 , ocamlPackages
 , testers
+, autoreconfHook
 }:
 
 # Note: this package is used for bootstrapping fetchurl, and thus
@@ -29,6 +30,7 @@ stdenv.mkDerivation (finalAttrs: {
   };
 
   strictDeps = true;
+  nativeBuildInputs = [ autoreconfHook ];
 
   outputs = [ "out" "dev" ]; # TODO: fix referrers
   outputBin = "dev";

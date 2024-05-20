@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchurl, zlib, readline, ncurses
+{ lib, stdenv, fetchurl, zlib, readline, ncurses, autoreconfHook
 
 # for tests
 , python3Packages, sqldiff, sqlite-analyzer, tracker
@@ -27,6 +27,7 @@ stdenv.mkDerivation rec {
   outputs = [ "bin" "dev" "out" ];
   separateDebugInfo = stdenv.isLinux;
 
+  nativeBuildInputs = [ autoreconfHook ];
   buildInputs = [ zlib ] ++ lib.optionals interactive [ readline ncurses ];
 
   # required for aarch64 but applied for all arches for simplicity

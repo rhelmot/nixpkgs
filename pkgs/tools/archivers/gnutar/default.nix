@@ -30,7 +30,7 @@ stdenv.mkDerivation rec {
 
   outputs = [ "out" "info" ];
 
-  nativeBuildInputs = lib.optional stdenv.isDarwin autoreconfHook;
+  nativeBuildInputs = lib.optional (stdenv.isDarwin || stdenv.isFreeBSD) autoreconfHook;
   # Add libintl on Darwin specifically as it fails to link (or skip)
   # NLS on it's own:
   #  "_libintl_textdomain", referenced from:

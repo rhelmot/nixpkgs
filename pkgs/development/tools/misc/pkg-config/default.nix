@@ -18,8 +18,11 @@ stdenv.mkDerivation rec {
   patches = lib.optional (!vanilla) ./requires-private.patch
     ++ lib.optional stdenv.isCygwin ./2.36.3-not-win32.patch;
 
+  postPatch = ''
+    substituteInPlace ./config.guess ./glib/config.guess ./configure ./glib/configure --replace-fail /usr/bin/uname uname
+  ''
   # These three tests fail due to a (desired) behavior change from our ./requires-private.patch
-  postPatch = if vanilla then null else ''
+    + lib.optionalString vanilla ''
     rm -f check/check-requires-private check/check-gtk check/missing
   '';
 
