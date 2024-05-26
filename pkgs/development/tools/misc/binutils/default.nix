@@ -217,14 +217,15 @@ stdenv.mkDerivation (finalAttrs: {
   ] ++ (if enableShared
       then [ "--enable-shared" "--disable-static" ]
       else [ "--disable-shared" "--enable-static" ])
-  ++ (lib.optionals (stdenv.cc.bintools.isLLVM && lib.versionAtLeast stdenv.cc.bintools.version "17") [
+  ++ lib.optionals (stdenv.cc.bintools.isLLVM && lib.versionAtLeast stdenv.cc.bintools.version "17") [
       # lld17+ passes `--no-undefined-version` by default and makes this a hard
       # error; libctf.ver version script references symbols that aren't present.
       #
-      # This is fixed upstream and can be removed with the future release of 2.43.
-      # For now we allow this with `--undefined-version`:
+      # This is fixed upstream:
+      # https://sourceware.org/git/?p=binutils-gdb.git;a=commit;h=d8e1bca7ebc357ebd9b7a338a53d2767cf0564b6
+      # and can be removed with the future release of 2.43. For now we allow this with `--undefined-version`.
       "LDFLAGS=-Wl,--undefined-version"
-  ])
+  ]
   ;
 
   # Fails
