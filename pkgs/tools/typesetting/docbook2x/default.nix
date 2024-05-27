@@ -1,5 +1,5 @@
 { fetchurl, lib, stdenv, texinfo, perlPackages
-, groff, libxml2, libxslt, gnused, libiconv, opensp
+, groff, libxml2, libxslt, gnused, libiconv, iconv, opensp
 , docbook_xml_dtd_43, bash
 , makeWrapper }:
 
@@ -16,7 +16,8 @@ stdenv.mkDerivation rec {
   # writes its output to stdout instead of creating a file.
   patches = [ ./db2x_texixml-to-stdout.patch ];
 
-  nativeBuildInputs = [ makeWrapper perlPackages.perl texinfo libxslt ];
+  nativeBuildInputs = [ makeWrapper perlPackages.perl texinfo libxslt ]
+    ++ lib.optional stdenv.isFreeBSD iconv;
   buildInputs = [ groff libxml2 opensp libiconv bash ]
     ++ (with perlPackages; [ perl XMLSAX XMLParser XMLNamespaceSupport ]);
 
