@@ -81,7 +81,8 @@ stdenv.mkDerivation rec {
 
   enableParallelBuilding = true;
 
-  doCheck = !stdenv.hostPlatform.isMusl /* iconv binary */;
+  # Tests fail on musl and freebsd iconv
+  doCheck = !stdenv.hostPlatform.isMusl && !stdenv.hostPlatform.isFreeBSD;
 
   passthru.tests = {
     nixos = nixosTests.man;
