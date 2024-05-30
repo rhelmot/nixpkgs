@@ -1,4 +1,5 @@
 { lib
+, stdenv
 , fetchFromGitHub
 , buildPythonPackage
 , pythonOlder
@@ -34,6 +35,10 @@ buildPythonPackage rec {
   preBuild = ''
     export USE_SHARED_BROTLI=1
   '';
+
+  env = lib.optionalAttrs stdenv.isFreeBSD {
+    NIX_LDFLAGS = "-lunwind";
+  };
 
   # Test data is not available, only when using libbrotli git checkout
   doCheck = false;
