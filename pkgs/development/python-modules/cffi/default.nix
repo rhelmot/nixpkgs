@@ -66,7 +66,7 @@ if isPyPy then null else buildPythonPackage rec {
   env.NIX_CFLAGS_COMPILE = lib.optionalString stdenv.cc.isClang
     "-Wno-unused-command-line-argument -Wno-unreachable-code -Wno-c++11-narrowing";
 
-  doCheck = !stdenv.hostPlatform.isMusl;
+  doCheck = !stdenv.hostPlatform.isMusl && !stdenv.hostPlatform.isFreeBSD;
 
   nativeCheckInputs = [
     pytestCheckHook
