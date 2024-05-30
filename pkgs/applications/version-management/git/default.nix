@@ -3,7 +3,7 @@
 , gnugrep, gnused, gawk, coreutils # needed at runtime by git-filter-branch etc
 , openssh, pcre2, bash
 , asciidoc, texinfo, xmlto, docbook2x, docbook_xsl, docbook_xml_dtd_45
-, libxslt, tcl, tk, makeWrapper, libiconv
+, libxslt, tcl, tk, makeWrapper, libiconv, iconv
 , svnSupport ? false, subversionClient, perlLibs, smtpPerlLibs
 , perlSupport ? stdenv.buildPlatform == stdenv.hostPlatform
 , nlsSupport ? true
@@ -73,6 +73,9 @@ stdenv.mkDerivation (finalAttrs: {
       substituteInPlace "$x" \
         --subst-var-by ssh "${openssh}/bin/ssh"
     done
+  '' + lib.optionalString stdenv.isFreeBSD ''
+    # Tests want sysctl to get number of processors, use NIX_BUILD_CORES instead
+    sed -i s/NUMBER_OF_PROCESSORS/NIX_BUILD_CORES/g t/chainlint.pl
   '';
 
   nativeBuildInputs = [ gettext perlPackages.perl makeWrapper pkg-config ]
@@ -103,6 +106,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   makeFlags = [
     "prefix=\${out}"
+    "TEST_OUTPUT_DIRECTORY=/build/test"
   ]
   # Git does not allow setting a shell separately for building and run-time.
   # Therefore lets leave it at the default /bin/sh when cross-compiling
@@ -292,7 +296,8 @@ stdenv.mkDerivation (finalAttrs: {
     "PERL_PATH=${buildPackages.perl}/bin/perl"
   ];
 
-  nativeInstallCheckInputs = lib.optional stdenv.isDarwin sysctl;
+  nativeInstallCheckInputs = lib.optional stdenv.isDarwin sysctl
+    ++ lib.optional stdenv.isFreeBSD iconv;
 
   preInstallCheck = ''
     installCheckFlagsArray+=(
