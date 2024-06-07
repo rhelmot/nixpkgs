@@ -22,6 +22,12 @@ in stdenv.mkDerivation (finalAttrs: {
   };
   postPatch = whenPatched "gunzip < ${patch_src} | patch -Np1";
 
+  configureFlags = lib.optionals stdenv.hostPlatform.isFreeBSD [
+    # feenableexcept is locked behind BSD_VISIBLE on FreeBSD, but enabling it
+    # messes up basically everything else. Just punt on implicit declarations.
+    "CFLAGS=-Wno-implicit-function-declaration"
+  ];
+
   outputs = [ "out" "dev" "man" ];
   outputBin = "dev";
 
