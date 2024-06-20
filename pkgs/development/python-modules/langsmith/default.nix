@@ -16,7 +16,6 @@
   pytest-asyncio,
   pytestCheckHook,
   pythonOlder,
-  pythonRelaxDepsHook,
   requests,
   uvicorn,
 }:
@@ -40,8 +39,6 @@ buildPythonPackage rec {
   pythonRelaxDeps = [ "orjson" ];
 
   build-system = [ poetry-core ];
-
-  nativeBuildInputs = [ pythonRelaxDepsHook ];
 
   dependencies = [
     orjson
