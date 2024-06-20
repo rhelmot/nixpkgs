@@ -76,6 +76,9 @@ in
 , util-linuxMinimal
 , xz
 , enableDocumentation ? stdenv.buildPlatform.canExecute stdenv.hostPlatform
+, # OpenBSD does not allow getting the attributes of other pthreads,
+  # which is necessary for stopping the world for garbage collection.
+  enableGC ? !stdenv.hostPlatform.isOpenBSD
 , enableStatic ? stdenv.hostPlatform.isStatic
 , withAWS ? !enableStatic && (stdenv.hostPlatform.isLinux || stdenv.hostPlatform.isDarwin), aws-sdk-cpp
 , withLibseccomp ? lib.meta.availableOn stdenv.hostPlatform libseccomp, libseccomp
@@ -161,7 +164,7 @@ self = stdenv.mkDerivation {
   ];
 
 
-  propagatedBuildInputs = [
+  propagatedBuildInputs = lib.optionals enableGC [
     boehmgc
   ] ++ lib.optionals (atLeast27) [
     nlohmann_json
@@ -204,7 +207,7 @@ self = stdenv.mkDerivation {
     "--with-store-dir=${storeDir}"
     "--localstatedir=${stateDir}"
     "--sysconfdir=${confDir}"
-    "--enable-gc"
+    (lib.enableFeature enableGC "gc")
   ] ++ lib.optionals (!enableDocumentation) [
     "--disable-doc-gen"
   ] ++ lib.optionals stdenv.hostPlatform.isLinux [
