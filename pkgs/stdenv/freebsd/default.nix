@@ -14,14 +14,21 @@ let
   inherit (localSystem) system;
   bootstrap-urls-table = {
     x86_64-freebsd = {
-      url = "http://192.168.122.1:8000/result";
-      hash = "sha256-X2lpx04Emd++dxeZ+o91aZTyGgnUNHV4ZbhanhQ4PwA=";
-      name = "bootstrap-files.nar.xz";
-      unpack = true;
+      stage0 = {
+        url = "http://192.168.122.1:8000/stage0.nar.xz";
+        hash = "sha256-iGPBcwzDLJFroXwE/ADW+aUevywZCOher4mg9Ysx2j4=";
+        name = "bootstrap-files0";
+        unpack = true;
+      };
+      stage1 = {
+        url = "http://192.168.122.1:8000/stage1.tar.xz";
+        hash = "sha256-i0VBzbMPnSSmPjh5CYOQXTYCbSBbfa5omA0xZ2fjDlU=";
+        name = "bootstrap-files1.tar.xz";
+      };
     };
   };
   fetchurlBoot = import <nix/fetchurl.nix>;
-  bootstrap-files = fetchurlBoot bootstrap-urls-table.${localSystem.system};
+  bootstrap-files = builtins.mapAttrs (k: fetchurlBoot) bootstrap-urls-table.${localSystem.system};
   mkExtraBuildCommands0 = cc: ''
     rsrc="$out/resource-root"
     mkdir "$rsrc"
@@ -42,10 +49,11 @@ let
       name = "bootstrap-archive";
       pname = "bootstrap-archive";
       version = "9.9.9";
-      builder = "${bootstrap-files}/libexec/ld-elf.so.1";
-      args = [ "${bootstrap-files}/bin/bash" ./unpack-bootstrap-files.sh ];
-      LD_LIBRARY_PATH = "${bootstrap-files}/lib";
-      src = bootstrap-files;
+      builder = "${bootstrap-files.stage0}/libexec/ld-elf.so.1";
+      args = [ "${bootstrap-files.stage0}/bin/bash" ./unpack-bootstrap-files.sh ];
+      LD_LIBRARY_PATH = "${bootstrap-files.stage0}/lib";
+      src = bootstrap-files.stage0;
+      inherit (bootstrap-files) stage1;
     }
   );
 
@@ -65,6 +73,7 @@ let
     )
   );
 
+  # commented linkBS entries are provided but unused
   bootstrapTools = {
     expand-response-params = "";
     bsdcp = linkBS { paths = [ "bin/bsdcp" ]; };
@@ -208,8 +217,8 @@ let
       paths = map (str: "bin/" + str) [
         "diff"
         "cmp"
-        "diff3"
-        "sdiff"
+        #"diff3"
+        #"sdiff"
       ];
     };
     findutils = linkBS {
@@ -240,7 +249,7 @@ let
     gzip = linkBS {
       paths = [
         "bin/gzip"
-        "bin/gunzip"
+        #"bin/gunzip"
       ];
     };
     bzip2 = linkBS { paths = [ "bin/bzip2" ]; };
@@ -260,13 +269,13 @@ let
       name = "binutils";
       paths = map (str: "bin/" + str) [
         "ld"
-        "as"
-        "addr2line"
+        #"as"
+        #"addr2line"
         "ar"
-        "c++filt"
-        "elfedit"
-        "gprof"
-        "objdump"
+        #"c++filt"
+        #"elfedit"
+        #"gprof"
+        #"objdump"
         "nm"
         "objcopy"
         "ranlib"
@@ -439,27 +448,25 @@ in
           NIX_CFLAGS_COMPILE = "-DHAVE_ICONV=1"; # we clearly have iconv. what do you want?
         };
         curlReal = super.curl;
-        freebsd = super.freebsd.overrideScope (self': super': { inherit (prevStage.freebsd) locales; });
         tzdata = super.tzdata.overrideAttrs { NIX_CFLAGS_COMPILE = "-DHAVE_GETTEXT=0"; };
 
         # make it so libcxx/libunwind are built in this stdenv and not the next
-        llvmPackages = super.llvmPackages // {
-          libunwind = (
-            super.llvmPackages.libunwind.override {
-              stdenv =
-                self.overrideCC (super.llvmPackages.libunwind.stdenv // { name = "stdenv-freebsd-boot-0.4"; })
+        freebsd = super.freebsd.overrideScope (self': super': {
+          inherit (prevStage.freebsd) locales;
+              stdenvNoLibcxx =
+                self.overrideCC (self.stdenv // { name = "stdenv-freebsd-boot-0.4"; })
                   (
-                    super.llvmPackages.libunwind.stdenv.cc.override {
+                    self.stdenv.cc.override {
                       name = "freebsd-boot-0.4-cc";
                       libc = self.freebsd.libc;
-                      bintools = super.llvmPackages.libunwind.stdenv.cc.bintools.override {
+                      bintools = self.stdenv.cc.bintools.override {
                         name = "freebsd-boot-0.4-bintools";
                         libc = self.freebsd.libc;
                       };
                     }
                   );
-            }
-          );
+        });
+        llvmPackages = super.llvmPackages // {
           libcxx =
             (super.llvmPackages.libcxx.override {
               stdenv = self.overrideCC (self.stdenv // { name = "stdenv-freebsd-boot-0.5"; }) (
@@ -472,12 +479,10 @@ in
                   };
                   extraPackages = [
                     self.llvmPackages.compiler-rt
-                    self.llvmPackages.libunwind
                   ];
                   extraBuildCommands = mkExtraBuildCommands self.llvmPackages.clang-unwrapped self.llvmPackages.compiler-rt;
                 }
               );
-              inherit (self.llvmPackages) libunwind;
             }).overrideAttrs
               (
                 self': super': {
@@ -517,20 +522,12 @@ in
       llvmPackages = super.llvmPackages // {
         libcxx = prevStage.llvmPackages.libcxx;
       };
-
-      # ed embeds stdenv.shell; no good
-      #ed = super.ed.override {
-      #  stdenv = super.stdenv.override {
-      #    name = "freebsd-boot-1.5";
-      #    shell = "${self.bash}/bin/bash";
-      #  };
-      #};
     };
   })
   (mkStdenv {
     name = "freebsd";
     overrides = prevStage: self: super: {
-      inherit bootstrapArchive;
+      __bootstrapArchive = bootstrapArchive;
       curl = prevStage.curlReal;
       cacert = prevStage.cacert;
       inherit (prevStage) fetchurl;

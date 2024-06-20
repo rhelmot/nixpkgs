@@ -1,7 +1,6 @@
-$src/libexec/ld-elf.so.1 $src/bin/cp -r $src $out
+$src/libexec/ld-elf.so.1 $src/bin/mkdir $out
+$src/libexec/ld-elf.so.1 $src/bin/tar -I "$src/libexec/ld-elf.so.1 $src/bin/xz" -C $out -xf $stage1
 export LD_LIBRARY_PATH=$out/lib
-
-$out/libexec/ld-elf.so.1 $out/bin/chmod -R +wx $out
 
 BADLIST=ld-elf.so.1
 
