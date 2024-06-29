@@ -13,7 +13,7 @@
 , vlc
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (rec {
   pname = "libssh2";
   version = "1.11.0";
 
@@ -52,4 +52,9 @@ stdenv.mkDerivation rec {
     license = with licenses; [ bsd3 ];
     maintainers = with maintainers; [ SuperSandro2000 ];
   };
-}
+} // lib.optionalAttrs (with stdenv.hostPlatform; isOpenBSD && isStatic) {
+  # Don't know why this is needed
+  NIX_CFLAGS_LINK = "-pthread";
+
+  enableParallelBuilding = true;
+})
