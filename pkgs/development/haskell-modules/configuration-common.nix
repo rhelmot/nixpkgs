@@ -582,6 +582,14 @@ self: super: {
   # 2022-02-14: Strict upper bound: https://github.com/psibi/streamly-bytestring/issues/30
   streamly-bytestring = dontCheck (doJailbreak super.streamly-bytestring);
 
+  # This fixes the build on FreeBSD. Can be removed when we get a release >0.2.2
+  streamly-core = appendPatch (pkgs.fetchpatch {
+    url = "https://github.com/composewell/streamly/commit/437c6332a19580a1fe085d593f6bb60b3d9608f8.patch";
+    hash = "sha256-z5v3MGLq2ELlTEGxfHcg2igAM2PC7whx6KIv1Uj2ujw=";
+    includes = ["src/*" "streamly-core.cabal"];
+    stripLen = 1;
+  }) (doJailbreak super.streamly-core) ;
+
   # 2024-05-18: Upstream tests against a different pandoc version
   pandoc-crossref = dontCheck super.pandoc-crossref;
 
