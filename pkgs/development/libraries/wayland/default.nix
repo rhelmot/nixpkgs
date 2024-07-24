@@ -34,11 +34,11 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "wayland";
-  version = "1.22.0";
+  version = "1.23.0";
 
   src = fetchurl {
     url = with finalAttrs; "https://gitlab.freedesktop.org/wayland/wayland/-/releases/${version}/downloads/${pname}-${version}.tar.xz";
-    hash = "sha256-FUCvHqaYpHHC2OnSiDMsfg/TYMjx0Sk267fny8JCWEI=";
+    hash = "sha256-BbPhV00+Z2JrWXT4YvNrW0J8fO65Zcs2pObC00LkWrI=";
   };
 
   patches = [
@@ -55,6 +55,9 @@ stdenv.mkDerivation (finalAttrs: {
 
   outputs = [ "out" "bin" "dev" ] ++ lib.optionals withDocumentation [ "doc" "man" ];
   separateDebugInfo = true;
+  # We don't want `bin` to be propagated, as it'd propagate wayland-scanner, which breaks cross.
+  # See https://github.com/NixOS/nixpkgs/pull/328804
+  propagatedBuildOutputs = [ "out" "dev" ];
 
   mesonFlags = [
     "-Ddocumentation=${lib.boolToString withDocumentation}"
