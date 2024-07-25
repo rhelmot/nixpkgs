@@ -8,6 +8,7 @@
   buildFreebsd,
   patchesRoot,
   writeText,
+  libelf,
 }:
 
 self:

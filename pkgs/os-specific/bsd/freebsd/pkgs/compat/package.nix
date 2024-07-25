@@ -65,7 +65,7 @@ mkDerivation {
     ]
     ++ [
 
-      # Listed in Makekfile as SYSINC
+      # Listed in Makefile as SYSINCS
 
       "sys/sys/capsicum.h"
       "sys/sys/caprights.h"

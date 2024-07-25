@@ -1,6 +1,6 @@
 {
+  stdenv,
   mkDerivation,
-  lib,
   bsdSetupHook,
   freebsdSetupHook,
   makeMinimal,
@@ -16,7 +16,7 @@ mkDerivation {
     "sys/sys/elf64.h"
     "sys/sys/elf_common.h"
   ];
-  buildInputs = [ ];
+  #buildInputs = [ ];
   nativeBuildInputs = [
     bsdSetupHook
     freebsdSetupHook
@@ -25,5 +25,5 @@ mkDerivation {
     m4
   ];
 
-  meta.platforms = lib.platforms.freebsd;
+  BOOTSTRAPPING = !stdenv.hostPlatform.isFreeBSD;
 }
