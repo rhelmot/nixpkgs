@@ -24,6 +24,8 @@ mkDerivation {
     "lib/flua"
     "stand"
     "sys"
+  ] ++ lib.optionals stdenv.hostPlatform.isAarch64 [
+    "lib/libfdt"
   ];
   extraNativeBuildInputs = [ vtfontcvt ];
 
@@ -36,19 +38,21 @@ mkDerivation {
 
   hardeningDisable = [ "stackprotector" ];
 
-  # ???
   preBuild = ''
+    # # stand/defs.mk tries -Iinclude, which isn't in our filtered source
     NIX_CFLAGS_COMPILE+=" -I${include}/include -I$BSDSRCDIR/sys/sys -I$BSDSRCDIR/sys/${hostArchBsd}/include"
     export NIX_CFLAGS_COMPILE
 
+    # Dependencies are listed in stand/Makefile, we don't use that so build them manually
     make -C $BSDSRCDIR/stand/libsa $makeFlags
     make -C $BSDSRCDIR/stand/ficl $makeFlags
     make -C $BSDSRCDIR/stand/liblua $makeFlags
+  '' + lib.optionalString stdenv.hostPlatform.isAarch64 ''
+    make -C $BSDSRCDIR/stand/fdt $makeFlags
   '';
 
   postPatch = ''
     sed -E -i -e 's|/bin/pwd|${buildPackages.coreutils}/bin/pwd|' $BSDSRCDIR/stand/defs.mk
-    #sed -E -i -e 's|-e start|-Wl,-e,start|g' $BSDSRCDIR/stand/i386/Makefile.inc $BSDSRCDIR/stand/i386/*/Makefile
   '';
 
   postInstall = ''
