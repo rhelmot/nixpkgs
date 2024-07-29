@@ -22,9 +22,10 @@
   bintrans,
   xargs-j,
   kldxref,
+  dtc,
 }:
 let
-  hostArchBsd = freebsd-lib.mkBsdArch stdenv;
+  hostMachineBsd = freebsd-lib.mkBsdMachine stdenv;
   filteredSource = filterSource {
     pname = "sys";
     path = "sys";
@@ -45,7 +46,7 @@ let
         substituteInPlace "$f" --replace-quiet 'KERN_DEBUGDIR}''${' 'KERN_DEBUGDIR_'
       done
 
-      sed -i sys/${hostArchBsd}/conf/${baseConfig} \
+      sed -i sys/${hostMachineBsd}/conf/${baseConfig} \
         -e 's/WITH_CTF=1/WITH_CTF=0/' \
         -e '/KDTRACE/d'
     '';
@@ -85,6 +86,8 @@ mkDerivation rec {
     bintrans
     xargs-j
     kldxref
+  ] ++ lib.optionals stdenv.hostPlatform.isAarch64 [
+    dtc
   ];
 
   # --dynamic-linker /red/herring is used when building the kernel.
@@ -103,6 +106,7 @@ mkDerivation rec {
   NIX_CFLAGS_COMPILE = [
     "-fno-stack-protector"
     "-Wno-unneeded-internal-declaration" # some openzfs code trips this
+    "-Wno-unused-function"  # Some configurations have unused functions
   ];
 
   inherit env;
@@ -110,7 +114,8 @@ mkDerivation rec {
 
   KODIR = "${builtins.placeholder "out"}/kernel";
   KMODDIR = "${builtins.placeholder "out"}/kernel";
-  DTBDIR = "${builtins.placeholder "out"}/dbt";
+  DTBDIR = "${builtins.placeholder "out"}/dtb";
+  DTBODIR = "${builtins.placeholder "out"}/dtb/overlays";
 
   KERN_DEBUGDIR = "${builtins.placeholder "debug"}/lib/debug";
   KERN_DEBUGDIR_KODIR = "${KERN_DEBUGDIR}/kernel";
@@ -121,7 +126,7 @@ mkDerivation rec {
   configurePhase = ''
     runHook preConfigure
 
-    cd ${hostArchBsd}/conf
+    cd ${hostMachineBsd}/conf
     config ${baseConfig}
 
     runHook postConfigure
