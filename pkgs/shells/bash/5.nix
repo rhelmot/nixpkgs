@@ -97,6 +97,9 @@ stdenv.mkDerivation rec {
     # /dev/fd is optional on FreeBSD. we need it to work when built on a system
     # with it and transferred to a system without it! This includes linux cross.
     "bash_cv_dev_fd=absent"
+  ] ++ lib.optionals (stdenv.hostPlatform.isFreeBSD && stdenv.hostPlatform.isStatic) [
+    # error: duplicate symbol: getenv
+    "bash_cv_getenv_redef=no"
   ];
 
   strictDeps = true;

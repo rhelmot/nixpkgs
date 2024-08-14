@@ -60,7 +60,11 @@ lib.makeOverridable (
 
       makeFlags = [
         "STRIP=-s" # flag to install, not command
-      ] ++ lib.optional (!stdenv'.hostPlatform.isFreeBSD) "MK_WERROR=no";
+      ] ++ lib.optionals (!stdenv'.hostPlatform.isFreeBSD) [
+        "MK_WERROR=no"
+      ] ++ lib.optionals stdenv.hostPlatform.isStatic [
+        "SHLIB_NAME="
+      ];
 
       # amd64 not x86_64 for this on unlike NetBSD
       MACHINE_ARCH = freebsd-lib.mkBsdArch stdenv';
