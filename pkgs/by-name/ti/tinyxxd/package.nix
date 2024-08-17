@@ -14,7 +14,17 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-mup4xHt5Prpcwz2QU0qz+9/KYOE0HNrLx9b7z5o47ag=";
   };
 
+  outputs = [
+    "out"
+    "xxd"
+  ];
+
   installFlags = [ "PREFIX=$(out)" ];
+
+  postInstall = ''
+    mkdir -p $xxd/bin
+    ln -s $out/bin/tinyxxd $xxd/bin/xxd
+  '';
 
   meta = {
     homepage = "https://github.com/xyproto/tinyxxd";
