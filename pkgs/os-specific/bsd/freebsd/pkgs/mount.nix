@@ -8,15 +8,11 @@
 }:
 mkDerivation {
   path = "sbin/mount";
-  extraPaths = lib.optionals withMsdosfs [
-    "sbin/mount_msdosfs"
-  ];
+  extraPaths = lib.optionals withMsdosfs [ "sbin/mount_msdosfs" ];
   buildInputs = [
     libutil
     libxo
-  ] ++ lib.optionals withMsdosfs [
-    libkiconv
-  ];
+  ] ++ lib.optionals withMsdosfs [ libkiconv ];
 
   postBuild = lib.optionalString withMsdosfs ''
     make -C $BSDSRCDIR/sbin/mount_msdosfs $makeFlags

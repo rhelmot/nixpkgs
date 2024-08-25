@@ -1,4 +1,8 @@
-{ mkDerivation, stdenv, lib }:
+{
+  mkDerivation,
+  stdenv,
+  lib,
+}:
 # this package is quite different from stock libcxxrt.
 # as of FreeBSD 14.0, it is vendored from APPROXIMATELY libcxxrt
 # 5d8a15823a103bbc27f1bfdcf2b5aa008fab57dd, though the vendoring mechanism is
@@ -11,9 +15,7 @@ mkDerivation {
   outputs = [
     "out"
     "dev"
-  ] ++ lib.optionals (!stdenv.hostPlatform.isStatic) [
-    "debug"
-  ];
+  ] ++ lib.optionals (!stdenv.hostPlatform.isStatic) [ "debug" ];
   noLibcxx = true;
   libName = "cxxrt";
 }

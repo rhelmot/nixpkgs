@@ -40,11 +40,13 @@ mkDerivation {
       # Take only individual headers, or else we will clobber native libc, etc.
 
       "sys/rpc/types.h"
-    ] ++ lib.optionals (versionData.major == 14) [
+    ]
+    ++ lib.optionals (versionData.major >= 14) [
       "sys/sys/bitcount.h"
       "sys/sys/linker_set.h"
       "sys/sys/module.h"
-    ] ++ [
+    ]
+    ++ [
       # Listed in Makekfile as INC
       "include/mpool.h"
       "include/ndbm.h"
@@ -58,7 +60,7 @@ mkDerivation {
       "include/elf.h"
       "sys/sys/ctf.h"
     ]
-    ++ lib.optionals (versionData.major == 14) [
+    ++ lib.optionals (versionData.major >= 14) [
       "include/bitstring.h"
       "sys/sys/bitstring.h"
       "sys/sys/nv_namespace.h"

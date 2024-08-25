@@ -1,4 +1,8 @@
-{ mkDerivation, libelf, compatIfNeeded }:
+{
+  mkDerivation,
+  libelf,
+  compatIfNeeded,
+}:
 mkDerivation {
   path = "usr.sbin/kldxref";
 

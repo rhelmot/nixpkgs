@@ -28,11 +28,15 @@ mkDerivation {
   path = "libexec/rc";
   MK_TESTS = "no";
 
-  outputs = ["out" "services"];
+  outputs = [
+    "out"
+    "services"
+  ];
 
   postPatch =
     ''
       substituteInPlace "$BSDSRCDIR/libexec/rc/Makefile" --replace-fail /etc $out/etc
+      substituteInPlace "$BSDSRCDIR/libexec/rc/Makefile" --replace-fail /libexec $out/libexec
       substituteInPlace "$BSDSRCDIR/libexec/rc/rc.d/Makefile" --replace-fail /etc $services/etc
       substituteInPlace "$BSDSRCDIR/libexec/rc/rc.d/Makefile" --replace-fail /var $services/var
     ''

@@ -43,8 +43,9 @@ mkDerivation {
       "contrib/libc-pwcache"
       "contrib/libc-vis"
     ]
-    ++ lib.optionals (versionData.major == 13) [ "contrib/tzcode/stdtime" ]
-    ++ lib.optionals (versionData.major == 14) [ "contrib/tzcode" ]
+    ++ lib.optionals (versionData.major <= 13) [ "contrib/tzcode/stdtime" ]
+    ++ lib.optionals (versionData.major >= 14) [ "contrib/tzcode" ]
+    ++ lib.optionals (versionData.major >= 15) [ "lib/libsys" ]
     ++ [
 
       # libthr
@@ -165,6 +166,7 @@ mkDerivation {
 
   MK_TCSH = "no";
   MK_MALLOC_PRODUCTION = "yes";
+  OPT_LIBC_MALLOC = "jemalloc";
 
   MK_TESTS = "no";
   MACHINE_ABI = "";
@@ -175,10 +177,17 @@ mkDerivation {
 
   NO_FSCHG = "yes";
 
-  preBuild = lib.optionalString (stdenv.hostPlatform.isx86_32) ''
-    make -C $BSDSRCDIR/lib/libssp_nonshared $makeFlags
-    make -C $BSDSRCDIR/lib/libssp_nonshared $makeFlags install
-  '';
+  preBuild =
+    lib.optionalString (stdenv.hostPlatform.isx86_32) ''
+      make -C $BSDSRCDIR/lib/libssp_nonshared $makeFlags
+      make -C $BSDSRCDIR/lib/libssp_nonshared $makeFlags install
+    ''
+    + ''
+      mkdir -p $BSDSRCDIR/lib/libsys/$MACHINE_CPUARCH
+      ln -s $BSDSRCDIR/lib/libsys/*.h $BSDSRCDIR/lib/libsys/$MACHINE_CPUARCH
+
+      make -C $BSDSRCDIR/lib/libsys $makeFlags
+    '';
 
   postInstall =
     ''
@@ -204,12 +213,15 @@ mkDerivation {
       make -C $BSDSRCDIR/lib/libgcc_s $makeFlags
       make -C $BSDSRCDIR/lib/libgcc_s $makeFlags install
 
+      make -C $BSDSRCDIR/lib/libc_nonshared $makeFlags
+      make -C $BSDSRCDIR/lib/libc_nonshared $makeFlags install
+
+      make -C $BSDSRCDIR/lib/libsys $makeFlags
+      make -C $BSDSRCDIR/lib/libsys $makeFlags install
+
       NIX_CFLAGS_COMPILE+=" -B$out/lib"
       NIX_CFLAGS_COMPILE+=" -I$out/include"
       NIX_LDFLAGS+=" -L$out/lib"
-
-      make -C $BSDSRCDIR/lib/libc_nonshared $makeFlags
-      make -C $BSDSRCDIR/lib/libc_nonshared $makeFlags install
 
       mkdir $BSDSRCDIR/lib/libmd/sys
       make -C $BSDSRCDIR/lib/libmd $makeFlags
@@ -271,7 +283,8 @@ mkDerivation {
       make -C $BSDSRCDIR/libexec/rtld-elf $makeFlags install
       rm -f $out/libexec/ld-elf.so.1
       mv $out/bin/ld-elf.so.1 $out/libexec
-    '' + lib.optionalString (!stdenv.hostPlatform.isStatic) ''
+    ''
+    + lib.optionalString (!stdenv.hostPlatform.isStatic) ''
       mkdir $out/lib/keep_static
       mv $out/lib/*_nonshared.a $out/lib/libgcc*.a $out/lib/libcompiler_rt.a $out/lib/keep_static
       rm $out/lib/*.a
@@ -287,7 +300,11 @@ mkDerivation {
   meta.platforms = lib.platforms.freebsd;
 
   # definitely a bad idea to enable stack protection on the stack protection initializers
-  hardeningDisable = [ "stackprotector" ];
+  # fortify flag includes some ssp stuff deep in the libprocstat build. remove this if we split that out to another derivation!
+  hardeningDisable = [
+    "stackprotector"
+    "fortify"
+  ];
 
   outputs = [
     "out"

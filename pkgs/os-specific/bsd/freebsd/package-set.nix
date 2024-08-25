@@ -19,7 +19,6 @@ lib.packagesFromDirectoryRecursive {
 }
 // {
   inherit sourceData patchesRoot versionData;
-  patches = ./patches + "/${self.versionData.revision}";
 
   # Keep the crawled portion of Nixpkgs finite.
   buildFreebsd = lib.dontRecurseIntoAttrs buildFreebsd;
