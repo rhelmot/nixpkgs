@@ -12,7 +12,7 @@ diff --git a/m4/libtool.m4 b/m4/libtool.m4
 index 4b84ce96..371c2250 100644
 --- a/m4/libtool.m4
 +++ b/m4/libtool.m4
-@@ -2948,11 +2948,7 @@ openbsd*)
+@@ -2948,12 +2948,8 @@ openbsd*)
    version_type=sunos
    sys_lib_dlsearch_path_spec=/usr/lib
    need_lib_prefix=no
@@ -21,10 +21,12 @@ index 4b84ce96..371c2250 100644
 -  else
 -    need_version=yes
 -  fi
+-  library_names_spec='$libname$release$shared_ext$versuffix $libname$shared_ext$versuffix'
 +  need_version=no
-   library_names_spec='$libname$release$shared_ext$versuffix $libname$shared_ext$versuffix'
++  library_names_spec='$libname$release$shared_ext$versuffix $libname$shared_ext$versuffix $libname$shared_ext'
    finish_cmds='PATH="\$PATH:/sbin" ldconfig -m $libdir'
    shlibpath_var=LD_LIBRARY_PATH
+   shlibpath_overrides_runpath=yes
 @@ -3585,11 +3581,7 @@ newos6*)
    ;;
  
