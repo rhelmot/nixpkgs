@@ -45,6 +45,11 @@ stdenv.mkDerivation (finalAttrs: {
     "-DCMAKE_LIBRARY_PATH=${stdenv.cc.libc}/lib"
   ];
 
+  # openbsd headers are not c90-compliant
+  env = lib.optionalAttrs stdenv.hostPlatform.isOpenBSD {
+    NIX_CFLAGS_COMPILE = "-std=c99";
+  };
+
   nativeBuildInputs = [ cmake python3 pkg-config ];
 
   buildInputs = [ zlib libssh2 openssl pcre llhttp ]
