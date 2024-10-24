@@ -1,0 +1,48 @@
+From c49bff2434971d693b03525622082a81b5ed75eb Mon Sep 17 00:00:00 2001
+From: Artemis Tosini <me@artem.ist>
+Date: Thu, 24 Oct 2024 21:24:47 +0000
+Subject: [PATCH] Fix OpenBSD build with Makefiles
+
+OpenBSD dynamic libraries never link to libc directly.
+Instead, they have undefined symbols for all libc functions they use
+that ld.so resolves to the libc referred to in the main executable.
+
+Thus, disallowing undefined symbols will always fail
+---
+ mk/libraries.mk | 4 +++-
+ mk/platform.mk  | 4 ++++
+ 2 files changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/mk/libraries.mk b/mk/libraries.mk
+index b99ba2782..a7848ba35 100644
+--- a/mk/libraries.mk
++++ b/mk/libraries.mk
+@@ -86,7 +86,9 @@ define build-library
+     else
+       ifndef HOST_DARWIN
+         ifndef HOST_WINDOWS
+-          $(1)_LDFLAGS += -Wl,-z,defs
++	  ifndef HOST_OPENBSD
++            $(1)_LDFLAGS += -Wl,-z,defs
++          endif
+         endif
+       endif
+     endif
+diff --git a/mk/platform.mk b/mk/platform.mk
+index 22c114a20..3c4fff780 100644
+--- a/mk/platform.mk
++++ b/mk/platform.mk
+@@ -21,6 +21,10 @@ ifdef HOST_OS
+     HOST_NETBSD = 1
+     HOST_UNIX = 1
+   endif
++  ifeq ($(patsubst openbsd%,,$(HOST_KERNEL)),)
++    HOST_OPENBSD = 1
++    HOST_UNIX = 1
++  endif
+   ifeq ($(HOST_KERNEL), linux)
+     HOST_LINUX = 1
+     HOST_UNIX = 1
+-- 
+2.46.1
+
