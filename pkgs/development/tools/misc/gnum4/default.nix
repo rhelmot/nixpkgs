@@ -25,6 +25,11 @@ stdenv.mkDerivation rec {
     find . -name Makefile.in -exec touch {} + || die
   '';
 
+  env = lib.optionalAttrs stdenv.hostPlatform.isOpenBSD {
+    # assigning to 'void (*)(int, siginfo_t *, void *)' from 'void (*)(int, siginfo_t *, struct sigcontext *)'
+    NIX_CFLAGS_COMPILE = "-Wno-incompatible-function-pointer-types";
+  };
+
   strictDeps = true;
 
   enableParallelBuilding = true;
