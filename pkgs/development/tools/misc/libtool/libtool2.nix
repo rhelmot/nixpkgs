@@ -18,6 +18,8 @@ stdenv.mkDerivation rec {
     sha256 = "sha256-2o67LOTc9GuQCY2vliz/po9LT2LqYPeY0O8Skp7eat8=";
   };
 
+  patches = [ ./libtool2-openbsd-shared.patch ];
+
   outputs = [ "out" "lib" ];
 
   # FILECMD was added in libtool 2.4.7; previous versions hardwired `/usr/bin/file`
@@ -25,6 +27,9 @@ stdenv.mkDerivation rec {
   FILECMD = "${file}/bin/file";
 
   postPatch =
+  ''
+    find . -type f -print0 | xargs -0 touch -d @1
+  '' +
   # libtool commit da2e352735722917bf0786284411262195a6a3f6 changed
   # the shebang from `/bin/sh` (which is a special sandbox exception)
   # to `/usr/bin/env sh`, meaning that we now need to patch shebangs
