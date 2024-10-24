@@ -53,7 +53,7 @@ stdenv.mkDerivation rec {
   '';
 
   postInstall = lib.optionalString (!withScripts) ''
-    rm $out/bin/psl-make-dafsa
+    rm $out/bin/psl-make-dafsa $out/share/man/man1/psl-make-dafsa*
   '';
 
   preAutoreconf = ''
