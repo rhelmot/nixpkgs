@@ -52,6 +52,10 @@ stdenv.mkDerivation rec {
     patchShebangs src/psl-make-dafsa
   '';
 
+  postInstall = lib.optionalString (!withScripts) ''
+    rm $out/bin/psl-make-dafsa
+  '';
+
   preAutoreconf = ''
     gtkdocize
   '';
