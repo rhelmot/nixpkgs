@@ -1,4 +1,4 @@
-{ go, cacert, git, lib, stdenv }:
+{ go, cacert, git, lib, stdenv, openbsd }:
 
 { name ? "${args'.pname}-${args'.version}"
   # The source used to build the derivation.
@@ -184,7 +184,8 @@ in
     inherit CGO_ENABLED enableParallelBuilding GO111MODULE GOTOOLCHAIN;
 
     # If not set to an explicit value, set the buildid empty for reproducibility.
-    ldflags = ldflags ++ lib.optional (!lib.any (lib.hasPrefix "-buildid=") ldflags) "-buildid=";
+    ldflags = ldflags ++ lib.optional (!lib.any (lib.hasPrefix "-buildid=") ldflags) "-buildid="
+    ++ lib.optional stdenv.hostPlatform.isOpenBSD "-I=${openbsd.rtld}/libexec/ld.so";
 
     configurePhase = args.configurePhase or (''
       runHook preConfigure

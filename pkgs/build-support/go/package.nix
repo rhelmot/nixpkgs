@@ -1,5 +1,5 @@
 { go, govers, lib, fetchgit, fetchhg, fetchbzr, rsync
-, fetchFromGitHub, stdenv }:
+, fetchFromGitHub, stdenv, openbsd }:
 
 { buildInputs ? []
 , nativeBuildInputs ? []
@@ -96,7 +96,8 @@ let
     GOARM = toString (lib.intersectLists [(stdenv.hostPlatform.parsed.cpu.version or "")] ["5" "6" "7"]);
 
     # If not set to an explicit value, set the buildid empty for reproducibility.
-    ldflags = ldflags ++ lib.optional (!lib.any (lib.hasPrefix "-buildid=") ldflags) "-buildid=";
+    ldflags = ldflags ++ lib.optional (!lib.any (lib.hasPrefix "-buildid=") ldflags) "-buildid="
+    ++ lib.optional stdenv.hostPlatform.isOpenBSD "-I=${openbsd.rtld}/libexec/ld.so";
 
     configurePhase = args.configurePhase or (''
       runHook preConfigure
