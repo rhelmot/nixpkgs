@@ -1,0 +1,103 @@
+libtool: remove OpenBSD support for non-shared and a.out archs
+
+OpenBSD stopped supporting the last non-shared arch 8 years ago
+and stopped supporting a.out 10.5 years ago.
+
+* m4/libtool.m4: Remove support for a.out and non-shared archs.
+---
+ m4/libtool.m4 | 59 ++++++++++++++++-----------------------------------
+ 1 file changed, 18 insertions(+), 41 deletions(-)
+
+diff --git a/m4/libtool.m4 b/m4/libtool.m4
+index 4b84ce96..371c2250 100644
+--- a/m4/libtool.m4
++++ b/m4/libtool.m4
+@@ -2948,11 +2948,7 @@ openbsd*)
+   version_type=sunos
+   sys_lib_dlsearch_path_spec=/usr/lib
+   need_lib_prefix=no
+-  if test -z "`echo __ELF__ | $CC -E - | $GREP __ELF__`"; then
+-    need_version=no
+-  else
+-    need_version=yes
+-  fi
++  need_version=no
+   library_names_spec='$libname$release$shared_ext$versuffix $libname$shared_ext$versuffix'
+   finish_cmds='PATH="\$PATH:/sbin" ldconfig -m $libdir'
+   shlibpath_var=LD_LIBRARY_PATH
+@@ -3585,11 +3581,7 @@ newos6*)
+   ;;
+ 
+ openbsd* | bitrig*)
+-  if test -z "`echo __ELF__ | $CC -E - | $GREP __ELF__`"; then
+-    lt_cv_deplibs_check_method='match_pattern /lib[[^/]]+(\.so\.[[0-9]]+\.[[0-9]]+|\.so|_pic\.a)$'
+-  else
+-    lt_cv_deplibs_check_method='match_pattern /lib[[^/]]+(\.so\.[[0-9]]+\.[[0-9]]+|_pic\.a)$'
+-  fi
++  lt_cv_deplibs_check_method='match_pattern /lib[[^/]]+(\.so\.[[0-9]]+\.[[0-9]]+|\.so|_pic\.a)$'
+   ;;
+ 
+ osf3* | osf4* | osf5*)
+@@ -5844,22 +5836,13 @@ _LT_EOF
+       ;;
+ 
+     openbsd* | bitrig*)
+-      if test -f /usr/libexec/ld.so; then
+-	_LT_TAGVAR(hardcode_direct, $1)=yes
+-	_LT_TAGVAR(hardcode_shlibpath_var, $1)=no
+-	_LT_TAGVAR(hardcode_direct_absolute, $1)=yes
+-	if test -z "`echo __ELF__ | $CC -E - | $GREP __ELF__`"; then
+-	  _LT_TAGVAR(archive_cmds, $1)='$CC -shared $pic_flag -o $lib $libobjs $deplibs $compiler_flags'
+-	  _LT_TAGVAR(archive_expsym_cmds, $1)='$CC -shared $pic_flag -o $lib $libobjs $deplibs $compiler_flags $wl-retain-symbols-file,$export_symbols'
+-	  _LT_TAGVAR(hardcode_libdir_flag_spec, $1)='$wl-rpath,$libdir'
+-	  _LT_TAGVAR(export_dynamic_flag_spec, $1)='$wl-E'
+-	else
+-	  _LT_TAGVAR(archive_cmds, $1)='$CC -shared $pic_flag -o $lib $libobjs $deplibs $compiler_flags'
+-	  _LT_TAGVAR(hardcode_libdir_flag_spec, $1)='$wl-rpath,$libdir'
+-	fi
+-      else
+-	_LT_TAGVAR(ld_shlibs, $1)=no
+-      fi
++      _LT_TAGVAR(archive_cmds, $1)='$CC -shared $pic_flag -o $lib $libobjs $deplibs $compiler_flags'
++      _LT_TAGVAR(archive_expsym_cmds, $1)='$CC -shared $pic_flag -o $lib $libobjs $deplibs $compiler_flags $wl-retain-symbols-file,$export_symbols'
++      _LT_TAGVAR(hardcode_direct, $1)=yes
++      _LT_TAGVAR(hardcode_shlibpath_var, $1)=no
++      _LT_TAGVAR(hardcode_direct_absolute, $1)=yes
++      _LT_TAGVAR(hardcode_libdir_flag_spec, $1)='$wl-rpath,$libdir'
++      _LT_TAGVAR(export_dynamic_flag_spec, $1)='$wl-E'
+       ;;
+ 
+     os2*)
+@@ -7137,21 +7120,15 @@ if test yes != "$_lt_caught_CXX_error"; then
+	;;
+ 
+       openbsd* | bitrig*)
+-	if test -f /usr/libexec/ld.so; then
+-	  _LT_TAGVAR(hardcode_direct, $1)=yes
+-	  _LT_TAGVAR(hardcode_shlibpath_var, $1)=no
+-	  _LT_TAGVAR(hardcode_direct_absolute, $1)=yes
+-	  _LT_TAGVAR(archive_cmds, $1)='$CC -shared $pic_flag $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags -o $lib'
+-	  _LT_TAGVAR(hardcode_libdir_flag_spec, $1)='$wl-rpath,$libdir'
+-	  if test -z "`echo __ELF__ | $CC -E - | grep __ELF__`"; then
+-	    _LT_TAGVAR(archive_expsym_cmds, $1)='$CC -shared $pic_flag $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags $wl-retain-symbols-file,$export_symbols -o $lib'
+-	    _LT_TAGVAR(export_dynamic_flag_spec, $1)='$wl-E'
+-	    _LT_TAGVAR(whole_archive_flag_spec, $1)=$wlarc'--whole-archive$convenience '$wlarc'--no-whole-archive'
+-	  fi
+-	  output_verbose_link_cmd=func_echo_all
+-	else
+-	  _LT_TAGVAR(ld_shlibs, $1)=no
+-	fi
++	_LT_TAGVAR(archive_cmds, $1)='$CC -shared $pic_flag $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags -o $lib'
++	_LT_TAGVAR(archive_expsym_cmds, $1)='$CC -shared $pic_flag $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags $wl-retain-symbols-file,$export_symbols -o $lib'
++	_LT_TAGVAR(hardcode_direct, $1)=yes
++	_LT_TAGVAR(hardcode_shlibpath_var, $1)=no
++	_LT_TAGVAR(hardcode_direct_absolute, $1)=yes
++	_LT_TAGVAR(hardcode_libdir_flag_spec, $1)='$wl-rpath,$libdir'
++	_LT_TAGVAR(export_dynamic_flag_spec, $1)='$wl-E'
++	_LT_TAGVAR(whole_archive_flag_spec, $1)=$wlarc'--whole-archive$convenience '$wlarc'--no-whole-archive'
++	output_verbose_link_cmd=func_echo_all
+	;;
+ 
+       osf3* | osf4* | osf5*)
+-- 
+2.43.0
