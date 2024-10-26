@@ -1,0 +1,160 @@
+From 3e7aa24c2fb77274cf644957804312f0b8c5506c Mon Sep 17 00:00:00 2001
+From: Artemis Tosini <me@artem.ist>
+Date: Sat, 26 Oct 2024 17:12:06 +0000
+Subject: [PATCH] Add support for `utimensat` as an alternative to `lutimes`
+
+OpenBSD doesn't support `lutimes`, but does support `utimensat` which
+subsumes it. In fact, all the BSDs, Linux, and newer macOS all support
+it. So lets make this our first choice for the implementation.
+
+In addition, let's get rid of the `lutimes` `ENOSYS` special case. The
+Linux manpage says
+
+> ENOSYS
+>
+> The kernel does not support this call; Linux 2.6.22 or later is
+> required.
+
+which I think is the origin of this check, but that's a very old version
+of Linux at this point. The code can be simplified a lot of we drop
+support for it here (as we've done elsewhere, anyways).
+
+Co-Authored-By: John Ericson <John.Ericson@Obsidian.Systems>
+---
+ configure.ac               |  7 ++--
+ src/libutil/file-system.cc | 68 +++++++++++++++++++-------------------
+ src/libutil/meson.build    |  4 +++
+ 3 files changed, 42 insertions(+), 37 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index fc59904f3..746e953dd 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -89,9 +89,10 @@ AC_LANG_POP(C++)
+ AC_CHECK_FUNCS([statvfs pipe2 close_range])
+ 
+ 
+-# Check for lutimes, optionally used for changing the mtime of
+-# symlinks.
+-AC_CHECK_FUNCS([lutimes])
++# Check for lutimes and utimensat, optionally used for changing the
++# mtime of symlinks.
++AC_CHECK_DECLS([AT_SYMLINK_NOFOLLOW], [], [], [[#include <fcntl.h>]])
++AC_CHECK_FUNCS([lutimes utimensat])
+ 
+ 
+ # Check whether the store optimiser can optimise symlinks.
+diff --git a/src/libutil/file-system.cc b/src/libutil/file-system.cc
+index 224b78b23..fd51d7d3c 100644
+--- a/src/libutil/file-system.cc
++++ b/src/libutil/file-system.cc
+@@ -630,7 +630,28 @@ void setWriteTime(
+     time_t modificationTime,
+     std::optional<bool> optIsSymlink)
+ {
+-#ifndef _WIN32
++#ifdef _WIN32
++    // FIXME use `fs::last_write_time`.
++    //
++    // Would be nice to use std::filesystem unconditionally, but
++    // doesn't support access time just modification time.
++    //
++    // System clock vs File clock issues also make that annoying.
++    warn("Changing file times is not yet implemented on Windows, path is '%s'", path);
++#elif HAVE_UTIMENSAT && HAVE_DECL_AT_SYMLINK_NOFOLLOW
++    struct timespec times[2] = {
++        {
++            .tv_sec = accessedTime,
++            .tv_nsec = 0,
++        },
++        {
++            .tv_sec = modificationTime,
++            .tv_nsec = 0,
++        },
++    };
++    if (utimensat(AT_FDCWD, path.c_str(), times, AT_SYMLINK_NOFOLLOW) == -1)
++        throw SysError("changing modification time of '%s' (using `utimensat`)", path);
++#else
+     struct timeval times[2] = {
+         {
+             .tv_sec = accessedTime,
+@@ -641,42 +662,21 @@ void setWriteTime(
+             .tv_usec = 0,
+         },
+     };
+-#endif
+-
+-    auto nonSymlink = [&]{
+-        bool isSymlink = optIsSymlink
+-            ? *optIsSymlink
+-            : fs::is_symlink(path);
+-
+-        if (!isSymlink) {
+-#ifdef _WIN32
+-            // FIXME use `fs::last_write_time`.
+-            //
+-            // Would be nice to use std::filesystem unconditionally, but
+-            // doesn't support access time just modification time.
+-            //
+-            // System clock vs File clock issues also make that annoying.
+-            warn("Changing file times is not yet implemented on Windows, path is '%s'", path);
++#if HAVE_LUTIMES
++    if (lutimes(path.c_str(), times) == -1)
++        throw SysError("changing modification time of '%s'", path);
+ #else
+-            if (utimes(path.c_str(), times) == -1) {
+-
+-                throw SysError("changing modification time of '%s' (not a symlink)", path);
+-            }
+-#endif
+-        } else {
+-            throw Error("Cannot modification time of symlink '%s'", path);
+-        }
+-    };
++    bool isSymlink = optIsSymlink
++        ? *optIsSymlink
++        : fs::is_symlink(path);
+ 
+-#if HAVE_LUTIMES
+-    if (lutimes(path.c_str(), times) == -1) {
+-        if (errno == ENOSYS)
+-            nonSymlink();
+-        else
+-            throw SysError("changing modification time of '%s'", path);
++    if (!isSymlink) {
++        if (utimes(path.c_str(), times) == -1)
++            throw SysError("changing modification time of '%s' (not a symlink)", path);
++    } else {
++        throw Error("Cannot modification time of symlink '%s'", path);
+     }
+-#else
+-    nonSymlink();
++#endif
+ #endif
+ }
+ 
+diff --git a/src/libutil/meson.build b/src/libutil/meson.build
+index 57b741a50..08413783d 100644
+--- a/src/libutil/meson.build
++++ b/src/libutil/meson.build
+@@ -42,6 +42,8 @@ check_funcs = [
+   # Optionally used to try to close more file descriptors (e.g. before
+   # forking) on Unix.
+   'sysconf',
++  # Optionally used for changing the mtime of files and symlinks.
++  'utimensat',
+ ]
+ foreach funcspec : check_funcs
+   define_name = 'HAVE_' + funcspec.underscorify().to_upper()
+@@ -49,6 +51,8 @@ foreach funcspec : check_funcs
+   configdata.set(define_name, define_value)
+ endforeach
+ 
++configdata.set('HAVE_DECL_AT_SYMLINK_NOFOLLOW', cxx.has_header_symbol('fcntl.h', 'AT_SYMLINK_NOFOLLOW').to_int())
++
+ subdir('build-utils-meson/threads')
+ 
+ # Check if -latomic is needed
+-- 
+2.46.1
+

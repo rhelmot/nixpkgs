@@ -216,6 +216,7 @@ in lib.makeExtensible (self: ({
     self_attribute_name = "nix_2_24";
     patches = [
       ./patches/openbsd-platform.patch
+      ./patches/utimensat.patch
     ];
   }).override (lib.optionalAttrs (stdenv.hostPlatform.isDarwin && stdenv.hostPlatform.isx86_64) {
     # Fix the following error with the default x86_64-darwin SDK:
