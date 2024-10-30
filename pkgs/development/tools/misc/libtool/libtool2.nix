@@ -18,7 +18,8 @@ stdenv.mkDerivation rec {
     sha256 = "sha256-2o67LOTc9GuQCY2vliz/po9LT2LqYPeY0O8Skp7eat8=";
   };
 
-  patches = [ ./libtool2-openbsd-shared.patch ];
+  # TODO make unconditional next mass rebuild
+  patches = lib.optional stdenv.targetPlatform.isOpenBSD ./libtool2-openbsd-shared.patch;
 
   outputs = [ "out" "lib" ];
 
@@ -27,7 +28,8 @@ stdenv.mkDerivation rec {
   FILECMD = "${file}/bin/file";
 
   postPatch =
-  ''
+  # TODO make unconditional next mass rebuild
+  lib.optionalString stdenv.targetPlatform.isOpenBSD ''
     find . -type f -print0 | xargs -0 touch -d @1
   '' +
   # libtool commit da2e352735722917bf0786284411262195a6a3f6 changed
