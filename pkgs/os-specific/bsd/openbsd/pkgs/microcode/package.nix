@@ -1,4 +1,4 @@
-{ mkDerivation, buildPackages, lib }:
+{ mkDerivation, buildPackages, lib, compatHook }:
 mkDerivation {
   path = "sys/dev/microcode";
   extraPaths = [ "sys/dev" ];
@@ -7,25 +7,21 @@ mkDerivation {
     substituteInPlace $BSDSRCDIR/sys/dev/microcode/*/Makefile --replace-quiet "/etc" "\''${FWDIR}"
   '';
 
+  extraNativeBuildInputs = [ compatHook ];
+
   # build some host programs - named build.c
   preBuild = ''
-    mkdir $TMP/include
-    mkdir $TMP/include/machine
-    mkdir $TMP/include/sys
-
-    cp -r $BSDSRCDIR/sys/dev $TMP/include/dev
-
-    echo '#include <stdint.h>' >>$TMP/include/sys/types.h
-    echo '#include_next <sys/types.h>' >>$TMP/include/sys/types.h
-
-    echo '#include_next <err.h>' >>$TMP/include/err.h
-    echo '#define errc(a, b, c, ...) (void)0' >>$TMP/include/err.h
-
-    echo '#include_next <sys/cdefs.h>' >>$TMP/include/sys/cdefs.h
-    echo '#define     __aligned(x)    __attribute__((__aligned__(x)))' >>$TMP/include/sys/cdefs.h
-    echo '#define     __packed        __attribute__((__packed__))' >>$TMP/include/sys/cdefs.h
-
-    find . -name build.c -print0 | xargs -0 -I{} bash -c 'cd $(dirname {}) && pwd && touch build.o && ${buildPackages.stdenv.cc}/bin/cc build.c -I$TMP/include -I${lib.getDev buildPackages.zlib}/include -L${lib.getLib buildPackages.zlib}/lib -lz -o build'
+    find . -name build.c -print0 | while read -r -d $'\0' f; do
+      pushd "$(dirname "$f")"
+      touch build.o
+      ${buildPackages.stdenv.cc}/bin/cc build.c \
+        -I$BSDSRCDIR/sys \
+        -I${lib.getDev buildPackages.zlib}/include \
+        -L${lib.getLib buildPackages.zlib}/lib \
+        -lz \
+        -o build
+      popd
+    done
   '';
 
   # dunno why build misses this one but install wants it
