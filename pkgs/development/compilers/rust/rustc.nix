@@ -25,7 +25,9 @@
 let
   inherit (lib) optionals optional optionalString concatStringsSep;
   inherit (darwin.apple_sdk.frameworks) Security;
-  useLLVM = stdenv.targetPlatform.useLLVM or false;
+  useLLVMTarget = stdenv.targetPlatform.useLLVM or false;
+  useLLVMHost =   stdenv.hostPlatform.useLLVM or false;
+  useLLVMBuild =  llvmSharedForBuild.stdenv.cc.libcxx.isLLVM or false;
 in stdenv.mkDerivation (finalAttrs: {
   pname = "${targetPackages.stdenv.cc.targetPrefix}rustc";
   inherit version;
@@ -65,16 +67,8 @@ in stdenv.mkDerivation (finalAttrs: {
     "${pkgsBuildHost.stdenv.cc.targetPrefix}pkg-config";
 
   NIX_LDFLAGS = toString (
-       # when linking stage1 libstd: cc: undefined reference to `__cxa_begin_catch'
-       # This doesn't apply to cross-building for FreeBSD because the host
-       # uses libstdc++, but the target (used for building std) uses libc++
-      optional (stdenv.hostPlatform.isLinux && !withBundledLLVM && !stdenv.targetPlatform.isFreeBSD && !useLLVM)
-        "--push-state --as-needed -lstdc++ --pop-state"
-    ++ optional (stdenv.hostPlatform.isLinux && !withBundledLLVM && !stdenv.targetPlatform.isFreeBSD && useLLVM)
-        "--push-state --as-needed -L${llvmPackages.libcxx}/lib -lc++ -lc++abi -lLLVM-${lib.versions.major llvmPackages.llvm.version} --pop-state"
-    ++ optional (stdenv.hostPlatform.isDarwin && !withBundledLLVM) "-lc++ -lc++abi"
-    ++ optional stdenv.hostPlatform.isFreeBSD "-rpath ${llvmPackages.libunwind}/lib"
-    ++ optional stdenv.hostPlatform.isDarwin "-rpath ${llvmSharedForHost.lib}/lib");
+       optional (stdenv.buildPlatform.isDarwin && !withBundledLLVM) "-lc++ -lc++abi"
+    ++ optional stdenv.buildPlatform.isDarwin "-rpath ${llvmSharedForHost.lib}/lib");
 
   # Increase codegen units to introduce parallelism within the compiler.
   RUSTFLAGS = "-Ccodegen-units=10";
@@ -159,7 +153,7 @@ in stdenv.mkDerivation (finalAttrs: {
     # Since fastCross only builds std, it doesn't make sense (and
     # doesn't work) to build a linker.
     "--disable-llvm-bitcode-linker"
-  ] ++ optionals (stdenv.targetPlatform.isLinux && !(stdenv.targetPlatform.useLLVM or false)) [
+  ] ++ optionals (stdenv.targetPlatform.isLinux && !useLLVMTarget) [
     "--enable-profiler" # build libprofiler_builtins
   ] ++ optionals stdenv.buildPlatform.isMusl [
     "${setBuild}.musl-root=${pkgsBuildBuild.targetPackages.stdenv.cc.libc}"
@@ -172,9 +166,10 @@ in stdenv.mkDerivation (finalAttrs: {
   ] ++ optionals (stdenv.hostPlatform.isDarwin && stdenv.hostPlatform.isx86_64) [
     # https://github.com/rust-lang/rust/issues/92173
     "--set rust.jemalloc"
-  ] ++ optionals (useLLVM && !stdenv.targetPlatform.isFreeBSD) [
+  ] ++ optionals (useLLVMTarget && !stdenv.targetPlatform.isFreeBSD) [
     # https://github.com/NixOS/nixpkgs/issues/311930
     "--llvm-libunwind=${if withBundledLLVM then "in-tree" else "system"}"
+  ] ++ optionals useLLVMBuild [
     "--enable-use-libcxx"
   ];
 
@@ -257,12 +252,18 @@ in stdenv.mkDerivation (finalAttrs: {
     file python3 rustc cmake
     which libffi removeReferencesTo pkg-config xz
   ]
+  # splicing isn't working here - saying llvmPackages.libcxx here does not give you libcxx for the build platform.
+  # e.g. if you're doing linux -> freebsd -> freebsd cross, the libcxx here would be linked against freebsd libc.so.7
+    ++ optional (!withBundledLLVM && useLLVMBuild) llvmSharedForBuild.stdenv.cc.libcxx
+    ++ optional (!withBundledLLVM) llvmSharedForBuild.lib
     ++ optionals fastCross [ lndir makeWrapper ];
 
   buildInputs = [ openssl ]
     ++ optionals stdenv.hostPlatform.isDarwin [ libiconv Security zlib ]
-    ++ optional (!withBundledLLVM) llvmShared.lib
-    ++ optional (useLLVM && !withBundledLLVM && !stdenv.targetPlatform.isFreeBSD) [
+    ++ optional (!withBundledLLVM) llvmShared
+  # see above...
+    ++ optional (!withBundledLLVM && useLLVMHost) llvmPackages.libcxx
+    ++ optional (useLLVMHost && !withBundledLLVM && !stdenv.targetPlatform.isFreeBSD) [
       llvmPackages.libunwind
       # Hack which is used upstream https://github.com/gentoo/gentoo/blob/master/dev-lang/rust/rust-1.78.0.ebuild#L284
       (runCommandLocal "libunwind-libgcc" {} ''
@@ -305,7 +306,7 @@ in stdenv.mkDerivation (finalAttrs: {
 
   passthru = {
     llvm = llvmShared;
-    inherit llvmPackages;
+    inherit llvmPackages llvmSharedForBuild llvmSharedForHost llvmSharedForTarget;
     inherit (rustc) tier1TargetPlatforms targetPlatforms badTargetPlatforms;
     tests = {
       inherit fd ripgrep wezterm;
