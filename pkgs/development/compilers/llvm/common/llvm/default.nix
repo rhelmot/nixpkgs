@@ -24,6 +24,8 @@
 , which
 , sysctl
 , buildLlvmTools
+, buildPackages
+, updateAutotoolsGnuConfigScriptsHook
 , debugVersion ? false
 , doCheck ? !stdenv.hostPlatform.isAarch32 && (if lib.versionOlder release_version "15" then stdenv.hostPlatform.isLinux else true)
   && (!stdenv.hostPlatform.isx86_32 /* TODO: why */) && (!stdenv.hostPlatform.isMusl)
@@ -112,7 +114,13 @@ stdenv.mkDerivation (finalAttrs: {
     "shadowstack"
   ];
 
-  nativeBuildInputs = [ cmake ]
+  nativeBuildInputs = [
+    cmake
+  ] ++ lib.optionals stdenv.hostPlatform.isLinux [
+    # while this is not an autotools build, it still includes a config.guess
+    # this is needed until scripts are updated to not use /usr/bin/uname on FreeBSD native
+    updateAutotoolsGnuConfigScriptsHook
+  ]
     ++ (lib.optional (lib.versionAtLeast release_version "15") ninja)
     ++ [ python ]
     ++ optionals enableManpages [
