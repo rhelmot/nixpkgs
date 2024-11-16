@@ -116,6 +116,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   nativeBuildInputs = [
     cmake
+    buildPackages.stdenv.cc
   ] ++ lib.optionals stdenv.hostPlatform.isLinux [
     # while this is not an autotools build, it still includes a config.guess
     # this is needed until scripts are updated to not use /usr/bin/uname on FreeBSD native
