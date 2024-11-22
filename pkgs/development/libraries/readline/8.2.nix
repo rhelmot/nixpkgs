@@ -8,7 +8,7 @@
     else ncurses
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (rec {
   pname = "readline";
   version = "8.2p${toString (builtins.length upstreamPatches)}";
 
@@ -95,4 +95,9 @@ stdenv.mkDerivation rec {
     platforms = platforms.unix ++ platforms.windows;
     branch = "8.2";
   };
-}
+} // lib.optionalAttrs stdenv.hostPlatform.isOpenBSD {
+  postInstall = ''
+    ln -s $out/lib/libhistory.so* $out/lib/libhistory.so
+    ln -s $out/lib/libreadline.so* $out/lib/libreadline.so
+  '';
+})
