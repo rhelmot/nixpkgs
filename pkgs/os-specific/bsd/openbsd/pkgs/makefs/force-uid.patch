@@ -1,0 +1,66 @@
+diff --git a/usr.sbin/makefs/ffs.c b/usr.sbin/makefs/ffs.c
+index c99cbfef5a7..8b5c9b5d684 100644
+--- a/usr.sbin/makefs/ffs.c
++++ b/usr.sbin/makefs/ffs.c
+@@ -605,7 +605,7 @@ ffs_build_dinode1(struct ufs1_dinode *dinp, dirbuf_t *dbufp, fsnode *cur,
+ 	dinp->di_size = cur->inode->st.st_size;
+ 	dinp->di_flags = 0;
+ 	dinp->di_gen = 0;
+-	dinp->di_uid = cur->inode->st.st_uid;
++	dinp->di_uid = forceUid >= 0 ? forceUid : cur->inode->st.st_uid;
+ 	dinp->di_gid = cur->inode->st.st_gid;
+ 
+ 	dinp->di_atime = cur->inode->st.st_atime;
+@@ -647,7 +647,7 @@ ffs_build_dinode2(struct ufs2_dinode *dinp, dirbuf_t *dbufp, fsnode *cur,
+ 	dinp->di_size = cur->inode->st.st_size;
+ 	dinp->di_flags = 0;
+ 	dinp->di_gen = 0;
+-	dinp->di_uid = cur->inode->st.st_uid;
++	dinp->di_uid = forceUid >= 0 ? forceUid : cur->inode->st.st_uid;
+ 	dinp->di_gid = cur->inode->st.st_gid;
+ 
+ 	dinp->di_atime = cur->inode->st.st_atime;
+diff --git a/usr.sbin/makefs/makefs.c b/usr.sbin/makefs/makefs.c
+index 10d86fa10e2..ecc17c48b73 100644
+--- a/usr.sbin/makefs/makefs.c
++++ b/usr.sbin/makefs/makefs.c
+@@ -75,6 +75,7 @@ static fstype_t fstypes[] = {
+ int Tflag;
+ time_t stampts;
+ struct timespec	start_time;
++int forceUid = -1;
+ 
+ static	fstype_t *get_fstype(const char *);
+ static time_t get_tstamp(const char *);
+@@ -105,7 +106,7 @@ main(int argc, char *argv[])
+ 		err(1, "Unable to get system time");
+ 
+ 
+-	while ((ch = getopt(argc, argv, "b:f:M:m:O:o:s:S:t:T:")) != -1) {
++	while ((ch = getopt(argc, argv, "b:f:M:m:O:o:s:S:t:T:u:")) != -1) {
+ 		switch (ch) {
+ 		case 'b':
+ 			len = strlen(optarg) - 1;
+@@ -189,6 +190,10 @@ main(int argc, char *argv[])
+ 			stampts = get_tstamp(optarg);
+ 			break;
+ 
++		case 'u':
++			forceUid = strtoul(optarg, NULL, 10);
++			break;
++
+ 		default:
+ 			usage();
+ 		}
+diff --git a/usr.sbin/makefs/makefs.h b/usr.sbin/makefs/makefs.h
+index 6d72859532e..420e9613f35 100644
+--- a/usr.sbin/makefs/makefs.h
++++ b/usr.sbin/makefs/makefs.h
+@@ -180,6 +180,7 @@ DECLARE_FUN(msdos);
+ extern	int Tflag;
+ extern	time_t stampts;
+ extern	struct timespec	start_time;
++extern	int forceUid;
+ 
+ 
+ #ifndef	DEFAULT_FSTYPE

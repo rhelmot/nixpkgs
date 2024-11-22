@@ -7,7 +7,7 @@ mkDerivation {
     "sys/msdosfs"
     "sys/dev"
   ];
-  patches = [ ./compat.patch ];
+  patches = [ ./compat.patch ./force-uid.patch ];
   preBuild = ''
     mkdir -p $BSDSRCDIR/usr.sbin/makefs/include
     ln -s $BSDSRCDIR $BSDSRCDIR/usr.sbin/makefs/include/bsdroot
