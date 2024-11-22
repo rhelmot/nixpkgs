@@ -64,7 +64,9 @@ stdenv.mkDerivation (finalAttrs: {
       #
       # For now we allow this with `--undefined-version`:
       "LDFLAGS=-Wl,--undefined-version"
-  ]);
+  ]) ++ lib.optionals stdenv.hostPlatform.isOpenBSD [
+    "--host=${stdenv.hostPlatform.config}${stdenv.cc.libc.version}"
+  ];
 
   # Only the C compiler, and explicitly not C++ compiler needs this flag on solaris:
   CFLAGS = lib.optionalString stdenv.hostPlatform.isSunOS "-D_XOPEN_SOURCE_EXTENDED";
@@ -225,4 +227,6 @@ stdenv.mkDerivation (finalAttrs: {
     inherit unicodeSupport abiVersion;
     tests.pkg-config = testers.testMetaPkgConfig finalAttrs.finalPackage;
   };
+} // lib.optionalAttrs stdenv.hostPlatform.isOpenBSD {
+  configurePlatforms = ["build"];
 })
