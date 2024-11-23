@@ -27,6 +27,14 @@ lib.makeOverridable (
         stdenvLibcMinimal
       else
         stdenv;
+    archMapping = {
+          # amd64 not x86_64 for this on unlike NetBSD
+          x86_64 = "amd64";
+          aarch64 = "arm64";
+          i486 = "i386";
+          i586 = "i386";
+          i686 = "i386";
+        };
   in
   stdenv'.mkDerivation (
     rec {
@@ -57,16 +65,9 @@ lib.makeOverridable (
 
       HOST_SH = stdenv'.shell;
 
-      MACHINE_ARCH =
-        {
-          # amd64 not x86_64 for this on unlike NetBSD
-          x86_64 = "amd64";
-          aarch64 = "arm64";
-          i486 = "i386";
-          i586 = "i386";
-          i686 = "i386";
-        }
-        .${stdenv'.hostPlatform.parsed.cpu.name} or stdenv'.hostPlatform.parsed.cpu.name;
+      MACHINE_ARCH = archMapping.${stdenv'.hostPlatform.parsed.cpu.name} or stdenv'.hostPlatform.parsed.cpu.name;
+
+      TARGET_MACHINE_ARCH = archMapping.${stdenv'.targetPlatform.parsed.cpu.name} or stdenv'.targetPlatform.parsed.cpu.name;
 
       MACHINE = MACHINE_ARCH;
 
