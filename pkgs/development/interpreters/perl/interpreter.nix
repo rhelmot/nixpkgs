@@ -62,7 +62,9 @@ stdenv.mkDerivation (rec {
 
   disallowedReferences = [ stdenv.cc ];
 
-  patches = []
+  patches = lib.optionals crossCompiling [
+    ./openbsd.patch
+  ]
     # Do not look in /usr etc. for dependencies.
     ++ lib.optional ((lib.versions.majorMinor version) == "5.38") ./no-sys-dirs-5.38.0.patch
     ++ lib.optional ((lib.versions.majorMinor version) == "5.40") ./no-sys-dirs-5.40.0.patch
@@ -102,6 +104,7 @@ stdenv.mkDerivation (rec {
       "-Dlibpth=\"\""
       "-Dglibpth=\"\""
       "-Ddefault_inc_excludes_dot"
+      "-Dosname=${stdenv.hostPlatform.parsed.kernel.name}"
     ]
     else ([
       "-de"
