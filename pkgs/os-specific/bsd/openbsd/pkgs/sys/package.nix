@@ -3,6 +3,7 @@
   boot-config,
   pkgsBuildTarget,
   baseConfig ? "GENERIC",
+  extraConfig ? null,
 }:
 mkDerivation {
   path = "sys/arch/amd64";
@@ -41,6 +42,7 @@ mkDerivation {
     make obj
 
     cd conf
+    echo 'option TMPFS' >> ${baseConfig}  # hack
     config ${baseConfig}
     cd -
   '';
