@@ -1,5 +1,5 @@
 diff --git a/sbin/mount/mount.c b/sbin/mount/mount.c
-index eaff190b572..82aee5e67b4 100644
+index eaff190b572..4bce21559f6 100644
 --- a/sbin/mount/mount.c
 +++ b/sbin/mount/mount.c
 @@ -338,12 +338,6 @@ mountfs(const char *vfstype, const char *spec, const char *name,
@@ -29,7 +29,7 @@ index eaff190b572..82aee5e67b4 100644
 -				warn("exec %s for %s", execname, name);
 -		} while (*++edir != NULL);
 +		(void)snprintf(execname,
-+		    sizeof(execname), "mount_%s", *edir, vfstype);
++		    sizeof(execname), "mount_%s", vfstype);
 +		argv[0] = execname;
 +		execvp(execname, (char * const *)argv);
 +		if (errno != ENOENT)
