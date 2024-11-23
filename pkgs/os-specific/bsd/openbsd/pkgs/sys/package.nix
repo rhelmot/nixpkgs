@@ -6,6 +6,7 @@
   boot-config,
   pkgsBuildTarget,
   baseConfig ? "GENERIC",
+  extraConfig ? null,
 }:
 (mkDerivation.override { stdenvNoLibc = overrideCC stdenvNoLibc buildPackages.llvmPackages_18.clangNoLibc; }) {
   path = "sys/arch/amd64";
@@ -44,6 +45,7 @@
     make obj
 
     cd conf
+    echo 'option TMPFS' >> ${baseConfig}  # hack
     config ${baseConfig}
     cd -
   '';
