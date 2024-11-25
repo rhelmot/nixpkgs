@@ -7,4 +7,5 @@ mkDerivation {
     "sys/sys"
   ];
   MK_TESTS = "no";
+  alwaysKeepStatic = true;
 }

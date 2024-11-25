@@ -16,10 +16,13 @@ mkDerivation {
     [
       "out"
       "dev"
-    ]
-    ++ lib.optionals (!stdenv.hostPlatform.isStatic) [
       "debug"
     ];
   noLibcxx = true;
   libName = "cxxrt";
+
+  # they already fixed the undefined symbols in the version map upstream. it'll be released probably in 15.0
+  preBuild = ''
+    export NIX_LDFLAGS="$NIX_LDFLAGS --undefined-version"
+  '';
 }

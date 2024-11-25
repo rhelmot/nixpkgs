@@ -4,9 +4,8 @@
   mkDerivation,
   compatIfNeeded,
   compatIsNeeded,
-  libmd,
   libnetbsd,
-  libutil,
+  libmd-boot
 }:
 
 mkDerivation {
@@ -14,11 +13,11 @@ mkDerivation {
   extraPaths = [ "contrib/mknod" ];
   buildInputs =
     compatIfNeeded
-    ++ [
-      libmd
+    ++ lib.optionals (!stdenv.hostPlatform.isFreeBSD) [
+      libmd-boot
+    ] ++ [
       libnetbsd
-    ]
-    ++ lib.optional (stdenv.hostPlatform.isFreeBSD) libutil;
+    ];
 
   postPatch = ''
     ln -s $BSDSRCDIR/contrib/mknod/*.c $BSDSRCDIR/contrib/mknod/*.h $BSDSRCDIR/contrib/mtree

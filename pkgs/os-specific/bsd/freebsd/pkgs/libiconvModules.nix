@@ -1,32 +1,30 @@
 {
   mkDerivation,
-  libcMinimal,
   include,
-  libgcc
+  libcMinimal,
+  libgcc,
 }:
 
 mkDerivation {
-  path = "lib/libmd";
+  path = "lib/libiconv_modules";
   extraPaths = [
-    "sys/crypto"
-    "sys/sys"
+    "lib/libc/iconv"
   ];
 
   outputs = [
     "out"
-    "man"
     "debug"
   ];
 
   noLibc = true;
 
   buildInputs = [
-    libcMinimal
     include
+    libcMinimal
     libgcc
   ];
 
   preBuild = ''
-    mkdir $BSDSRCDIR/lib/libmd/sys
+    export makeFlags="$makeFlags SHLIBDIR=$out/lib/i18n"
   '';
 }

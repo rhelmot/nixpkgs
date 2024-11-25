@@ -124,5 +124,13 @@ lib.makeOverridable (
         ))
         ++ attrs.patches or [ ];
     }
+    // lib.optionalAttrs (!stdenv.hostPlatform.isStatic && !attrs.alwaysKeepStatic or false && !(let bs = attrs.BOOTSTRAPPING or false; in bs == 1 || bs)) {
+      postInstall = (attrs.postInstall or "") + ''
+        rm -f $out/lib/*.a
+      '';
+    }
+    // lib.optionalAttrs (stdenv.hostPlatform.isStatic && attrs ? outputs) {
+      outputs = lib.lists.remove "debug" attrs.outputs;
+    }
   )
 )

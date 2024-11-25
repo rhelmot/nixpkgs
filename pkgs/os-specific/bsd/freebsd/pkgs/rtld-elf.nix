@@ -1,0 +1,56 @@
+{
+  mkDerivation,
+  include,
+  rpcgen,
+  flex,
+  byacc,
+}:
+
+mkDerivation {
+  path = "libexec/rtld-elf";
+  extraPaths = [
+    "lib/csu"
+    "lib/libc"
+    "lib/libmd"
+    "lib/msun"
+    "lib/libutil"
+    "lib/libc_nonshared"
+    "include/rpcsvc"
+    "contrib/libc-pwcache"
+    "contrib/libc-vis"
+    "contrib/tzcode"
+    "contrib/gdtoa"
+    "contrib/jemalloc"
+    "sys/sys"
+    "sys/kern"
+    "sys/libkern"
+    "sys/crypto"
+  ];
+
+  outputs = [
+    "out"
+    "man"
+    "debug"
+  ];
+
+  noLibc = true;
+
+  buildInputs = [
+    include
+  ];
+
+  extraNativeBuildInputs = [
+    rpcgen
+    flex
+    byacc
+  ];
+
+  preBuild = ''
+   make -C $BSDSRCDIR/lib/libc $makeFlags libc_nossp_pic.a
+  '';
+
+  # definitely a bad idea to enable stack protection on the stack protection initializers
+  hardeningDisable = [ "stackprotector" ];
+
+  MK_TESTS = "no";
+}

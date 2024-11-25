@@ -3,19 +3,25 @@
   include,
   libcMinimal,
   libgcc,
+  libkvm,
+  libprocstat,
+  libutil,
+  libelf,
 }:
 
 mkDerivation {
-  path = "lib/libdl";
+  path = "lib/libdevstat";
   extraPaths = [
-    "libexec/rtld-elf"
-    "lib/libc/gen"
-    "lib/libc/include"
     "lib/libc/Versions.def"
+    "sys/contrib/openzfs"
+    "sys/contrib/pcg-c"
+    "sys/opencrypto"
+    "sys/crypto"
   ];
 
   outputs = [
     "out"
+    "man"
     "debug"
   ];
 
@@ -25,5 +31,9 @@ mkDerivation {
     include
     libcMinimal
     libgcc
+    libkvm
+    libprocstat
+    libutil
+    libelf
   ];
 }

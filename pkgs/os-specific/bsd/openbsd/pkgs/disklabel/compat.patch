@@ -1,0 +1,308 @@
+diff --git a/sbin/disklabel/Makefile b/sbin/disklabel/Makefile
+index 78a3fe36c90..eea5f55c78d 100644
+--- a/sbin/disklabel/Makefile
++++ b/sbin/disklabel/Makefile
+@@ -2,8 +2,6 @@
+ 
+ PROG=	disklabel
+ SRCS=	disklabel.c dkcksum.c editor.c manual.c
+-DPADD=	${LIBUTIL}
+-LDADD=	-lutil
+ MAN=	disklabel.8 disklabel.5
+ 
+ CLEANFILES += disklabel.cat8 manual.c
+diff --git a/sbin/disklabel/compat.h b/sbin/disklabel/compat.h
+new file mode 100644
+index 00000000000..00123c96d83
+--- /dev/null
++++ b/sbin/disklabel/compat.h
+@@ -0,0 +1,93 @@
++#pragma once
++#include <stdint.h>
++#include <stddef.h>
++#include <stdio.h>
++#include <errno.h>
++#include <stdlib.h>
++
++#define u_int8_t uint8_t
++#define u_int16_t uint16_t
++#define u_int32_t uint32_t
++#define u_int64_t uint64_t
++typedef unsigned char u_char;
++typedef unsigned short u_short;
++typedef unsigned int u_int;
++typedef unsigned long u_long;
++typedef uint64_t dev_t;
++typedef int64_t off_t;
++#define __unused
++#define __dead
++#define __packed
++#define pledge(x, y) 0
++#define unveil(x, y) 0
++#define srandom_deterministic srandom
++#define     MAXBSIZE        (64 * 1024)
++#define mergesort(a, b, c, d) qsort(a, b, c, d), 0
++
++static inline void errc(int status, int code, const char *fmt, ...) {
++	// TODO
++	printf("You're outta here!\n");
++	exit(status);
++}
++
++static inline void warnc(int code, const char *fmt, ...) {
++	// TODO
++	printf("You're outta here!\n");
++}
++
++static inline int scan_scaled(char* number_w_scale, long long *result) {
++	int number, fraction = 0;
++	char scale[3];
++	long long tresult;
++	if (sscanf(number_w_scale, "%d.%1d%2s", &number, &fraction, &scale[0]) == 3 ||
++	    sscanf(number_w_scale, "%d%2s", &number, &scale[0]) == 2) {
++		tresult = number * 10 + fraction;
++		switch (scale[0]) {
++			case 'E':
++				tresult *= 1024;
++			case 'P':
++				tresult *= 1024;
++			case 'T':
++				tresult *= 1024;
++			case 'G':
++				tresult *= 1024;
++			case 'M':
++				tresult *= 1024;
++			case 'K':
++				tresult *= 1024;
++			case 'B':
++			case ' ':
++			case '\0':
++				break;
++			default:
++				errno = EINVAL;
++				return -1;
++		}
++		tresult /= 10;
++		*result = tresult;
++		return 0;
++	} else {
++		errno = EINVAL;
++		return -1;
++	}
++}
++
++static inline long long strtonum(const char *nptr, long long minval, long long maxval, const char **errstr) {
++	errno = 0;
++	long long result = strtoll(nptr, NULL, 10);
++	if (errno == 0) {
++		if (result < minval || result > maxval) {
++			if (errstr) {
++				*errstr = "Out of range";
++				errno = ERANGE;
++			}
++			return 0;
++		}
++		return result;
++	}
++	if (errstr) {
++		*errstr = "Other error (TODO)";
++		errno = EINVAL;
++	}
++	return 0;
++}
+diff --git a/sbin/disklabel/disklabel.c b/sbin/disklabel/disklabel.c
+index 71499830117..8081829460d 100644
+--- a/sbin/disklabel/disklabel.c
++++ b/sbin/disklabel/disklabel.c
+@@ -33,7 +33,6 @@
+  */
+ 
+ #include <sys/param.h>	/* DEV_BSIZE */
+-#include <sys/sysctl.h>
+ #include <sys/ioctl.h>
+ #include <sys/dkio.h>
+ #include <sys/stat.h>
+@@ -107,11 +106,7 @@ int64_t physmem;
+ void
+ getphysmem(void)
+ {
+-	size_t sz = sizeof(physmem);
+-	int mib[] = { CTL_HW, HW_PHYSMEM64 };
+-
+-	if (sysctl(mib, 2, &physmem, &sz, NULL, (size_t)0) == -1)
+-		errx(4, "can't get mem size");
++	physmem = 1024L * 1024L * 1024L * 4L;
+ }
+ 
+ int
+@@ -202,8 +197,7 @@ main(int argc, char *argv[])
+ 	if (argv[0] == NULL)
+ 		usage();
+ 	dkname = argv[0];
+-	f = opendev(dkname, (op == READ ? O_RDONLY : O_RDWR), OPENDEV_PART,
+-	    &specname);
++	f = open(dkname, (op == READ ? O_RDONLY : O_RDWR));
+ 	if (f == -1)
+ 		err(4, "%s", specname);
+ 
+@@ -230,10 +224,6 @@ main(int argc, char *argv[])
+ 		if (op == WRITE && error)
+ 			errx(1, "autoalloc failed");
+ 	} else if (argc == 2 || argc == 3) {
+-		/* Ensure f is a disk device before pledging. */
+-		if (ioctl(f, DIOCGDINFO, &lab) == -1)
+-			err(4, "DIOCGDINFO");
+-
+ 		if (pledge("stdio rpath wpath disklabel", NULL) == -1)
+ 			err(1, "pledge");
+ 
+diff --git a/sbin/disklabel/editor.c b/sbin/disklabel/editor.c
+index 5e29c14f503..0c9278d51df 100644
+--- a/sbin/disklabel/editor.c
++++ b/sbin/disklabel/editor.c
+@@ -22,7 +22,6 @@
+ #include <sys/stat.h>
+ #include <sys/ioctl.h>
+ #include <sys/dkio.h>
+-#include <sys/sysctl.h>
+ #define	DKTYPENAMES
+ #include <sys/disklabel.h>
+ 
+diff --git a/sbin/disklabel/include/db.h b/sbin/disklabel/include/db.h
+new file mode 100644
+index 00000000000..5b81b1927f3
+--- /dev/null
++++ b/sbin/disklabel/include/db.h
+@@ -0,0 +1,3 @@
++#include <bsdroot/include/db.h>
++u_int32_t __default_hash(const void *key, size_t len);
++
+diff --git a/sbin/disklabel/include/machine/disklabel.h b/sbin/disklabel/include/machine/disklabel.h
+new file mode 100644
+index 00000000000..3e54bc73fe2
+--- /dev/null
++++ b/sbin/disklabel/include/machine/disklabel.h
+@@ -0,0 +1,47 @@
++#define LABELSECTOR 1
++#define LABELOFFSET 0
++#define MAXPARTITIONS 16
++
++static inline struct disklabel *getdiskbyname(const char *name) {
++	return (void*)0;
++	/*
++	static struct disklabel disk;
++	struct	disklabel *dp = &disk;
++
++	dp->d_magic = DISKMAGIC;
++	dp->d_type = 15; // rdroot
++	dp->d_subtype = 0; // unused?
++	dp->d_typename = "install360";
++	dp->d_packname = "nixbsd";
++
++	dp->d_secsize = 512;
++	dp->d_nsectors = 64;
++	dp->d_ntracks = 1;
++	dp->d_ncylinders = 21248;
++	dp->d_secpercyl = dp->d_nsectors * dp->d_ntracks;
++	dp->d_secperunit = dp->d_secpercyl * dp->d_numcylinders;
++
++	dp->d_uid = 0;
++	dp->d_acylinders = 0;
++	dp->d_bstarth = 0;
++	dp->d_bendh = 0;
++	dp->d_bstart = 0;
++	dp->d_bend = 0;
++	dp->d_flags = 0;
++	dp->d_spare4 = {0, 0, 0, 0, 0};
++	dp->d_secperunith = 0;
++	dp->d_version = 1;
++	dp->d_spare = {0, 0, 0, 0};
++	dp->d_magic2 = DISKMAGIC;
++	dp->d_checksum = 0;
++	dp->d_spare2 = 0;
++	dp->d_spare3 = 0;
++
++	dp->d_npartitions = 3;
++
++	dp->d_partitions[0].p_size = 1359808;
++	dp->d_partitions[0].p_offset = 64;
++	dp->d_partitions[0].p_offseth = 0;
++	return dp;
++	*/
++}
+diff --git a/sbin/disklabel/include/msdosfs/bootsect.h b/sbin/disklabel/include/msdosfs/bootsect.h
+new file mode 100644
+index 00000000000..02e88ac2b9c
+--- /dev/null
++++ b/sbin/disklabel/include/msdosfs/bootsect.h
+@@ -0,0 +1 @@
++#include <bsdroot/sys/msdosfs/bootsect.h>
+diff --git a/sbin/disklabel/include/msdosfs/bpb.h b/sbin/disklabel/include/msdosfs/bpb.h
+new file mode 100644
+index 00000000000..08598cc217b
+--- /dev/null
++++ b/sbin/disklabel/include/msdosfs/bpb.h
+@@ -0,0 +1 @@
++#include <bsdroot/sys/msdosfs/bpb.h>
+diff --git a/sbin/disklabel/include/sys/disklabel.h b/sbin/disklabel/include/sys/disklabel.h
+new file mode 100644
+index 00000000000..f382f87226c
+--- /dev/null
++++ b/sbin/disklabel/include/sys/disklabel.h
+@@ -0,0 +1 @@
++#include <bsdroot/sys/sys/disklabel.h>
+diff --git a/sbin/disklabel/include/sys/dkio.h b/sbin/disklabel/include/sys/dkio.h
+new file mode 100644
+index 00000000000..ea4cf081da5
+--- /dev/null
++++ b/sbin/disklabel/include/sys/dkio.h
+@@ -0,0 +1 @@
++#include <bsdroot/sys/sys/dkio.h>
+diff --git a/sbin/disklabel/include/sys/endian.h b/sbin/disklabel/include/sys/endian.h
+new file mode 100644
+index 00000000000..e69de29bb2d
+diff --git a/sbin/disklabel/include/sys/ioccom.h b/sbin/disklabel/include/sys/ioccom.h
+new file mode 100644
+index 00000000000..e60664e83bd
+--- /dev/null
++++ b/sbin/disklabel/include/sys/ioccom.h
+@@ -0,0 +1 @@
++#include <bsdroot/sys/sys/ioccom.h>
+diff --git a/sbin/disklabel/include/sys/uuid.h b/sbin/disklabel/include/sys/uuid.h
+new file mode 100644
+index 00000000000..7c2abace377
+--- /dev/null
++++ b/sbin/disklabel/include/sys/uuid.h
+@@ -0,0 +1,2 @@
++#include "compat.h"
++#include <bsdroot/sys/sys/uuid.h>
+diff --git a/sbin/disklabel/include/ufs/ffs/fs.h b/sbin/disklabel/include/ufs/ffs/fs.h
+new file mode 100644
+index 00000000000..d7905d33c2a
+--- /dev/null
++++ b/sbin/disklabel/include/ufs/ffs/fs.h
+@@ -0,0 +1,2 @@
++#include "compat.h"
++#include <bsdroot/sys/ufs/ffs/fs.h>
+diff --git a/sbin/disklabel/include/ufs/ufs/dinode.h b/sbin/disklabel/include/ufs/ufs/dinode.h
+new file mode 100644
+index 00000000000..0d29007bdd1
+--- /dev/null
++++ b/sbin/disklabel/include/ufs/ufs/dinode.h
+@@ -0,0 +1,2 @@
++#include "compat.h"
++#include <bsdroot/sys/ufs/ufs/dinode.h>
+diff --git a/sbin/disklabel/include/ufs/ufs/dir.h b/sbin/disklabel/include/ufs/ufs/dir.h
+new file mode 100644
+index 00000000000..9ec3e81be3d
+--- /dev/null
++++ b/sbin/disklabel/include/ufs/ufs/dir.h
+@@ -0,0 +1 @@
++#include <bsdroot/sys/ufs/ufs/dir.h>
+diff --git a/sbin/disklabel/include/util.h b/sbin/disklabel/include/util.h
+new file mode 100644
+index 00000000000..be796f5f1c3
+--- /dev/null
++++ b/sbin/disklabel/include/util.h
+@@ -0,0 +1 @@
++#define OPENDEV_PART 0x01

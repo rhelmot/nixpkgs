@@ -1,22 +1,29 @@
 {
   mkDerivation,
   include,
-  libgcc,
   libcMinimal,
+  libgcc,
 }:
+
 mkDerivation {
-  path = "lib/libutil";
-  extraPaths = [ "lib/libc/gen" ];
+  path = "lib/msun";
+  extraPaths = [
+    "lib/libc"  # wants arch headers
+  ];
+
   outputs = [
     "out"
     "man"
     "debug"
   ];
+
   noLibc = true;
+
   buildInputs = [
     include
-    libgcc
     libcMinimal
+    libgcc
   ];
-  env.MK_TESTS = "no";
+
+  MK_TESTS = "no";
 }
