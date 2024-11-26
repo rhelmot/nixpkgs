@@ -8,6 +8,7 @@
   buildFreebsd,
   patchesRoot,
   writeText,
+  buildPackages,
 }:
 
 self:
@@ -62,24 +63,40 @@ lib.packagesFromDirectoryRecursive {
 
   install = self.callPackage ./pkgs/install.nix {
     inherit (buildFreebsd) makeMinimal;
-    inherit (self) libmd libnetbsd;
+    inherit (self) libmd-boot libnetbsd;
+  };
+
+  libcMinimal = self.callPackage ./pkgs/libcMinimal.nix {
+    inherit (buildFreebsd)
+      rpcgen
+      gencat
+      ;
+    inherit (buildPackages)
+      flex
+      byacc
+      ;
   };
 
   libc = self.callPackage ./pkgs/libc/package.nix {
-    inherit (buildFreebsd)
-      makeMinimal
-      install
-      gencat
-      rpcgen
-      mkcsmapper
-      mkesdb
-      ;
-    inherit (self) csu include;
+    inherit (self) libcMinimal librpcsvc libelf;
+  };
+
+  librpcsvc = self.callPackage ./pkgs/librpcsvc.nix {
+    inherit (buildFreebsd) rpcgen;
+  };
+
+  i18n = self.callPackage ./pkgs/i18n.nix { inherit (buildFreebsd) mkcsmapper mkesdb; };
+
+  libelf = self.callPackage ./pkgs/libelf.nix { inherit (buildPackages) m4; };
+
+  rtld-elf = self.callPackage ./pkgs/rtld-elf.nix {
+    inherit (buildFreebsd) rpcgen;
+    inherit (buildPackages) flex byacc;
   };
 
   libnetbsd = self.callPackage ./pkgs/libnetbsd/package.nix { inherit (buildFreebsd) makeMinimal; };
 
-  libmd = self.callPackage ./pkgs/libmd.nix { inherit (buildFreebsd) makeMinimal; };
+  libmd-boot = self.callPackage ./pkgs/libmd-boot.nix { inherit (buildFreebsd) makeMinimal; };
 
   mkDerivation = self.callPackage ./pkgs/mkDerivation.nix {
     inherit stdenv;
@@ -94,7 +111,7 @@ lib.packagesFromDirectoryRecursive {
 
   makeMinimal = self.callPackage ./pkgs/makeMinimal.nix { inherit (self) make; };
 
-  mtree = self.callPackage ./pkgs/mtree.nix { inherit (self) libnetbsd libmd; };
+  mtree = self.callPackage ./pkgs/mtree.nix { inherit (self) libnetbsd libmd-boot; };
 
   tsort = self.callPackage ./pkgs/tsort.nix { inherit (buildFreebsd) makeMinimal install; };
 }

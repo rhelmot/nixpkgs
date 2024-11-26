@@ -1,28 +1,34 @@
 {
-  stdenv,
   mkDerivation,
-  bsdSetupHook,
-  freebsdSetupHook,
-  makeMinimal,
-  install,
   m4,
+  include,
+  libcMinimal,
+  libgcc,
 }:
+
 mkDerivation {
   path = "lib/libelf";
   extraPaths = [
     "lib/libc"
     "contrib/elftoolchain"
-    "sys/sys/elf32.h"
-    "sys/sys/elf64.h"
-    "sys/sys/elf_common.h"
-  ];
-  nativeBuildInputs = [
-    bsdSetupHook
-    freebsdSetupHook
-    makeMinimal
-    install
-    m4
+    "sys/sys"
   ];
 
-  BOOTSTRAPPING = !stdenv.hostPlatform.isFreeBSD;
+  outputs = [
+    "out"
+    "man"
+    "debug"
+  ];
+
+  noLibc = true;
+
+  buildInputs = [
+    include
+    libcMinimal
+    libgcc
+  ];
+
+  extraNativeBuildInputs = [
+    m4
+  ];
 }

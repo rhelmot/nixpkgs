@@ -1,22 +1,26 @@
 {
   mkDerivation,
   include,
-  libgcc,
   libcMinimal,
+  libgcc,
+  libkvm,
 }:
+
 mkDerivation {
-  path = "lib/libutil";
-  extraPaths = [ "lib/libc/gen" ];
+  path = "lib/libmemstat";
+
   outputs = [
     "out"
     "man"
     "debug"
   ];
+
   noLibc = true;
+
   buildInputs = [
     include
-    libgcc
     libcMinimal
+    libgcc
+    libkvm
   ];
-  env.MK_TESTS = "no";
 }

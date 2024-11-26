@@ -6,12 +6,9 @@
 }:
 
 mkDerivation {
-  path = "lib/libdl";
+  path = "lib/libiconv_modules";
   extraPaths = [
-    "libexec/rtld-elf"
-    "lib/libc/gen"
-    "lib/libc/include"
-    "lib/libc/Versions.def"
+    "lib/libc/iconv"
   ];
 
   outputs = [
@@ -26,4 +23,8 @@ mkDerivation {
     libcMinimal
     libgcc
   ];
+
+  preBuild = ''
+    export makeFlags="$makeFlags SHLIBDIR=$out/lib/i18n"
+  '';
 }
