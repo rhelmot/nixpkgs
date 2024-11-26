@@ -1,22 +1,31 @@
 {
   mkDerivation,
+  libcMinimal,
   include,
   libgcc,
-  libcMinimal,
 }:
+
 mkDerivation {
-  path = "lib/libutil";
-  extraPaths = [ "lib/libc/gen" ];
+  path = "lib/libthr";
+  extraPaths = [
+    "lib/libthread_db"
+    "lib/libc" # needs /include + arch-specific files
+    "libexec/rtld-elf"
+  ];
+
   outputs = [
     "out"
     "man"
     "debug"
   ];
+
   noLibc = true;
+
   buildInputs = [
+    libcMinimal
     include
     libgcc
-    libcMinimal
   ];
+
   env.MK_TESTS = "no";
 }

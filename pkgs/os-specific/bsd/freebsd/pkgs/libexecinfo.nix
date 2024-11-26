@@ -1,22 +1,31 @@
 {
   mkDerivation,
   include,
-  libgcc,
+  libelf,
   libcMinimal,
+  libgcc,
 }:
+
 mkDerivation {
-  path = "lib/libutil";
-  extraPaths = [ "lib/libc/gen" ];
+  path = "lib/libexecinfo";
+  extraPaths = [
+    "contrib/libexecinfo"
+  ];
+
   outputs = [
     "out"
     "man"
     "debug"
   ];
+
   noLibc = true;
+
   buildInputs = [
     include
-    libgcc
+    libelf
     libcMinimal
+    libgcc
   ];
+
   env.MK_TESTS = "no";
 }

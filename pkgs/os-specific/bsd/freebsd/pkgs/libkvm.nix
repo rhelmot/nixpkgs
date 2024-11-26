@@ -1,22 +1,31 @@
 {
   mkDerivation,
   include,
-  libgcc,
   libcMinimal,
+  libgcc,
+  libelf,
 }:
+
 mkDerivation {
-  path = "lib/libutil";
-  extraPaths = [ "lib/libc/gen" ];
+  path = "lib/libkvm";
+  extraPaths = [
+    "sys" # wants sys/${arch}
+  ];
+
   outputs = [
     "out"
     "man"
     "debug"
   ];
+
   noLibc = true;
+
   buildInputs = [
     include
-    libgcc
     libcMinimal
+    libgcc
+    libelf
   ];
+
   env.MK_TESTS = "no";
 }

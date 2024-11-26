@@ -12,7 +12,7 @@
   boot-install,
   install,
   compatIfNeeded,
-  libmd,
+  libmd-boot,
   libnetbsd,
 }:
 
@@ -39,10 +39,14 @@ mkDerivation {
     (if stdenv.hostPlatform == stdenv.buildPlatform then boot-install else install)
   ];
   skipIncludesPhase = true;
-  buildInputs = compatIfNeeded ++ [
-    libmd
-    libnetbsd
-  ];
+  buildInputs =
+    compatIfNeeded
+    ++ lib.optionals (!stdenv.hostPlatform.isFreeBSD) [
+      libmd-boot
+    ]
+    ++ [
+      libnetbsd
+    ];
   makeFlags =
     [
       "STRIP=-s" # flag to install, not command

@@ -1,22 +1,32 @@
 {
   mkDerivation,
   include,
-  libgcc,
   libcMinimal,
+  libgcc,
 }:
+
 mkDerivation {
-  path = "lib/libutil";
-  extraPaths = [ "lib/libc/gen" ];
+  path = "lib/libcrypt";
+  extraPaths = [
+    "sys/kern"
+    "sys/crypto"
+    "lib/libmd"
+    "secure/lib/libcrypt"
+  ];
+
   outputs = [
     "out"
     "man"
     "debug"
   ];
+
   noLibc = true;
+
   buildInputs = [
     include
-    libgcc
     libcMinimal
+    libgcc
   ];
+
   env.MK_TESTS = "no";
 }
