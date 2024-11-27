@@ -29,6 +29,7 @@
   stdenv.hostPlatform.emulatorAvailable buildPackages &&
   lib.meta.availableOn stdenv.hostPlatform gobject-introspection &&
   stdenv.hostPlatform.isLittleEndian == stdenv.buildPlatform.isLittleEndian
+, withSysprof ? !stdenv.hostPlatform.isFreeBSD  # sysprof-capture will not build on FreeBSD
 }:
 
 assert stdenv.hostPlatform.isLinux -> util-linuxMinimal != null;
@@ -126,10 +127,9 @@ stdenv.mkDerivation (finalAttrs: {
 
   buildInputs = [
     finalAttrs.setupHook
-  ] ++ lib.optionals (!stdenv.hostPlatform.isFreeBSD) [
-    libsysprof-capture
-  ] ++ [
     pcre2
+  ] ++ lib.optionals withSysprof [
+    libsysprof-capture
   ] ++ lib.optionals (!stdenv.hostPlatform.isWindows) [
     bash gnum4 # install glib-gettextize and m4 macros for other apps to use
   ] ++ lib.optionals (lib.meta.availableOn stdenv.hostPlatform elfutils) [
@@ -176,6 +176,7 @@ stdenv.mkDerivation (finalAttrs: {
     "-Ddocumentation=true" # gvariant specification can be built without gi-docgen
     (lib.mesonEnable "dtrace" withDtrace)
     (lib.mesonEnable "systemtap" withDtrace) # requires dtrace option to be enabled
+    (lib.mesonEnable "sysprof" withSysprof)
     "-Dnls=enabled"
     "-Ddevbindir=${placeholder "dev"}/bin"
     (lib.mesonEnable "introspection" withIntrospection)
@@ -187,7 +188,6 @@ stdenv.mkDerivation (finalAttrs: {
   ] ++ lib.optionals stdenv.hostPlatform.isFreeBSD [
     "-Db_lundef=false"
     "-Dxattr=false"
-    "-Dsysprof=disabled"  # sysprof-capture does not build on FreeBSD
   ];
 
   env.NIX_CFLAGS_COMPILE = toString [
