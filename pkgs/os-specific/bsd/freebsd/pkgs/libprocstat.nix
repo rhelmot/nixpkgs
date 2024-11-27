@@ -6,6 +6,7 @@
   libkvm,
   libutil,
   libelf,
+  csu,
 }:
 
 mkDerivation {
@@ -34,4 +35,8 @@ mkDerivation {
     libutil
     libelf
   ];
+
+  preBuild = ''
+    export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -B${csu}/lib"
+  '';
 }

@@ -2,6 +2,7 @@
   mkDerivation,
   include,
   libcMinimal,
+  csu,
 }:
 
 mkDerivation {
@@ -26,6 +27,10 @@ mkDerivation {
     include
     libcMinimal
   ];
+
+  preBuild = ''
+    export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -B${csu}/lib"
+  '';
 
   postBuild = ''
     mkdir $BSDSRCDIR/lib/libgcc_s/i386 $BSDSRCDIR/lib/libgcc_s/cpu_model

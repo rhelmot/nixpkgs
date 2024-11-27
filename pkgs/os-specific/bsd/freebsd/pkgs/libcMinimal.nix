@@ -5,6 +5,7 @@
   flex,
   byacc,
   gencat,
+  csu,
 }:
 
 mkDerivation {
@@ -54,6 +55,10 @@ mkDerivation {
   # this target is only used in the rtld-elf derivation. build it there instead.
   postPatch = ''
     sed -E -i -e '/BUILD_NOSSP_PIC_ARCHIVE=/d' $BSDSRCDIR/lib/libc/Makefile
+  '';
+
+  preBuild = ''
+    export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -B${csu}/lib"
   '';
 
   postBuild = ''

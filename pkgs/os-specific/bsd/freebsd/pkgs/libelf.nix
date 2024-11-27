@@ -1,14 +1,13 @@
 {
+  lib,
   stdenv,
   mkDerivation,
-  bsdSetupHook,
-  freebsdSetupHook,
-  makeMinimal,
-  install,
   m4,
   include,
   libcMinimal,
   libgcc,
+  compatIfNeeded,
+  csu,
 }:
 
 mkDerivation {
@@ -25,17 +24,19 @@ mkDerivation {
     "debug"
   ];
 
-  noLibc = true;
+  noLibc = stdenv.hostPlatform.isFreeBSD;
 
-  buildInputs = [
+  buildInputs = lib.optionals stdenv.hostPlatform.isFreeBSD [
     include
     libcMinimal
     libgcc
-  ];
+  ] ++ compatIfNeeded;
 
   extraNativeBuildInputs = [
     m4
   ];
 
-  BOOTSTRAPPING = !stdenv.hostPlatform.isFreeBSD;
+  preBuild = lib.optionalString stdenv.hostPlatform.isFreeBSD ''
+    export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -B${csu}/lib"
+  '';
 }

@@ -12,7 +12,7 @@
   boot-install,
   install,
   compatIfNeeded,
-  libmd-boot,
+  libmd,
   libnetbsd,
 }:
 
@@ -26,6 +26,9 @@ let
       @out@/bin/xinstall "''${args[@]}"
     ''
   );
+  libmd' = libmd.override {
+    bootstrapInstallation = true;
+  };
 in
 mkDerivation {
   path = "usr.bin/xinstall";
@@ -42,7 +45,7 @@ mkDerivation {
   buildInputs =
     compatIfNeeded
     ++ lib.optionals (!stdenv.hostPlatform.isFreeBSD) [
-      libmd-boot
+      libmd'
     ]
     ++ [
       libnetbsd

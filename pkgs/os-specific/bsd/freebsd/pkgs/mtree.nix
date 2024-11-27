@@ -5,16 +5,21 @@
   compatIfNeeded,
   compatIsNeeded,
   libnetbsd,
-  libmd-boot,
+  libmd,
 }:
 
-mkDerivation {
+let
+  libmd' = libmd.override {
+    bootstrapInstallation = true;
+  };
+
+in mkDerivation {
   path = "contrib/mtree";
   extraPaths = [ "contrib/mknod" ];
   buildInputs =
     compatIfNeeded
     ++ lib.optionals (!stdenv.hostPlatform.isFreeBSD) [
-      libmd-boot
+      libmd'
     ]
     ++ [
       libnetbsd

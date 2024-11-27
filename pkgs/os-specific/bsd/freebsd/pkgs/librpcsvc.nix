@@ -2,6 +2,7 @@
   mkDerivation,
   rpcgen,
   include,
+  csu,
 }:
 
 mkDerivation {
@@ -21,6 +22,7 @@ mkDerivation {
   ];
 
   preBuild = ''
+    export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -B${csu}/lib"
     export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -I${include}/include/rpcsvc"
   '';
 

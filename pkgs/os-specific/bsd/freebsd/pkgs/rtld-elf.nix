@@ -4,6 +4,7 @@
   rpcgen,
   flex,
   byacc,
+  csu,
 }:
 
 mkDerivation {
@@ -46,6 +47,7 @@ mkDerivation {
   ];
 
   preBuild = ''
+    export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -B${csu}/lib"
     make -C $BSDSRCDIR/lib/libc $makeFlags libc_nossp_pic.a
   '';
 

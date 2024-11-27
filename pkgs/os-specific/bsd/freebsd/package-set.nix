@@ -62,7 +62,7 @@ lib.packagesFromDirectoryRecursive {
 
   install = self.callPackage ./pkgs/install.nix {
     inherit (buildFreebsd) makeMinimal;
-    inherit (self) libmd-boot libnetbsd;
+    inherit (self) libmd libnetbsd;
   };
 
   libcMinimal = self.callPackage ./pkgs/libcMinimal.nix {
@@ -95,7 +95,7 @@ lib.packagesFromDirectoryRecursive {
 
   libnetbsd = self.callPackage ./pkgs/libnetbsd/package.nix { inherit (buildFreebsd) makeMinimal; };
 
-  libmd-boot = self.callPackage ./pkgs/libmd-boot.nix { inherit (buildFreebsd) makeMinimal; };
+  libmd = self.callPackage ./pkgs/libmd.nix { inherit (buildFreebsd) makeMinimal; };
 
   mkDerivation = self.callPackage ./pkgs/mkDerivation.nix {
     inherit stdenv;
@@ -110,7 +110,7 @@ lib.packagesFromDirectoryRecursive {
 
   makeMinimal = self.callPackage ./pkgs/makeMinimal.nix { inherit (self) make; };
 
-  mtree = self.callPackage ./pkgs/mtree.nix { inherit (self) libnetbsd libmd-boot; };
+  mtree = self.callPackage ./pkgs/mtree.nix { inherit (self) libnetbsd libmd; };
 
   tsort = self.callPackage ./pkgs/tsort.nix { inherit (buildFreebsd) makeMinimal install; };
 }

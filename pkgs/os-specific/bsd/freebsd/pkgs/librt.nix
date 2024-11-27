@@ -4,6 +4,7 @@
   libcMinimal,
   libgcc,
   libthr,
+  csu,
 }:
 
 mkDerivation {
@@ -26,6 +27,10 @@ mkDerivation {
     libgcc
     libthr
   ];
+
+  preBuild = ''
+    export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -B${csu}/lib"
+  '';
 
   env.MK_TESTS = "no";
 }

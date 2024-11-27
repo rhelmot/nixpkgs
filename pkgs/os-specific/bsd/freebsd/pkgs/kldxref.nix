@@ -2,13 +2,13 @@
   lib,
   stdenv,
   mkDerivation,
-  libelf-boot,
   compatIfNeeded,
+  libelf,
 }:
 mkDerivation {
   path = "usr.sbin/kldxref";
 
-  buildInputs = lib.optionals (!stdenv.hostPlatform.isFreeBSD) [ libelf-boot ] ++ compatIfNeeded;
+  buildInputs = lib.optionals (!stdenv.hostPlatform.isFreeBSD) [ libelf ] ++ compatIfNeeded;
 
   # We symlink in our modules, make it follow symlinks
   postPatch = ''

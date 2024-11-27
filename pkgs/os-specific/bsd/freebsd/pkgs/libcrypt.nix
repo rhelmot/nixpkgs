@@ -3,6 +3,7 @@
   include,
   libcMinimal,
   libgcc,
+  csu,
 }:
 
 mkDerivation {
@@ -27,6 +28,10 @@ mkDerivation {
     libcMinimal
     libgcc
   ];
+
+  preBuild = ''
+    export NIX_CFLAGS_COMPILE="$NIX_CFLAGS_COMPILE -B${csu}/lib"
+  '';
 
   env.MK_TESTS = "no";
 }

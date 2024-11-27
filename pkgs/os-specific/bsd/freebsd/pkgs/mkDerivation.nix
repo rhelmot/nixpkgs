@@ -75,6 +75,9 @@ lib.makeOverridable (
           MACHINE_CPUARCH = freebsd-lib.mkBsdCpuArch stdenv';
 
           COMPONENT_PATH = attrs.path or null;
+
+          # don't set filesystem flags that require root
+          NO_FSCHG = "yes";
         }
         // lib.optionalAttrs stdenv'.hasCC {
           # TODO should CC wrapper set this?
@@ -134,12 +137,7 @@ lib.makeOverridable (
         (
           !stdenv.hostPlatform.isStatic
           && !attrs.alwaysKeepStatic or false
-          && !(
-            let
-              bs = attrs.BOOTSTRAPPING or false;
-            in
-            bs == 1 || bs
-          )
+          && stdenv.hostPlatform.isFreeBSD
         )
         {
           postInstall =
@@ -148,7 +146,7 @@ lib.makeOverridable (
               rm -f $out/lib/*.a
             '';
         }
-    // lib.optionalAttrs (stdenv.hostPlatform.isStatic && attrs ? outputs) {
+    // lib.optionalAttrs ((stdenv.hostPlatform.isStatic || !stdenv.hostPlatform.isFreeBSD) && attrs ? outputs) {
       outputs = lib.lists.remove "debug" attrs.outputs;
     }
   )
