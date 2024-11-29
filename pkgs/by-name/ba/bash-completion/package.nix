@@ -61,6 +61,8 @@ stdenv.mkDerivation rec {
 
   prePatch = lib.optionalString stdenv.hostPlatform.isDarwin ''
     sed -i -e 's/readlink -f/readlink/g' bash_completion completions/*
+  '' + lib.optionalString stdenv.hostPlatform.isFreeBSD ''
+    touch completions/{pkg_delete,freebsd-update,kldload,kldunload,portinstall,portsnap,portupgrade}
   '';
 
   meta = with lib; {
