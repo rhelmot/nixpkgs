@@ -1,10 +1,13 @@
 {
+  buildPackages,
+  stdenvNoLibc,
+  overrideCC,
   mkDerivation,
   boot-config,
   pkgsBuildTarget,
   baseConfig ? "GENERIC",
 }:
-mkDerivation {
+(mkDerivation.override { stdenvNoLibc = overrideCC stdenvNoLibc buildPackages.llvmPackages_18.clangNoLibc; }) {
   path = "sys/arch/amd64";
   pname = "sys";
   extraPaths = [ "sys" ];
