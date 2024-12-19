@@ -59,7 +59,7 @@ stdenv.mkDerivation rec {
   meta = with lib; {
     description = "Client for the Dynamic Host Configuration Protocol (DHCP)";
     homepage = "https://roy.marples.name/projects/dhcpcd";
-    platforms = platforms.linux ++ platforms.freebsd;
+    platforms = platforms.unix;
     license = licenses.bsd2;
     maintainers = [ ];
     mainProgram = "dhcpcd";
