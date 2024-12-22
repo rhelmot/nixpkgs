@@ -1,5 +1,5 @@
 { lib, stdenvNoCC, fetchFromGitHub, bash, makeWrapper, pciutils
-, x11Support ? true, ueberzug, fetchpatch
+, x11Support ? !stdenvNoCC.isOpenBSD, ueberzug, fetchpatch
 }:
 
 stdenvNoCC.mkDerivation rec {
@@ -44,7 +44,7 @@ stdenvNoCC.mkDerivation rec {
 
   postInstall = ''
     wrapProgram $out/bin/neofetch \
-      --prefix PATH : ${lib.makeBinPath ([ pciutils ] ++ lib.optional x11Support ueberzug) }
+      --prefix PATH : ${lib.makeBinPath (lib.optional (!stdenvNoCC.isOpenBSD) pciutils ++ lib.optional x11Support ueberzug) }
   '';
 
   makeFlags = [
