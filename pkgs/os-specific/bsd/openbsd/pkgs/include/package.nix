@@ -52,5 +52,11 @@ mkDerivation {
     "-B"
   ];
 
+  # TODO: Find a better place to put login programs
+  postPatch = ''
+    substituteInPlace $BSDSRCDIR/include/login_cap.h \
+        --replace-fail "/usr/libexec/auth" "/run/wrappers/bin"
+  '';
+
   headersOnly = true;
 }
