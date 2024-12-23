@@ -1,5 +1,5 @@
 diff --git a/etc/rc b/etc/rc
-index 9d87fac8caf..ed2e6dc17c2 100644
+index 9d87fac8caf..bc27ab4e39e 100644
 --- a/etc/rc
 +++ b/etc/rc
 @@ -337,7 +337,7 @@ trap : 3	# Shouldn't be needed.
@@ -11,12 +11,16 @@ index 9d87fac8caf..ed2e6dc17c2 100644
  
  # /etc/myname contains my symbolic name.
  if [[ -f /etc/myname ]]; then
-@@ -353,6 +353,10 @@ fi
- FUNCS_ONLY=1 . /etc/rc.d/rc.subr
+@@ -350,9 +350,13 @@ if [[ -s /etc/defaultdomain && -z "$(sysctl -n kern.domainname)" ]]; then
+ fi
+ 
+ # Get local functions from rc.subr to load rc.conf into scope.
+-FUNCS_ONLY=1 . /etc/rc.d/rc.subr
++FUNCS_ONLY=1 . /etc/rc.subr
  _rc_parse_conf
  
 +daemon_phase() {
-+	. /etc/rc.daemon/$1
++	. /etc/rc.order/$1
 +}
 +
  # If executed with the 'shutdown' parameter by the halt, reboot or shutdown:
@@ -31,6 +35,17 @@ index 9d87fac8caf..ed2e6dc17c2 100644
  
  # Mount all filesystems except those of type NFS and VND.
  mount -a -t nonfs,vnd
+@@ -422,8 +426,8 @@ mount -a -t nonfs,vnd
+ # Re-mount the root filesystem read/writeable. (root on nfs requires this,
+ # others aren't hurt.)
+ mount -uw /
+-chmod og-rwx /bsd
+-ln -fh /bsd /bsd.booted
++#chmod og-rwx /bsd
++#ln -fh /bsd /bsd.booted
+ 
+ rm -f /fastboot
+ 
 @@ -483,9 +487,10 @@ mount -s /var >/dev/null 2>&1		# cannot be on NFS
  mount -s /var/log >/dev/null 2>&1	# cannot be on NFS
  mount -s /usr >/dev/null 2>&1		# if NFS, fstab must use IP address

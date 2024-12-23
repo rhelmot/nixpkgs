@@ -5,7 +5,7 @@ mkDerivation {
   pname = "rc";
   path = "etc";
 
-  patches = [ ./be-normal.patch ];
+  patches = [ ./be-normal.patch ./use-bash.patch ];
 
   buildPhase = ":";
 

@@ -1,0 +1,48 @@
+diff --git a/etc/rc b/etc/rc
+index 9d87fac8caf..c1f6969e6e6 100644
+--- a/etc/rc
++++ b/etc/rc
+@@ -5,7 +5,8 @@
+ # controlling terminal.
+ 
+ # Turn off Strict Bourne shell.
+-set +o sh
++#set +o sh
++shopt -s extglob
+ 
+ # Subroutines (have to come first).
+ 
+@@ -19,7 +20,7 @@ stripcom() {
+ 
+ 	while read _line ; do
+ 		_line=${_line%%#*}
+-		[[ -n $_line ]] && print -r -- "$_line"
++		[[ -n $_line ]] && echo "$_line"
+ 	done <$_file
+ }
+ 
+@@ -470,7 +471,7 @@ if [[ $pf != NO ]]; then
+ 		pass out proto { tcp, udp } from any to any port { sunrpc, nfsd } !received-on any"
+ 	fi
+ 
+-	print -- "$RULES" | pfctl -f -
++	echo "$RULES" | pfctl -f -
+ 	pfctl -e
+ fi
+ 
+diff --git a/etc/rc.d/rc.subr b/etc/rc.d/rc.subr
+index 1f872f0ebc8..b36595c3a47 100644
+--- a/etc/rc.d/rc.subr
++++ b/etc/rc.d/rc.subr
+@@ -39,9 +39,9 @@ _rc_err() {
+ _rc_parse_conf() {
+ 	typeset -l _key
+ 	local _l _rcfile _val
+-	set -A _allowed_keys -- \
++	_allowed_keys=( \
+ 		accounting amd_master check_quotas ipsec library_aslr \
+-		multicast nfs_server pexp pf pkg_scripts shlib_dirs spamd_black
++		multicast nfs_server pexp pf pkg_scripts shlib_dirs spamd_black)
+ 
+ 	[ $# -gt 0 ] || set -- /etc/rc.conf /etc/rc.conf.local
+ 	for _rcfile; do
