@@ -52,8 +52,8 @@ let
     concatStringsSep
     ;
   inherit (darwin.apple_sdk.frameworks) Security;
-  useLLVMTarget = stdenv.targetPlatform.useLLVM or false;
-  useLLVMHost = stdenv.hostPlatform.useLLVM or false;
+  useLLVMTarget = llvmSharedForTarget.stdenv.cc.libcxx.isLLVM or false;
+  useLLVMHost = llvmSharedForHost.stdenv.cc.libcxx.isLLVM or false;
   useLLVMBuild = llvmSharedForBuild.stdenv.cc.libcxx.isLLVM or false;
 in
 stdenv.mkDerivation (finalAttrs: {
@@ -187,20 +187,12 @@ stdenv.mkDerivation (finalAttrs: {
       "${setHost}.crt-static=${lib.boolToString stdenv.hostPlatform.isStatic}"
       "${setTarget}.crt-static=${lib.boolToString stdenv.targetPlatform.isStatic}"
     ]
-    ++ optionals (!withBundledLLVM) [
+    ++ optionals (!withBundledLLVM) (let mkConfig = set: llvm: "${set}.llvm-config=${llvm.dev}/bin/llvm-config${lib.optionalString (llvm.stdenv.hostPlatform != llvm.stdenv.buildPlatform) "-native"}"; in [
       "--enable-llvm-link-shared"
-      "${setBuild}.llvm-config=${llvmSharedForBuild.dev}/bin/llvm-config"
-    ]
-    ++ (
-      if (llvmShared.stdenv.hostPlatform == llvmShared.stdenv.buildPlatform) then
-        [
-          "${setHost}.llvm-config=${llvmShared.dev}/bin/llvm-config"
-        ]
-      else
-        [
-          "${setHost}.llvm-config=${llvmShared.dev}/bin/llvm-config-native"
-        ]
-    )
+      (mkConfig setBuild llvmSharedForBuild)
+      (mkConfig setHost llvmSharedForHost)
+      (mkConfig setTarget llvmSharedForTarget)
+    ])
     ++ optionals fastCross [
       # Since fastCross only builds std, it doesn't make sense (and
       # doesn't work) to build a linker.
@@ -225,34 +217,15 @@ stdenv.mkDerivation (finalAttrs: {
       # https://github.com/rust-lang/rust/issues/92173
       "--set rust.jemalloc"
     ]
-    ++ [
+    ++ (let mkLibunwind = plat: if !plat.useLLVM || plat.isFreeBSD then "no" else if withBundledLLVM then "in-tree" else "system"; in [
       # https://github.com/NixOS/nixpkgs/issues/311930
-      "${setBuild}.llvm-libunwind=${
-        if (!useLLVMBuild || stdenv.buildPlatform.isFreeBSD) then
-          "no"
-        else if withBundledLLVM then
-          "in-tree"
-        else
-          "system"
-      }"
-      "${setHost}.llvm-libunwind=${
-        if (!useLLVMHost || stdenv.hostPlatform.isFreeBSD) then
-          "no"
-        else if withBundledLLVM then
-          "in-tree"
-        else
-          "system"
-      }"
-      "${setTarget}.llvm-libunwind=${
-        if (!useLLVMTarget || stdenv.targetPlatform.isFreeBSD) then
-          "no"
-        else if withBundledLLVM then
-          "in-tree"
-        else
-          "system"
-      }"
-    ]
-    ++ optionals (withBundledLLVM && useLLVMHost) [
+      "${setBuild}.llvm-libunwind=${mkLibunwind stdenv.buildPlatform}"
+      "${setHost}.llvm-libunwind=${mkLibunwind stdenv.hostPlatform}"
+      "${setTarget}.llvm-libunwind=${mkLibunwind stdenv.targetPlatform}"
+    ])
+    # the useLLVMHost || useLLVMTarget here are annoyingly imprecise.
+    # Probably the only way around it is to move the different compiler phases into different derivations.
+    ++ optionals (useLLVMHost || useLLVMTarget) [
       "--enable-use-libcxx"
     ];
 
@@ -370,7 +343,7 @@ stdenv.mkDerivation (finalAttrs: {
       llvmSharedForBuild.stdenv.cc.libcxx
       pkgsBuildBuild.llvmPackages.libunwind
     ]
-    ++ optional (!withBundledLLVM) llvmSharedForBuild.lib
+    #++ optional (!withBundledLLVM) llvmSharedForBuild.lib
     ++ optionals fastCross [
       lndir
       makeWrapper
@@ -383,9 +356,10 @@ stdenv.mkDerivation (finalAttrs: {
       Security
       zlib
     ]
-    ++ optional (!withBundledLLVM) llvmShared.lib
+    #++ optional (!withBundledLLVM) llvmShared.lib
+    # annoyingly imprecise: see above comment
     ++ optional (!withBundledLLVM && (useLLVMHost || useLLVMTarget)) llvmPackages.libcxx
-    ++ optionals (useLLVMTarget && !withBundledLLVM && !stdenv.hostPlatform.isFreeBSD) [
+    ++ optionals (!withBundledLLVM && (useLLVMHost || useLLVMTarget) && !stdenv.hostPlatform.isFreeBSD) [
       llvmPackages.libunwind
       # Hack which is used upstream https://github.com/gentoo/gentoo/blob/master/dev-lang/rust/rust-1.78.0.ebuild#L284
       (runCommandLocal "libunwind-libgcc" { } ''
