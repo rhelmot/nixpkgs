@@ -343,7 +343,6 @@ stdenv.mkDerivation (finalAttrs: {
       llvmSharedForBuild.stdenv.cc.libcxx
       pkgsBuildBuild.llvmPackages.libunwind
     ]
-    #++ optional (!withBundledLLVM) llvmSharedForBuild.lib
     ++ optionals fastCross [
       lndir
       makeWrapper
@@ -356,7 +355,6 @@ stdenv.mkDerivation (finalAttrs: {
       Security
       zlib
     ]
-    #++ optional (!withBundledLLVM) llvmShared.lib
     # annoyingly imprecise: see above comment
     ++ optional (!withBundledLLVM && (useLLVMHost || useLLVMTarget)) llvmPackages.libcxx
     ++ optionals (!withBundledLLVM && (useLLVMHost || useLLVMTarget) && !stdenv.hostPlatform.isFreeBSD) [
