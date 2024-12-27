@@ -190,7 +190,8 @@ stdenv.mkDerivation (finalAttrs: {
     ++ optionals (!withBundledLLVM) (let mkConfig = set: llvm: "${set}.llvm-config=${llvm.dev}/bin/llvm-config${lib.optionalString (llvm.stdenv.hostPlatform != llvm.stdenv.buildPlatform) "-native"}"; in [
       "--enable-llvm-link-shared"
       (mkConfig setBuild llvmSharedForBuild)
-      (mkConfig setHost llvmSharedForHost)
+      (mkConfig setHost llvmShared)
+    ] ++ lib.optionals (setHost != setTarget) [
       (mkConfig setTarget llvmSharedForTarget)
     ])
     ++ optionals fastCross [
