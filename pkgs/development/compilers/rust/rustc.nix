@@ -5,13 +5,13 @@
   pkgsBuildBuild,
   pkgsBuildHost,
   pkgsBuildTarget,
+  pkgsHostTarget,
   targetPackages,
   llvmShared,
   llvmSharedForBuild,
   llvmSharedForHost,
   llvmSharedForTarget,
   llvmPackages,
-  runCommandLocal,
   fetchurl,
   file,
   python3,
@@ -56,6 +56,12 @@ let
   useLLVMTarget = llvmSharedForTarget.stdenv.cc.libcxx.isLLVM or false;
   useLLVMHost = llvmSharedForHost.stdenv.cc.libcxx.isLLVM or false;
   useLLVMBuild = llvmSharedForBuild.stdenv.cc.libcxx.isLLVM or false;
+  mkCoreDeps = pkgs: useLLVM:
+    optionals (!withBundledLLVM && useLLVM) [
+      llvmPackages.libcxx
+    ] ++ optionals (!withBundledLLVM && useLLVM && (!pkgs.stdenv.cc.stdenv.targetPlatform.isFreeBSD)) [
+      llvmPackages.libunwind
+    ];
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "${targetPackages.stdenv.cc.targetPrefix}rustc";
@@ -225,9 +231,8 @@ stdenv.mkDerivation (finalAttrs: {
       "${setHost}.llvm-libunwind=${mkLibunwind stdenv.hostPlatform}"
       "${setTarget}.llvm-libunwind=${mkLibunwind stdenv.targetPlatform}"
     ])
-    # the useLLVMHost || useLLVMTarget here are annoyingly imprecise.
-    # Probably the only way around it is to move the different compiler phases into different derivations.
-    ++ optionals (useLLVMHost || useLLVMTarget) [
+    # the host condition here is imprecise - rust will try to use it for both build and host.
+    ++ optionals (withBundledLLVM && useLLVMHost) [
       "--enable-use-libcxx"
     ];
 
@@ -338,17 +343,10 @@ stdenv.mkDerivation (finalAttrs: {
       removeReferencesTo
       pkg-config
       xz
-    ]
-    # splicing isn't working here - saying llvmPackages.libcxx here does not give you libcxx for the build platform.
-    # e.g. if you're doing linux -> freebsd -> freebsd cross, the libcxx here would be linked against freebsd libc.so.7
-    ++ optionals (!withBundledLLVM && useLLVMBuild) [
-      llvmSharedForBuild.stdenv.cc.libcxx
-      pkgsBuildBuild.llvmPackages.libunwind
-    ]
-    ++ optionals fastCross [
+    ] ++ optionals fastCross [
       lndir
       makeWrapper
-    ];
+    ] ++ mkCoreDeps pkgsBuildHost useLLVMBuild;
 
   buildInputs =
     [ openssl ]
@@ -356,18 +354,7 @@ stdenv.mkDerivation (finalAttrs: {
       libiconv
       Security
       zlib
-    ]
-    # annoyingly imprecise: see above comment
-    ++ optional (!withBundledLLVM && (useLLVMHost || useLLVMTarget)) llvmPackages.libcxx
-    ++ optionals (!withBundledLLVM && (useLLVMHost || useLLVMTarget) && !stdenv.hostPlatform.isFreeBSD) [
-      llvmPackages.libunwind
-      # Hack which is used upstream https://github.com/gentoo/gentoo/blob/master/dev-lang/rust/rust-1.78.0.ebuild#L284
-      (runCommandLocal "libunwind-libgcc" { } ''
-        mkdir -p $out/lib
-        ln -s ${llvmPackages.libunwind}/lib/libunwind.so $out/lib/libgcc_s.so
-        ln -s ${llvmPackages.libunwind}/lib/libunwind.so $out/lib/libgcc_s.so.1
-      '')
-    ];
+    ] ++ mkCoreDeps pkgsHostTarget useLLVMHost;
 
   outputs = [
     "out"
