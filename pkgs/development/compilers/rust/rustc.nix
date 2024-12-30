@@ -45,6 +45,7 @@
 }:
 
 let
+  patches' = patches ++ [ ./library-path-backport.patch ];
   inherit (lib)
     optionals
     optional
@@ -272,7 +273,7 @@ stdenv.mkDerivation (finalAttrs: {
   # the rust build system complains that nix alters the checksums
   dontFixLibtool = true;
 
-  inherit patches;
+  patches = patches';
 
   postPatch =
     ''
