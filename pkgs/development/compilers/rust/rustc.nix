@@ -250,7 +250,7 @@ in stdenv.mkDerivation (finalAttrs: {
   dontUseCmakeConfigure = true;
 
   depsBuildBuild = [ pkgsBuildHost.stdenv.cc pkg-config ];
-  depsBuildTarget = lib.optionals stdenv.targetPlatform.isMinGW [ bintools ];
+  depsBuildTarget = [ pkgsBuildTarget.targetPackages.stdenv.cc ] ++ lib.optionals stdenv.targetPlatform.isMinGW [ bintools ];
 
   nativeBuildInputs = [
     file python3 rustc cmake
