@@ -1,4 +1,4 @@
-{ lib, stdenv, fetchurl, openssl, perl, which, dns-root-data }:
+{ lib, stdenv, fetchurl, openssl, perl, which, dns-root-data, autoreconfHook }:
 
 stdenv.mkDerivation rec {
   pname = "ldns";
@@ -15,7 +15,7 @@ stdenv.mkDerivation rec {
 
   outputs = [ "out" "dev" "man" "examples" ];
 
-  nativeBuildInputs = [ perl ];
+  nativeBuildInputs = [ perl autoreconfHook ];
   buildInputs = [ openssl ];
 
   configureFlags = [
