@@ -5,13 +5,14 @@ mkDerivation {
   pname = "rc";
   path = "etc";
 
-  patches = [ ./be-normal.patch ];
+  patches = [ ./boot-phases.patch ];
 
   buildPhase = ":";
 
   installPhase = ''
     mkdir -p $out/etc/rc.d
-    cp rc rc.d/rc.subr $out/etc
+    cp rc $out/etc
+    cp rc.d/rc.subr $out/etc/rc.d
     chmod +x $out/etc/rc
   '';
 }
