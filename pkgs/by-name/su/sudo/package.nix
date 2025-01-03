@@ -69,7 +69,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   depsBuildBuild = [ buildPackages.stdenv.cc ];
   nativeBuildInputs = [ groff ];
-  buildInputs = [ pam ];
+  buildInputs = lib.optionals (!stdenv.hostPlatform.isOpenBSD) [ pam ];
 
   enableParallelBuilding = true;
 
@@ -94,7 +94,7 @@ stdenv.mkDerivation (finalAttrs: {
     # From https://www.sudo.ws/about/license/
     license = with licenses; [ sudo bsd2 bsd3 zlib ];
     maintainers = with maintainers; [ rhendric ];
-    platforms = platforms.linux ++ platforms.freebsd;
+    platforms = platforms.linux ++ platforms.freebsd ++ platforms.openbsd;
     mainProgram = "sudo";
   };
 })
