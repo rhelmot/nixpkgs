@@ -2,6 +2,7 @@
 , stdenv
 , fetchurl
 , ncurses
+, autoreconfHook
 }:
 
 stdenv.mkDerivation (finalAttrs: {
@@ -21,6 +22,10 @@ stdenv.mkDerivation (finalAttrs: {
 
   propagatedBuildInputs = [
     ncurses
+  ];
+
+  nativeBuildInputs = [
+    autoreconfHook
   ];
 
   # GCC automatically include `stdc-predefs.h` while Clang does not do this by
