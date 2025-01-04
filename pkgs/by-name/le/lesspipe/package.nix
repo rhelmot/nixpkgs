@@ -74,7 +74,7 @@ stdenv.mkDerivation rec {
           "mdcat" "pandoc" "docx2txt" "libreoffice" "pptx2md" "mdcat" "xlscat" "odt2txt" "wvText" "antiword" "catdoc"
           "broken_catppt" "sxw2txt" "groff" "mandoc" "unrtf" "dvi2tty" "pod2text" "perldoc" "h5dump" "ncdump" "matdump"
           "djvutxt" "openssl" "gpg" "plistutil" "plutil" "id3v2" "csvlook" "jq" "zlib-flate" "lessfilter"
-        ] ++ lib.optional (stdenv.hostPlatform.isDarwin || stdenv.hostPlatform.isFreeBSD) [
+        ] ++ lib.optional (stdenv.hostPlatform.isDarwin || stdenv.hostPlatform.isBSD) [
           # resholve only identifies this on darwin/bsd
           # call site is guarded by || so it's safe to leave dynamic
           "locale"
@@ -83,6 +83,7 @@ stdenv.mkDerivation rec {
       };
       execer = [
         "cannot:${iconv}/bin/iconv"
+        "cannot:${file}/bin/file"
       ];
     }}
     ${resholve.phraseSolution "lesscomplete" {
@@ -104,6 +105,9 @@ stdenv.mkDerivation rec {
         ];
         builtin = [ "setopt" ];
       };
+      execer = [
+        "cannot:${file}/bin/file"
+      ];
     }}
   '';
 
