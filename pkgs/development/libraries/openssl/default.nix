@@ -202,7 +202,11 @@ let
         # https://github.com/openssl/openssl/pull/10565 indicated the
         # intent was that this would be configured properly automatically,
         # but that doesn't appear to be the case.
-        ++ lib.optional stdenv.hostPlatform.isOpenBSD "no-devcryptoeng"
+        ++ lib.optionals stdenv.hostPlatform.isOpenBSD [
+          "no-devcryptoeng"
+          # WTF Hack
+          "CFLAGS=-lc"
+        ]
         ++ lib.optionals (stdenv.hostPlatform.isMips && stdenv.hostPlatform ? gcc.arch) [
           # This is necessary in order to avoid openssl adding -march
           # flags which ultimately conflict with those added by
