@@ -8683,7 +8683,7 @@ with pkgs;
 
   ### DEVELOPMENT / PERL MODULES
 
-  perlInterpreters = import ../development/interpreters/perl { inherit callPackage; };
+  perlInterpreters = import ../development/interpreters/perl { inherit callPackage lib; };
   inherit (perlInterpreters) perl5;
 
   perl5Packages = recurseIntoAttrs perl5.pkgs;

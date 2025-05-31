@@ -1,4 +1,7 @@
-{ callPackage }:
+{
+  lib,
+  callPackage,
+}:
 
 let
   # Common passthru for all perl interpreters.
@@ -13,6 +16,7 @@ let
       perlOnTargetForTarget,
       perlAttr ? null,
       self, # is perlOnHostForTarget
+      enableThreading,
     }:
     let
       perlPackages =
@@ -60,6 +64,10 @@ let
       pkgs = perlPackages // (overrides pkgs);
       interpreter = "${self}/bin/perl";
       libPrefix = "lib/perl5/site_perl";
+      # TODO is this correct?
+      archString = self.stdenv.buildPlatform.system + lib.optionalString (enableThreading && self.stdenv.hostPlatform.isLinux) "-thread-multi";
+      archPrefix = "lib/perl5/${self.version}/${archString}";
+
       perlOnBuild = perlOnBuildForHost.override {
         inherit overrides;
         self = perlOnBuild;

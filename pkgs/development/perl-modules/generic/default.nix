@@ -14,6 +14,8 @@
   ],
   src ? null,
 
+  makeMakerFlags ? null,
+
   # enabling or disabling does nothing for perl packages so set it explicitly
   # to false to not change hashes when enableParallelBuildingByDefault is enabled
   enableParallelBuilding ? false,
@@ -45,6 +47,11 @@ lib.throwIf (attrs ? name)
 
   (
     let
+      # haha what
+      combinedFlags = lib.optionals (!stdenv.buildPlatform.canExecute stdenv.hostPlatform) [ "PERL_ARCHLIB=${perl}/${perl.archPrefix}" ]
+        ++ lib.optionals (makeMakerFlags != null) makeMakerFlags;
+      finalFlags = if makeMakerFlags == null && stdenv.buildPlatform.canExecute stdenv.hostPlatform then null else combinedFlags;
+
       defaultMeta = {
         homepage = "https://metacpan.org/dist/${attrs.pname}";
         inherit (perl.meta) platforms;
@@ -60,7 +67,9 @@ lib.throwIf (attrs ? name)
           buildInputs = buildInputs ++ [ perl ];
           nativeBuildInputs =
             nativeBuildInputs
-            ++ (if !(stdenv.buildPlatform.canExecute stdenv.hostPlatform) then [ perl.mini ] else [ perl ]);
+            ++ (if !(stdenv.buildPlatform.canExecute stdenv.hostPlatform) then [ perl ] else [ perl ]);
+
+          makeMakerFlags = finalFlags;
 
           inherit
             outputs
