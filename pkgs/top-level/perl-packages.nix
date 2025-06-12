@@ -5510,6 +5510,7 @@ with self;
       hash = "sha256-qt7tXkyL1rvfaMDdAGbLUT4Wq55bQ4LcSgqv1ViQaXs=";
     };
     buildInputs = [ BCOW ];
+    makeMakerFlags = [ "LDDLFLAGS=-shared -O2 -fstack-protector-strong" ];
     meta = {
       description = "Recursively copy Perl datatypes";
       license = with lib.licenses; [
@@ -16141,6 +16142,7 @@ with self;
       url = "mirror://cpan/authors/id/O/OA/OALDERS/HTML-Parser-3.81.tar.gz";
       hash = "sha256-wJEKXI+S+IF+3QbM/SJLocLr6MEPVR8DJYeh/IPWL/I=";
     };
+    makeMakerFlags = [ "LDDLFLAGS=-shared -O2 -fstack-protector-strong" ];
     propagatedBuildInputs = [
       HTMLTagset
       HTTPMessage
@@ -25256,6 +25258,8 @@ with self;
     postPatch = ''
       substituteInPlace Makefile.PL --replace pkg-config $PKG_CONFIG
     '';
+
+    makeMakerFlags = [ "LDDLFLAGS=-shared -O2 -fstack-protector-strong" ];
 
     meta = {
       description = "Extension for the DBus bindings";
@@ -38641,6 +38645,7 @@ with self;
     makeMakerFlags = [
       "EXPATLIBPATH=${pkgs.expat.out}/lib"
       "EXPATINCPATH=${pkgs.expat.dev}/include"
+      "LDDLFLAGS=-shared -O2 -fstack-protector-strong"
     ];
     propagatedBuildInputs = [ LWP ];
     meta = {
