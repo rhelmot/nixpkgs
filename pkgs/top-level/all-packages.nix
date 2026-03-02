@@ -1109,6 +1109,7 @@ with pkgs;
     perlSupport = false;
     rustSupport = false; # Needed for bootstrap
     withpcre2 = false;
+    curl = curlMinimal;
   };
 
   bump2version = with python3Packages; toPythonApplication bump2version;
