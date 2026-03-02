@@ -582,7 +582,10 @@ in
       __bootstrapArchive = bootstrapArchive;
       fetchurl = prevStage.fetchurlReal;
       freebsd = super.freebsd.overrideScope (
-        self': super': { localesPrev = prevStage.freebsd.localesReal; }
+        self': super': {
+          localesPrev = prevStage.freebsd.localesReal;
+          inherit (prevStage.freebsd) libc;
+        }
       );
     };
   })
