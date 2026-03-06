@@ -16,6 +16,7 @@
   kldload,
   kldstat,
   devctl,
+  devfs,
   sed,
   gnugrep,
 }:
@@ -73,6 +74,7 @@ mkDerivation {
         "/bin/sleep" = bin;
         "/bin/date" = bin;
         "/usr/bin/logger" = logger;
+        "/sbin/devfs" = devfs;
         "logger" = logger;
         "kenv" = bin;
       };
