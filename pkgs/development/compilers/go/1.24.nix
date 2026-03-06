@@ -115,7 +115,7 @@ stdenv.mkDerivation (finalAttrs: {
       # interpreter for cross
       # When CGO is not supported we rely on static binaries being built
       # since they don't need an ELF interpreter
-      export GO_EXTLINK_ENABLED=${toString finalAttrs.env.CGO_ENABLED}
+      export GO_EXTLINK_ENABLED=${if stdenv.hostPlatform.isFreeBSD then "0" else toString finalAttrs.env.CGO_ENABLED}
     ''}
     ulimit -a
 
