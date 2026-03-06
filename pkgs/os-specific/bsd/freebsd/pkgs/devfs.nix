@@ -1,10 +1,20 @@
-{ mkDerivation }:
+{ lib, mkDerivation }:
 mkDerivation {
   path = "sbin/devfs";
 
-  # These config files are mostly examples and not super useful
-  # in nixbsd
+  outputs = [
+    "out"
+    "debug"
+  ];
+
   postPatch = ''
-    sed -i 's/^CONFS=.*$//' $BSDSRCDIR/sbin/devfs/Makefile
+    sed -E -i -e '/CONFSDIR|CONFSMODE/d' sbin/devfs/Makefile
   '';
+
+  installTargets = [ "install" "installconfig" ];
+
+  meta = {
+    mainProgram = "devfs";
+    platforms = lib.platforms.freebsd;
+  };
 }
