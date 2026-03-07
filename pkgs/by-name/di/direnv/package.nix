@@ -25,6 +25,12 @@ buildGoModule (finalAttrs: {
   # we have no bash at the moment for windows
   BASH_PATH = lib.optionalString (!stdenv.hostPlatform.isWindows) "${bash}/bin/bash";
 
+  # Does not provide a clean way of providing other ldflags
+  # Need to explicitly set rpath on freebsd, see comment in go/module.nix
+  postPatch = lib.optionalString stdenv.hostPlatform.isFreeBSD ''
+    substituteInPlace GNUmakefile --replace-fail 'GO_LDFLAGS =' 'GO_LDFLAGS = -r ${lib.getLib stdenv.cc.libc}/lib'
+  '';
+
   # replace the build phase to use the GNUMakefile instead
   buildPhase = ''
     make BASH_PATH=$BASH_PATH

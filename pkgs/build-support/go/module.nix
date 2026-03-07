@@ -240,7 +240,10 @@ lib.extendMkDerivation {
       inherit enableParallelBuilding;
 
       # If not set to an explicit value, set the buildid empty for reproducibility.
-      ldflags = ldflags ++ lib.optional (!lib.any (lib.hasPrefix "-buildid=") ldflags) "-buildid=";
+      # If we are dynamic linking on FreeBSD, we need an explicit rpath for libc
+      # Linux's dynamic loader will automatically search its own path. freebsd ld will not.
+      ldflags = lib.optionals stdenv.hostPlatform.isFreeBSD ["-r" "${stdenv.cc.libc}/lib"]
+        ++ ldflags ++ lib.optional (!lib.any (lib.hasPrefix "-buildid=") ldflags) "-buildid=";
 
       configurePhase =
         args.configurePhase or (
