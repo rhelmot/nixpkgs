@@ -32,10 +32,10 @@ runCommandCC "kak-tree-sitter-parser-${lang}"
       chmod -R +w ./source
 
       build_dir="./source/$(tomlq -r '.grammar["${lang}"].path? // "src"' "${configFile}")/build"
-      compile="$(tomlq -r '.grammar["${lang}"].compile? // "cc"' "${configFile}")"
+      compile="$(tomlq --arg cc "$CC" -r '.grammar["${lang}"].compile? // "cc" as $result | if $result == "cc" then $cc else $result' "${configFile}")"
       compile_args="$(tomlq -r '.grammar["${lang}"].compile_args? // ["-c", "-fpic", "../parser.c", "-I", ".."] | join(" ")' "${configFile}")"
       compile_flags="$(tomlq -r '.grammar["${lang}"].compile_flags? // ["-O3"] | join(" ")' "${configFile}")"
-      link="$(tomlq -r '.grammar["${lang}"].link? // "cc"' "${configFile}")"
+      link="$(tomlq --arg cc "$CC" -r '.grammar["${lang}"].link? // "cc" as $result | if $result == cc" then $cc else $result' "${configFile}")"
       link_args="$(tomlq -r '.grammar["${lang}"].link_args? // ["-shared", "-fpic", "parser.o", "-o", "${lang}.so"] | join(" ")' "${configFile}")"
       link_flags="$(tomlq -r '.grammar["${lang}"].link_flags? // ["-O3"] | join(" ")' "${configFile}")"
 
