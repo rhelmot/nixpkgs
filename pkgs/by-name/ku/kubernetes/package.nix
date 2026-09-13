@@ -49,7 +49,10 @@ buildGoModule (finalAttrs: {
     "pause"
   ];
 
-  patches = [ ./fixup-addonmanager-lib-path.patch ];
+  patches = [
+    ./fixup-addonmanager-lib-path.patch
+    ./fix-kubeadm-kubelet-kubeconfig-dir.patch
+  ];
 
   env.WHAT = toString components;
 
