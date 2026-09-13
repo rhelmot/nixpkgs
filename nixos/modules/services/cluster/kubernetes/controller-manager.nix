@@ -41,6 +41,13 @@ in
       type = str;
     };
 
+    serviceCidr = lib.mkOption {
+      description = "Kubernetes CIDR Range for ClusterIP services in cluster.";
+      default = top.apiserver.serviceClusterIpRange;
+      defaultText = lib.literalExpression "config.${otop.apiserver.serviceClusterIpRange}";
+      type = nullOr str;
+    };
+
     enable = lib.mkEnableOption "Kubernetes controller manager";
 
     extraOpts = lib.mkOption {
@@ -56,7 +63,7 @@ in
       type = attrsOf bool;
     };
 
-    kubeconfig = top.lib.mkKubeConfigOptions "Kubernetes controller manager";
+    kubeconfig = top.lib.mkKubeConfigOptions "controller-manager" "Kubernetes controller manager";
 
     leaderElect = lib.mkOption {
       description = "Whether to start leader election before executing main loop.";
@@ -127,6 +134,7 @@ in
                     --allocate-node-cidrs=${lib.boolToString cfg.allocateNodeCIDRs} \
                     --bind-address=${cfg.bindAddress} \
                     ${lib.optionalString (cfg.clusterCidr != null) "--cluster-cidr=${cfg.clusterCidr}"} \
+                    ${lib.optionalString (cfg.serviceCidr != null) "--service-cluster-ip-range=${cfg.serviceCidr}"} \
                     ${
                       lib.optionalString (cfg.featureGates != { })
                         "--feature-gates=${
@@ -135,7 +143,7 @@ in
                           )
                         }"
                     } \
-                    --kubeconfig=${top.lib.mkKubeConfig "kube-controller-manager" cfg.kubeconfig} \
+                    --kubeconfig=${cfg.kubeconfig.path} \
                     --leader-elect=${lib.boolToString cfg.leaderElect} \
                     ${lib.optionalString (cfg.rootCaFile != null) "--root-ca-file=${cfg.rootCaFile}"} \
                     --secure-port=${toString cfg.securePort} \
@@ -174,8 +182,6 @@ in
         action = "systemctl restart kube-controller-manager.service";
       };
     };
-
-    services.kubernetes.controllerManager.kubeconfig.server = lib.mkDefault top.apiserverAddress;
   };
 
   meta.buildDocsInSandbox = false;

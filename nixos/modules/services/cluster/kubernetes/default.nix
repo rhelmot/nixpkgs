@@ -34,9 +34,8 @@ let
     };
   };
 
-  mkKubeConfig =
-    name: conf:
-    pkgs.writeText "${name}-kubeconfig" (
+  mkKubeConfig = conf:
+    pkgs.writeText "${conf.name}-kubeconfig" (
       builtins.toJSON {
         apiVersion = "v1";
         kind = "Config";
@@ -49,7 +48,7 @@ let
         ];
         users = [
           {
-            inherit name;
+            inherit (conf) name;
             user = {
               client-certificate = conf.certFile;
               client-key = conf.keyFile;
@@ -60,7 +59,7 @@ let
           {
             context = {
               cluster = "local";
-              user = name;
+              user = conf.name;
             };
             name = "local";
           }
@@ -104,30 +103,51 @@ let
 
   secret = name: "${cfg.secretsPath}/${name}.pem";
 
-  mkKubeConfigOptions = prefix: {
-    server = lib.mkOption {
-      description = "${prefix} kube-apiserver server address.";
-      type = lib.types.str;
-    };
+  mkKubeConfigOptions = name: description: lib.mkOption {
+    description = "${description} kubeconfig file.";
+    type = lib.types.submodule ({ ... }@args: let config' = args.config; in {
+      options = {
+        name = lib.mkOption {
+          description = "${description} username to authenticate.";
+          type = lib.types.str;
+        };
 
-    caFile = lib.mkOption {
-      description = "${prefix} certificate authority file used to connect to kube-apiserver.";
-      type = lib.types.nullOr lib.types.path;
-      default = cfg.caFile;
-      defaultText = lib.literalExpression "config.${opt.caFile}";
-    };
+        server = lib.mkOption {
+          description = "${description} kube-apiserver server address.";
+          type = lib.types.str;
+        };
 
-    certFile = lib.mkOption {
-      description = "${prefix} client certificate file used to connect to kube-apiserver.";
-      type = lib.types.nullOr lib.types.path;
-      default = null;
-    };
+        caFile = lib.mkOption {
+          description = "${description} certificate authority file used to connect to kube-apiserver.";
+          type = lib.types.nullOr lib.types.path;
+          default = cfg.caFile;
+          defaultText = lib.literalExpression "config.${opt.caFile}";
+        };
 
-    keyFile = lib.mkOption {
-      description = "${prefix} client key file used to connect to kube-apiserver.";
-      type = lib.types.nullOr lib.types.path;
-      default = null;
-    };
+        certFile = lib.mkOption {
+          description = "${description} client certificate file used to connect to kube-apiserver.";
+          type = lib.types.nullOr lib.types.path;
+          default = null;
+        };
+
+        keyFile = lib.mkOption {
+          description = "${description} client key file used to connect to kube-apiserver.";
+          type = lib.types.nullOr lib.types.path;
+          default = null;
+        };
+
+        path = lib.mkOption {
+          description = "${description} path at which to find the configuration file.";
+          type = lib.types.path;
+          defaultText = "A store path with the other options from the submodule baked in.";
+        };
+      };
+      config = {
+        name = lib.mkDefault name;
+        server = lib.mkDefault cfg.apiserverAddress;
+        path = lib.mkDefault (mkKubeConfig config');
+      };
+    });
   };
 in
 {
@@ -164,7 +184,7 @@ in
 
     package = lib.mkPackageOption pkgs "kubernetes" { };
 
-    kubeconfig = mkKubeConfigOptions "Default kubeconfig";
+    kubeconfig = mkKubeConfigOptions "default" "Default kubeconfig";
 
     apiserverAddress = lib.mkOption {
       description = ''
@@ -221,7 +241,6 @@ in
       description = "Common functions for the kubernetes modules.";
       default = {
         inherit mkCert;
-        inherit mkKubeConfig;
         inherit mkKubeConfigOptions;
       };
       type = lib.types.attrs;

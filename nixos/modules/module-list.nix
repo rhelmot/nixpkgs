@@ -511,6 +511,7 @@
   ./services/cluster/kubernetes/flannel.nix
   ./services/cluster/kubernetes/kubelet.nix
   ./services/cluster/kubernetes/pki.nix
+  ./services/cluster/kubernetes/kubeadm.nix
   ./services/cluster/kubernetes/proxy.nix
   ./services/cluster/kubernetes/scheduler.nix
   ./services/cluster/pacemaker/default.nix

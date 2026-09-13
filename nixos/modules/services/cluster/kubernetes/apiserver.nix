@@ -285,6 +285,12 @@ in
         type = int;
       };
 
+      openFirewall = lib.mkOption {
+        description = "Open securePort to external callers";
+        default = false;
+        type = bool;
+      };
+
       apiAudiences = lib.mkOption {
         description = ''
           Kubernetes apiserver ServiceAccount issuer.
@@ -547,6 +553,10 @@ in
           action = "systemctl restart etcd.service";
         };
       };
+
+      networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [
+        cfg.securePort
+      ];
 
     })
 

@@ -1,3 +1,8 @@
+# TODO: Get rid of kube-addon-manager in the future for the following reasons
+# - it is basically just a shell script wrapped around kubectl
+# - it assumes that it is clusterAdmin or can gain clusterAdmin rights through serviceAccount
+# - it is designed to be used with k8s system components only
+# - it would be better with a more Nix-oriented way of managing addons
 {
   config,
   lib,
@@ -66,6 +71,9 @@ in
       '';
     };
 
+    kubeconfig = top.lib.mkKubeConfigOptions "addon-manager" "Add-on manager";
+    bootstrapKubeconfig = top.lib.mkKubeConfigOptions "bootstrap-addon-manager" "Bootstrap add-on manager";
+
     enable = lib.mkEnableOption "Kubernetes addon manager";
   };
 
@@ -73,11 +81,12 @@ in
   config = lib.mkIf cfg.enable {
     environment.etc."kubernetes/addons".source = "${addons}/";
 
-    systemd.services.kube-addon-manager = {
+    systemd.services.kube-addon-manager = lib.mkMerge [{
       description = "Kubernetes addon manager";
       wantedBy = [ "kubernetes.target" ];
       after = [ "kube-apiserver.service" ];
       environment.ADDON_PATH = "/etc/kubernetes/addons/";
+      environment.KUBECONFIG = cfg.kubeconfig.path;
       path = [ pkgs.gawk ];
       serviceConfig = {
         Slice = "kubernetes.slice";
@@ -91,7 +100,19 @@ in
       unitConfig = {
         StartLimitIntervalSec = 0;
       };
-    };
+    } (lib.mkIf (cfg.bootstrapAddons != {}) {
+      serviceConfig.PermissionsStartOnly = true;
+      preStart =
+        let
+          files = lib.mapAttrsToList (
+            n: v: pkgs.writeText "${n}.json" (builtins.toJSON v)
+          ) cfg.bootstrapAddons;
+        in
+        ''
+          export KUBECONFIG=${cfg.bootstrapKubeconfig.path}
+          ${top.package}/bin/kubectl apply -f ${lib.concatStringsSep " \\\n -f " files}
+        '';
+    })];
 
     services.kubernetes.addonManager.bootstrapAddons = lib.mkIf isRBACEnabled (
       let
