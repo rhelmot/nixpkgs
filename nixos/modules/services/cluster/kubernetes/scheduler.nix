@@ -35,7 +35,7 @@ in
       type = attrsOf bool;
     };
 
-    kubeconfig = top.lib.mkKubeConfigOptions "Kubernetes scheduler";
+    kubeconfig = top.lib.mkKubeConfigOptions "kube-scheduler" "Kubernetes scheduler";
 
     leaderElect = lib.mkOption {
       description = "Whether to start leader election before executing main loop.";
@@ -79,7 +79,7 @@ in
                           )
                         }"
                     } \
-                    --kubeconfig=${top.lib.mkKubeConfig "kube-scheduler" cfg.kubeconfig} \
+                    --kubeconfig=${cfg.kubeconfig.path} \
                     --leader-elect=${lib.boolToString cfg.leaderElect} \
                     --secure-port=${toString cfg.port} \
                     ${lib.optionalString (cfg.verbosity != null) "--v=${toString cfg.verbosity}"} \
@@ -103,8 +103,6 @@ in
         action = "systemctl restart kube-scheduler.service";
       };
     };
-
-    services.kubernetes.scheduler.kubeconfig.server = lib.mkDefault top.apiserverAddress;
   };
 
   meta.buildDocsInSandbox = false;

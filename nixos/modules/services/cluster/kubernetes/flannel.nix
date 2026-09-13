@@ -21,6 +21,8 @@ in
       type = lib.types.bool;
       default = true;
     };
+
+    kubeconfig = top.lib.mkKubeConfigOptions "flannel" "Flannel networking";
   };
 
   ###### implementation
@@ -31,6 +33,7 @@ in
       network = lib.mkDefault top.clusterCidr;
       inherit storageBackend;
       nodeName = config.services.kubernetes.kubelet.hostname;
+      kubeconfig = cfg.kubeconfig.path;
     };
 
     services.kubernetes.kubelet = {

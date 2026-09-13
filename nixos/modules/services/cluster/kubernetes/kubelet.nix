@@ -37,8 +37,6 @@ let
     config.Cmd = [ "/bin/pause" ];
   };
 
-  kubeconfig = top.lib.mkKubeConfig "kubelet" cfg.kubeconfig;
-
   # Flag based settings are deprecated, use the `--config` flag with a
   # `KubeletConfiguration` struct.
   # https://kubernetes.io/docs/tasks/administer-cluster/kubelet-config-file/
@@ -240,7 +238,7 @@ in
       type = str;
     };
 
-    kubeconfig = top.lib.mkKubeConfigOptions "Kubelet";
+    kubeconfig = top.lib.mkKubeConfigOptions "kubelet" "Kubelet";
 
     manifests = mkOption {
       description = "List of manifests to bootstrap with kubelet (only pods can be created as manifest entry)";
@@ -365,11 +363,12 @@ in
           MemoryAccounting = true;
           Restart = "on-failure";
           RestartSec = "1000ms";
+          WatchdogSec = "30s";
           ExecStart = ''
             ${top.package}/bin/kubelet \
                         --config=${kubeletConfig} \
                         --hostname-override=${cfg.hostname} \
-                        --kubeconfig=${kubeconfig} \
+                        --kubeconfig=${cfg.kubeconfig.path} \
                         ${optionalString (cfg.nodeIp != null) "--node-ip=${cfg.nodeIp}"} \
                         ${optionalString (cfg.manifests != { }) "--pod-manifest-path=/etc/${manifestPath}"} \
                         ${optionalString (taints != "") "--register-with-taints=${taints}"} \
@@ -413,8 +412,6 @@ in
           action = "systemctl restart kubelet.service";
         };
       };
-
-      services.kubernetes.kubelet.kubeconfig.server = mkDefault top.apiserverAddress;
     })
 
     (mkIf (cfg.enable && cfg.manifests != { }) {

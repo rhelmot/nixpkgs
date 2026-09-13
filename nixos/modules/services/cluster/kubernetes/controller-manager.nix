@@ -56,7 +56,7 @@ in
       type = attrsOf bool;
     };
 
-    kubeconfig = top.lib.mkKubeConfigOptions "Kubernetes controller manager";
+    kubeconfig = top.lib.mkKubeConfigOptions "controller-manager" "Kubernetes controller manager";
 
     leaderElect = lib.mkOption {
       description = "Whether to start leader election before executing main loop.";
@@ -135,7 +135,7 @@ in
                           )
                         }"
                     } \
-                    --kubeconfig=${top.lib.mkKubeConfig "kube-controller-manager" cfg.kubeconfig} \
+                    --kubeconfig=${cfg.kubeconfig.path} \
                     --leader-elect=${lib.boolToString cfg.leaderElect} \
                     ${lib.optionalString (cfg.rootCaFile != null) "--root-ca-file=${cfg.rootCaFile}"} \
                     --secure-port=${toString cfg.securePort} \
@@ -174,8 +174,6 @@ in
         action = "systemctl restart kube-controller-manager.service";
       };
     };
-
-    services.kubernetes.controllerManager.kubeconfig.server = lib.mkDefault top.apiserverAddress;
   };
 
   meta.buildDocsInSandbox = false;

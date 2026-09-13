@@ -52,7 +52,7 @@ in
       type = str;
     };
 
-    kubeconfig = top.lib.mkKubeConfigOptions "Kubernetes proxy";
+    kubeconfig = top.lib.mkKubeConfigOptions "kube-proxy" "Kubernetes proxy";
 
     verbosity = mkOption {
       description = ''
@@ -90,7 +90,7 @@ in
               }"
           } \
           --hostname-override=${cfg.hostname} \
-          --kubeconfig=${top.lib.mkKubeConfig "kube-proxy" cfg.kubeconfig} \
+          --kubeconfig=${cfg.kubeconfig.path} \
           ${optionalString (cfg.verbosity != null) "--v=${toString cfg.verbosity}"} \
           ${cfg.extraOpts}
         '';
@@ -112,8 +112,6 @@ in
         action = "systemctl restart kube-proxy.service";
       };
     };
-
-    services.kubernetes.proxy.kubeconfig.server = mkDefault top.apiserverAddress;
   };
 
   meta.buildDocsInSandbox = false;

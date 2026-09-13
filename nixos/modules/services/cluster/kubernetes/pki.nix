@@ -369,16 +369,7 @@ in
         127.0.0.1 etcd.${top.addons.dns.clusterDomain} etcd.local
       '';
 
-      services.flannel = with cfg.certs.flannelClient; {
-        kubeconfig = top.lib.mkKubeConfig "flannel" {
-          server = top.apiserverAddress;
-          certFile = cert;
-          keyFile = key;
-        };
-      };
-
       services.kubernetes = {
-
         apiserver = mkIf top.apiserver.enable (
           with cfg.certs.apiServer;
           {
@@ -429,6 +420,13 @@ in
             keyFile = mkDefault key;
           };
         };
+        flannel = mkIf top.flannel.enable {
+          kubeconfig = with cfg.certs.flannelClient; {
+            certFile = cert;
+            keyFile = key;
+          };
+        };
+
       };
     }
   );
