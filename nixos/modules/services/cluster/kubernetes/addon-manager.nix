@@ -19,11 +19,12 @@ let
     mkdir -p $out
     # since we are mounting the addons to the addon manager, they need to be copied
     ${lib.concatMapStringsSep ";" (a: "cp -v ${a}/* $out/") (
-      lib.mapAttrsToList (name: addon: pkgs.writeTextDir "${name}.json" (builtins.toJSON addon)) (
+      lib.mapAttrsToList (name: addon: pkgs.writeTextDir "${name}.yaml" (addonToString addon)) (
         cfg.addons
       )
     )}
   '';
+  addonToString = addon: if builtins.isList addon then lib.concatMapStringsSep "---\n" addonToString addon else "${builtins.toJSON addon}\n";
 in
 {
   ###### interface
